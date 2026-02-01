@@ -455,7 +455,7 @@ export default function OrderFormSection() {
                   maxLength={100}
                   rows={3}
                   className={cn(
-                    "w-full px-4 py-3 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30",
+                    "w-full px-4 py-3 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30 text-base min-h-[100px]",
                     errors.message ? "border-error" : "border-white/20"
                   )}
                 />
@@ -477,7 +477,7 @@ export default function OrderFormSection() {
                   {...register("email")}
                   placeholder="birthday.person@email.com"
                   className={cn(
-                    "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30",
+                    "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30 text-base h-12",
                     errors.email ? "border-error" : "border-white/20"
                   )}
                 />
@@ -545,7 +545,7 @@ export default function OrderFormSection() {
                     type="text"
                     {...register("musicLink")}
                     placeholder="Paste YouTube or Spotify link"
-                    className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30"
+                    className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30 text-base h-12"
                   />
                   <div className="text-center text-white/40 text-sm">or</div>
                   <div className="border border-white/20 rounded-xl p-4 bg-white/5">
@@ -634,7 +634,7 @@ export default function OrderFormSection() {
                   placeholder="E.g., 'You deserve all the joy!'"
                   maxLength={200}
                   rows={2}
-                  className="w-full px-4 py-3 border border-white/20 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30"
+                  className="w-full px-4 py-3 border border-white/20 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30 text-base min-h-[80px]"
                 />
               </div>
 
@@ -738,7 +738,7 @@ export default function OrderFormSection() {
                 <input
                   type="checkbox"
                   {...register("termsAccepted")}
-                  className="w-5 h-5 mt-0.5 text-primary rounded"
+                  className="w-6 h-6 mt-0.5 text-primary rounded flex-shrink-0"
                 />
                 <span className="text-sm text-white/60">
                   I agree to the{" "}
@@ -762,7 +762,7 @@ export default function OrderFormSection() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full btn-primary py-4 text-lg flex items-center justify-center gap-2"
+              className="w-full btn-primary py-4 text-base md:text-lg flex items-center justify-center gap-2 min-h-[56px]"
             >
               {isSubmitting ? (
                 <>

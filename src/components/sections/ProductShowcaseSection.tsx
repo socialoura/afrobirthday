@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Play, Pause, Volume2, VolumeX } from "lucide-react";
+import Image from "next/image";
+import { Play } from "lucide-react";
 
 const videos = [
   {
@@ -34,54 +35,60 @@ export default function ProductShowcaseSection() {
   const [activeVideo, setActiveVideo] = useState<number | null>(null);
 
   return (
-    <section id="showcase" className="py-24 bg-dark relative overflow-hidden">
+    <section id="showcase" className="py-16 md:py-24 bg-dark relative overflow-hidden">
       {/* Background elements */}
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-primary/10 to-accent/10 rounded-full blur-3xl" />
       </div>
 
       <div className="section-container relative">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-16 px-4">
           <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
             Video Gallery
           </span>
-          <h2 className="heading-2 text-white mb-4">See The Magic In Action</h2>
-          <p className="text-white/60 max-w-2xl mx-auto">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4">See The Magic In Action</h2>
+          <p className="text-white/60 max-w-2xl mx-auto text-sm md:text-base">
             Every video is handcrafted with authentic African energy.
             Watch real examples from happy customers worldwide.
           </p>
         </div>
 
         {/* Main Video Player */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <div className="relative aspect-video rounded-3xl overflow-hidden glass-card glow-primary">
+        <div className="max-w-4xl mx-auto mb-8 md:mb-12 px-4">
+          <div className="relative aspect-video rounded-2xl md:rounded-3xl overflow-hidden glass-card glow-primary">
             {activeVideo !== null ? (
               <video
                 src={videos[activeVideo].src}
                 poster={videos[activeVideo].poster}
                 controls
                 autoPlay
+                playsInline
+                preload="metadata"
                 className="w-full h-full object-cover"
               />
             ) : (
               <>
-                <video
-                  src="/blessing_video1.mp4"
-                  poster="/showcase_1.jpg"
-                  className="w-full h-full object-cover"
+                <Image
+                  src="/showcase_1.jpg"
+                  alt="Birthday video preview"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 896px"
+                  className="object-cover"
+                  priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-dark/20 to-transparent" />
                 <button
                   onClick={() => setActiveVideo(0)}
                   className="absolute inset-0 flex items-center justify-center group"
+                  aria-label="Play video"
                 >
-                  <div className="w-24 h-24 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-2xl shadow-primary/30">
-                    <Play size={48} className="text-white ml-2" fill="white" />
+                  <div className="w-16 h-16 md:w-24 md:h-24 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-2xl shadow-primary/30">
+                    <Play size={32} className="text-white ml-1 md:ml-2 md:w-12 md:h-12" fill="white" />
                   </div>
                 </button>
-                <div className="absolute bottom-6 left-6 right-6">
-                  <p className="text-white font-semibold text-lg mb-1">Watch a sample birthday blessing</p>
-                  <p className="text-white/60 text-sm">Click to play • Full energy guaranteed</p>
+                <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
+                  <p className="text-white font-semibold text-base md:text-lg mb-1">Watch a sample birthday blessing</p>
+                  <p className="text-white/60 text-xs md:text-sm">Click to play • Full energy guaranteed</p>
                 </div>
               </>
             )}
@@ -89,36 +96,39 @@ export default function ProductShowcaseSection() {
         </div>
 
         {/* Video Thumbnails */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 px-4">
           {videos.map((video, index) => (
             <button
               key={index}
               onClick={() => setActiveVideo(index)}
-              className={`relative aspect-video rounded-2xl overflow-hidden group transition-all duration-300 ${
+              aria-label={`Play ${video.title}`}
+              className={`relative aspect-video rounded-xl md:rounded-2xl overflow-hidden group transition-all duration-300 min-h-[80px] ${
                 activeVideo === index 
                   ? "ring-2 ring-primary ring-offset-2 ring-offset-dark scale-[1.02]" 
                   : "hover:scale-[1.02]"
               }`}
             >
-              <video
-                src={video.src}
-                poster={video.poster}
-                muted
-                className="w-full h-full object-cover"
+              <Image
+                src={video.poster}
+                alt={video.title}
+                fill
+                sizes="(max-width: 768px) 50vw, 25vw"
+                className="object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
                   activeVideo === index 
                     ? "bg-primary scale-100" 
                     : "bg-white/20 backdrop-blur-sm group-hover:bg-primary group-hover:scale-110"
                 }`}>
-                  <Play size={20} className="text-white ml-0.5" fill="white" />
+                  <Play size={16} className="text-white ml-0.5 md:w-5 md:h-5" fill="white" />
                 </div>
               </div>
-              <div className="absolute bottom-3 left-3 right-3">
-                <p className="text-white text-sm font-medium truncate">{video.title}</p>
-                <p className="text-white/50 text-xs">{video.views}</p>
+              <div className="absolute bottom-2 left-2 right-2 md:bottom-3 md:left-3 md:right-3">
+                <p className="text-white text-xs md:text-sm font-medium truncate">{video.title}</p>
+                <p className="text-white/50 text-[10px] md:text-xs">{video.views}</p>
               </div>
             </button>
           ))}

@@ -54,17 +54,17 @@ export default function TestimonialsSection() {
   };
 
   return (
-    <section className="py-24 bg-dark relative overflow-hidden">
+    <section className="py-16 md:py-24 bg-dark relative overflow-hidden">
       <div className="absolute top-0 left-0 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
       <div className="section-container">
-        <div className="text-center mb-12">
-          <h2 className="heading-2 mb-4 text-white">More Love From Customers</h2>
-          <p className="text-white/60">Real reviews from real happy customers</p>
+        <div className="text-center mb-8 md:mb-12 px-4">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-white">More Love From Customers</h2>
+          <p className="text-white/60 text-sm md:text-base">Real reviews from real happy customers</p>
         </div>
 
         {/* Desktop Grid */}
-        <div className="hidden md:grid md:grid-cols-3 gap-6">
+        <div className="hidden md:grid md:grid-cols-3 gap-4 lg:gap-6 px-4">
           {testimonials.slice(0, 3).map((testimonial, index) => (
             <div
               key={index}
@@ -134,24 +134,27 @@ export default function TestimonialsSection() {
           {/* Navigation Buttons */}
           <button
             onClick={prevTestimonial}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 w-10 h-10 bg-white/10 border border-white/10 backdrop-blur shadow-lg rounded-full flex items-center justify-center hover:bg-white/20 text-white"
+            aria-label="Previous testimonial"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-11 h-11 bg-white/10 border border-white/10 backdrop-blur shadow-lg rounded-full flex items-center justify-center hover:bg-white/20 text-white touch-manipulation"
           >
             <ChevronLeft size={20} />
           </button>
           <button
             onClick={nextTestimonial}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 w-10 h-10 bg-white/10 border border-white/10 backdrop-blur shadow-lg rounded-full flex items-center justify-center hover:bg-white/20 text-white"
+            aria-label="Next testimonial"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 w-11 h-11 bg-white/10 border border-white/10 backdrop-blur shadow-lg rounded-full flex items-center justify-center hover:bg-white/20 text-white touch-manipulation"
           >
             <ChevronRight size={20} />
           </button>
 
           {/* Dots */}
-          <div className="flex justify-center gap-2 mt-6">
+          <div className="flex justify-center gap-3 mt-6">
             {testimonials.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-colors ${
+                aria-label={`Go to testimonial ${index + 1}`}
+                className={`w-3 h-3 rounded-full transition-colors touch-manipulation ${
                   index === currentIndex ? "bg-primary" : "bg-white/20"
                 }`}
               />

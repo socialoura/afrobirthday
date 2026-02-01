@@ -79,10 +79,11 @@ export default function ChatWidget() {
       <button
         onClick={() => setIsOpen(true)}
         className={cn(
-          "fixed bottom-5 right-5 z-50 w-14 h-14 bg-primary rounded-full shadow-lg",
+          "fixed bottom-4 right-4 md:bottom-5 md:right-5 z-50 w-14 h-14 bg-primary rounded-full shadow-lg",
           "flex items-center justify-center text-white",
           "hover:bg-primary-600 transition-all duration-300",
           "animate-pulse hover:animate-none",
+          "touch-manipulation",
           isOpen && "hidden"
         )}
         aria-label="Open chat"
@@ -93,7 +94,9 @@ export default function ChatWidget() {
       {/* Chat Window */}
       <div
         className={cn(
-          "fixed bottom-5 right-5 z-50 w-[350px] max-w-[calc(100vw-40px)]",
+          "fixed bottom-4 right-4 md:bottom-5 md:right-5 z-50",
+          "w-[calc(100vw-32px)] md:w-[350px] max-w-[350px]",
+          "max-h-[70vh] md:max-h-[500px]",
           "bg-white rounded-2xl shadow-2xl overflow-hidden",
           "transition-all duration-300 transform",
           isOpen
@@ -109,7 +112,7 @@ export default function ChatWidget() {
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="p-1 hover:bg-white/20 rounded-full transition-colors"
+            className="p-2 hover:bg-white/20 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Close chat"
           >
             <X size={20} />
@@ -117,7 +120,7 @@ export default function ChatWidget() {
         </div>
 
         {/* Messages */}
-        <div className="h-[300px] overflow-y-auto p-4 space-y-3 bg-gray-50">
+        <div className="h-[250px] md:h-[300px] overflow-y-auto p-4 space-y-3 bg-gray-50 overscroll-contain">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -165,12 +168,12 @@ export default function ChatWidget() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type your message..."
-              className="flex-1 px-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="flex-1 px-4 py-3 border rounded-full text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent h-12"
             />
             <button
               type="submit"
               disabled={!inputValue.trim() || isSubmitting}
-              className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             >
               <Send size={18} />
             </button>

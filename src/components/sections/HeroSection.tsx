@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Play, Sparkles, Star, Clock, Shield } from "lucide-react";
+import OptimizedVideo from "@/components/OptimizedVideo";
 import { type CurrencyCode, PRICES } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
 
@@ -53,7 +54,7 @@ export default function HeroSection() {
   const displayOriginalPrice = useMemo(() => formatLocal(39.99), [formatLocal]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[100svh] md:min-h-screen flex items-center justify-center overflow-hidden">
       {/* Animated background gradients */}
       <div className="absolute inset-0 bg-dark">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/30 rounded-full blur-3xl animate-pulse-slow" />
@@ -63,69 +64,64 @@ export default function HeroSection() {
 
       {/* Video Background with overlay */}
       <div className="absolute inset-0 overflow-hidden opacity-40">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
+        <OptimizedVideo
+          src="/blessing_video_principal.MOV"
           poster="/showcase_1.jpg"
-          className="w-full h-full object-cover scale-110"
-        >
-          <source src="/blessing_video_principal.MOV" type="video/quicktime" />
-          <source src="/blessing_video_principal.MOV" type="video/mp4" />
-        </video>
+          isHero={true}
+          className="w-full h-full scale-110"
+        />
       </div>
 
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
 
       {/* Content */}
-      <div className="relative z-10 section-container text-center pt-32 pb-20">
+      <div className="relative z-10 section-container text-center pt-24 pb-16 md:pt-32 md:pb-20 px-4">
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-8">
           <Star size={14} className="text-secondary fill-secondary" />
           <span className="text-white/80 text-sm font-medium">Trusted by 500+ happy customers</span>
         </div>
 
-        <h1 className="heading-1 mb-6 max-w-5xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 max-w-5xl mx-auto">
           <span className="text-white">The Birthday Gift That</span>
           <br />
           <span className="gradient-text animate-gradient bg-gradient-to-r from-primary via-secondary to-accent">Goes Viral</span>
         </h1>
 
-        <p className="text-lg md:text-xl text-white/60 mb-10 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-base md:text-lg lg:text-xl text-white/60 mb-6 md:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
           Personalized video messages from real African dancers.
           <br className="hidden md:block" />
           Authentic energy. Pure joy. Delivered in 24 hours.
         </p>
 
         {/* Price highlight */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <span className="text-white/40 line-through text-lg">{displayOriginalPrice}</span>
-          <span className="text-3xl md:text-4xl font-bold text-white">{displayPrice}</span>
-          <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-semibold">50% OFF</span>
+        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3 mb-6 md:mb-8">
+          <span className="text-white/40 line-through text-base md:text-lg">{displayOriginalPrice}</span>
+          <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">{displayPrice}</span>
+          <span className="px-2 md:px-3 py-1 rounded-full bg-primary/20 text-primary text-xs md:text-sm font-semibold">50% OFF</span>
         </div>
 
         {localCurrency !== "USD" && (
-          <p className="text-white/50 text-sm mb-8">
+          <p className="text-white/50 text-xs md:text-sm mb-6 md:mb-8">
             Displayed in your local currency • Charged in USD
           </p>
         )}
 
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Link href="#order" className="btn-primary text-lg group">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center mb-8 md:mb-12 px-4">
+          <Link href="#order" className="btn-primary text-base md:text-lg group min-h-[48px] flex items-center justify-center">
             <Sparkles size={20} className="group-hover:rotate-12 transition-transform" />
             Order My Video
           </Link>
-          <Link href="#showcase" className="btn-secondary text-lg group flex items-center gap-2">
+          <Link href="#showcase" className="btn-secondary text-base md:text-lg group flex items-center justify-center gap-2 min-h-[48px]">
             <Play size={20} className="group-hover:scale-110 transition-transform" />
             Watch Examples
           </Link>
         </div>
 
         {/* Trust badges */}
-        <div className="flex flex-wrap justify-center gap-6 text-white/50 text-sm">
+        <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-white/50 text-xs md:text-sm">
           <div className="flex items-center gap-2">
             <Clock size={16} className="text-accent" />
             <span>24h Delivery</span>
