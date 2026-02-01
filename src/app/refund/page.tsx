@@ -47,8 +47,8 @@ export default function RefundPage() {
             <ol className="list-decimal pl-6 space-y-3 text-dark/80">
               <li>
                 <strong>Email us</strong> at{" "}
-                <a href="mailto:hello@afrobirthday.com" className="text-primary hover:underline">
-                  hello@afrobirthday.com
+                <a href="mailto:support@afrobirthday.com" className="text-primary hover:underline">
+                  support@afrobirthday.com
                 </a>
               </li>
               <li>
@@ -100,7 +100,7 @@ export default function RefundPage() {
             <h2 className="heading-2 mb-4">Contact Us</h2>
             <p className="text-dark/80">
               Have questions about our refund policy? We&apos;re here to help!{" "}
-              <a href="mailto:hello@afrobirthday.com" className="text-primary hover:underline">
+              <a href="mailto:support@afrobirthday.com" className="text-primary hover:underline">
                 Email us
               </a>{" "}
               and we&apos;ll respond within 24 hours.

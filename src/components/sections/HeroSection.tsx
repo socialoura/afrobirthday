@@ -38,15 +38,19 @@ export default function HeroSection() {
     setLocalCurrency(currencyFromLocale(navigator.language || "en-US"));
   }, []);
 
-  const estimatedLocal = useMemo(() => {
-    if (localCurrency === "USD") return null;
-    const converted = PRICES.base * rates[localCurrency];
-    return new Intl.NumberFormat(navigator.language || "en-US", {
-      style: "currency",
-      currency: localCurrency,
-      maximumFractionDigits: 2,
-    }).format(converted);
+  const formatLocal = useMemo(() => {
+    return (priceUsd: number) => {
+      const converted = localCurrency === "USD" ? priceUsd : priceUsd * rates[localCurrency];
+      return new Intl.NumberFormat(navigator.language || "en-US", {
+        style: "currency",
+        currency: localCurrency,
+        maximumFractionDigits: 2,
+      }).format(converted);
+    };
   }, [localCurrency, rates]);
+
+  const displayPrice = useMemo(() => formatLocal(PRICES.base), [formatLocal]);
+  const displayOriginalPrice = useMemo(() => formatLocal(39.99), [formatLocal]);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -97,14 +101,14 @@ export default function HeroSection() {
 
         {/* Price highlight */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <span className="text-white/40 line-through text-lg">$39.99</span>
-          <span className="text-3xl md:text-4xl font-bold text-white">$19.99</span>
+          <span className="text-white/40 line-through text-lg">{displayOriginalPrice}</span>
+          <span className="text-3xl md:text-4xl font-bold text-white">{displayPrice}</span>
           <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-semibold">50% OFF</span>
         </div>
 
-        {estimatedLocal && (
+        {localCurrency !== "USD" && (
           <p className="text-white/50 text-sm mb-8">
-            ≈ {estimatedLocal} • Charged in USD
+            Displayed in your local currency • Charged in USD
           </p>
         )}
 
@@ -112,7 +116,7 @@ export default function HeroSection() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
           <Link href="#order" className="btn-primary text-lg group">
             <Sparkles size={20} className="group-hover:rotate-12 transition-transform" />
-            Create Your Video
+            Order My Video
           </Link>
           <Link href="#showcase" className="btn-secondary text-lg group flex items-center gap-2">
             <Play size={20} className="group-hover:scale-110 transition-transform" />

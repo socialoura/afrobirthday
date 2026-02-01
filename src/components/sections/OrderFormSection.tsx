@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Upload, X, Check, Loader2, Lock } from "lucide-react";
+import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard } from "lucide-react";
 import { cn, formatPrice, type CurrencyCode, PRICES } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
 
@@ -55,7 +55,7 @@ export default function OrderFormSection() {
   const [musicFile, setMusicFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
-  const { rates } = useExchangeRates();
+  const { rates, fetchedAt, loading: ratesLoading } = useExchangeRates();
 
   useEffect(() => {
     setLocalCurrency(currencyFromLocale(navigator.language || "en-US"));
@@ -95,6 +95,18 @@ export default function OrderFormSection() {
     };
   }, [localCurrency, rates]);
 
+  const ratesNote = useMemo(() => {
+    if (localCurrency === "USD") return null;
+    if (ratesLoading) return "Rates updating…";
+    if (!fetchedAt) return "Live rates unavailable. Showing estimated rates.";
+    const dt = new Date(fetchedAt);
+    if (Number.isNaN(dt.getTime())) return "Rates updated recently";
+    return `Rates updated ${dt.toLocaleString(navigator.language || "en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })}`;
+  }, [fetchedAt, localCurrency, ratesLoading]);
+
   const handlePhotoDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
@@ -123,11 +135,53 @@ export default function OrderFormSection() {
     setIsSubmitting(true);
     
     try {
+      const orderId = crypto.randomUUID();
+
+      const photoForm = new FormData();
+      photoForm.append("file", photo);
+      photoForm.append("folder", "orders/photos");
+
+      const photoUploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: photoForm,
+      });
+
+      if (!photoUploadRes.ok) {
+        throw new Error("Photo upload failed");
+      }
+
+      const { url: photoUrl } = await photoUploadRes.json();
+      if (!photoUrl) {
+        throw new Error("Missing photo URL");
+      }
+
+      let musicFileUrl: string | undefined;
+      if (musicFile) {
+        const musicForm = new FormData();
+        musicForm.append("file", musicFile);
+        musicForm.append("folder", "orders/music");
+
+        const musicUploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: musicForm,
+        });
+
+        if (!musicUploadRes.ok) {
+          throw new Error("Music upload failed");
+        }
+
+        const { url } = await musicUploadRes.json();
+        if (url) musicFileUrl = url;
+      }
+
       const response = await fetch("/api/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          orderId,
           ...data,
+          photoUrl,
+          musicFileUrl,
           totalPrice,
           hasCustomSong: musicOption === "custom",
           isExpress: deliveryMethod === "express",
@@ -163,121 +217,137 @@ export default function OrderFormSection() {
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto">
-          <form onSubmit={handleSubmit(onSubmit)} className="glass-card p-8 space-y-6">
-            {/* Photo Upload */}
-            <div>
-              <label className="block font-semibold mb-2 text-white">
-                Upload Photo <span className="text-error">*</span>
-              </label>
-              <div
-                onDrop={handlePhotoDrop}
-                onDragOver={(e) => e.preventDefault()}
-                className={cn(
-                  "border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all",
-                  photoPreview
-                    ? "border-success bg-success/10"
-                    : "border-white/20 hover:border-primary bg-white/5"
-                )}
-              >
-                {photoPreview ? (
-                  <div className="relative inline-block">
-                    <img
-                      src={photoPreview}
-                      alt="Preview"
-                      className="max-h-48 rounded-lg mx-auto"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPhoto(null);
-                        setPhotoPreview(null);
-                      }}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-error text-white rounded-full flex items-center justify-center"
-                    >
-                      <X size={14} />
-                    </button>
+        <div className="max-w-6xl mx-auto">
+          <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 lg:grid-cols-12">
+            <div className="lg:col-span-7 space-y-6">
+              {/* Photo Upload */}
+              <div className="glass-card p-6">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <label className="block font-semibold text-white">
+                      Upload Photo <span className="text-error">*</span>
+                    </label>
+                    <p className="text-white/40 text-sm mt-1">
+                      A clear photo helps us personalize the video perfectly.
+                    </p>
                   </div>
-                ) : (
-                  <label className="cursor-pointer">
-                    <Upload size={40} className="mx-auto mb-2 text-white/40" />
-                    <p className="text-white/70">
-                      Drag & drop or{" "}
-                      <span className="text-primary font-medium">browse</span>
-                    </p>
-                    <p className="text-sm text-white/40 mt-1">
-                      JPG, PNG, WebP • Max 5MB
-                    </p>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handlePhotoSelect(file);
-                      }}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-            </div>
+                  <div className="hidden sm:flex items-center gap-2 text-white/40 text-sm">
+                    <ShieldCheck size={16} className="text-accent" />
+                    Private & secure
+                  </div>
+                </div>
 
-            {/* Custom Message */}
-            <div>
-              <label className="block font-semibold mb-2 text-white">
-                Birthday Message <span className="text-error">*</span>
-              </label>
-              <textarea
-                {...register("message")}
-                placeholder="E.g., 'Happy 30th Birthday Sarah!'"
-                maxLength={100}
-                rows={3}
-                className={cn(
-                  "w-full px-4 py-3 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30",
-                  errors.message ? "border-error" : "border-white/20"
-                )}
-              />
-              <div className="flex justify-between mt-1">
-                <p className="text-sm text-white/40">
-                  E.g., "Happy 30th Birthday Sarah!"
-                </p>
-                <p
+                <div
+                  onDrop={handlePhotoDrop}
+                  onDragOver={(e) => e.preventDefault()}
                   className={cn(
-                    "text-sm",
-                    message.length > 90 ? "text-error" : "text-white/40"
+                    "border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center cursor-pointer transition-all",
+                    photoPreview
+                      ? "border-success bg-success/10"
+                      : "border-white/20 hover:border-primary bg-white/5"
                   )}
                 >
-                  {message.length}/100
-                </p>
+                  {photoPreview ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={photoPreview}
+                        alt="Preview"
+                        className="max-h-56 rounded-2xl mx-auto"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPhoto(null);
+                          setPhotoPreview(null);
+                        }}
+                        className="absolute -top-2 -right-2 w-7 h-7 bg-error text-white rounded-full flex items-center justify-center"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer">
+                      <div className="mx-auto w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+                        <Upload size={26} className="text-white/60" />
+                      </div>
+                      <p className="text-white/80 font-medium">Drop your image here</p>
+                      <p className="text-white/40 text-sm mt-1">
+                        or <span className="text-primary font-semibold">browse files</span>
+                      </p>
+                      <p className="text-xs text-white/30 mt-3">
+                        JPG, PNG, WebP • Max 5MB
+                      </p>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handlePhotoSelect(file);
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
-              {errors.message && (
-                <p className="text-error text-sm mt-1">{errors.message.message}</p>
-              )}
-            </div>
 
-            {/* Email */}
-            <div>
-              <label className="block font-semibold mb-2 text-white">
-                Email <span className="text-error">*</span>
-              </label>
-              <input
-                type="email"
-                {...register("email")}
-                placeholder="birthday.person@email.com"
-                className={cn(
-                  "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30",
-                  errors.email ? "border-error" : "border-white/20"
+              {/* Custom Message */}
+              <div className="glass-card p-6">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <label className="block font-semibold text-white">
+                      Birthday Message <span className="text-error">*</span>
+                    </label>
+                    <p className="text-white/40 text-sm mt-1">
+                      Keep it short and clear. We&apos;ll shout it with energy.
+                    </p>
+                  </div>
+                  <div className={cn("text-sm", message.length > 90 ? "text-error" : "text-white/40")}>
+                    {message.length}/100
+                  </div>
+                </div>
+
+                <textarea
+                  {...register("message")}
+                  placeholder="E.g., 'Happy 30th Birthday Sarah!'"
+                  maxLength={100}
+                  rows={3}
+                  className={cn(
+                    "w-full px-4 py-3 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30",
+                    errors.message ? "border-error" : "border-white/20"
+                  )}
+                />
+                {errors.message && (
+                  <p className="text-error text-sm mt-2">{errors.message.message}</p>
                 )}
-              />
-              {errors.email && (
-                <p className="text-error text-sm mt-1">{errors.email.message}</p>
-              )}
-            </div>
+              </div>
 
-            {/* Music Selection */}
-            <div>
-              <label className="block font-semibold mb-3 text-white">Music Selection</label>
-              <div className="space-y-3">
+              {/* Email */}
+              <div className="glass-card p-6">
+                <label className="block font-semibold mb-2 text-white">
+                  Email <span className="text-error">*</span>
+                </label>
+                <p className="text-white/40 text-sm mb-4">
+                  We&apos;ll deliver the final video to this email.
+                </p>
+                <input
+                  type="email"
+                  {...register("email")}
+                  placeholder="birthday.person@email.com"
+                  className={cn(
+                    "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30",
+                    errors.email ? "border-error" : "border-white/20"
+                  )}
+                />
+                {errors.email && (
+                  <p className="text-error text-sm mt-2">{errors.email.message}</p>
+                )}
+              </div>
+
+              {/* Music Selection */}
+              <div className="glass-card p-6">
+                <label className="block font-semibold mb-4 text-white">Music Selection</label>
+                <div className="space-y-3">
                 <label
                   className={cn(
                     "flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all",
@@ -298,9 +368,7 @@ export default function OrderFormSection() {
                       Faster order, better dancing
                     </p>
                   </div>
-                  <span className="font-semibold text-primary">
-                    {formatLocal(PRICES.base)}
-                  </span>
+                  <span className="font-semibold text-primary">FREE</span>
                 </label>
 
                 <label
@@ -357,12 +425,12 @@ export default function OrderFormSection() {
                   </div>
                 </div>
               )}
-            </div>
+              </div>
 
-            {/* Delivery Method */}
-            <div>
-              <label className="block font-semibold mb-3 text-white">Delivery Speed</label>
-              <div className="grid grid-cols-2 gap-3">
+              {/* Delivery Method */}
+              <div className="glass-card p-6">
+                <label className="block font-semibold mb-4 text-white">Delivery Speed</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label
                   className={cn(
                     "flex flex-col items-center p-4 border rounded-xl cursor-pointer transition-all text-center",
@@ -409,25 +477,36 @@ export default function OrderFormSection() {
                   )}
                 </label>
               </div>
+              </div>
+
+              {/* Gift Note */}
+              <div className="glass-card p-6">
+                <label className="block font-semibold mb-2 text-white">
+                  Gift Note (Optional)
+                </label>
+                <p className="text-white/40 text-sm mb-4">
+                  Optional text we can add to the video delivery message.
+                </p>
+                <textarea
+                  {...register("giftNote")}
+                  placeholder="E.g., 'You deserve all the joy!'"
+                  maxLength={200}
+                  rows={2}
+                  className="w-full px-4 py-3 border border-white/20 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30"
+                />
+              </div>
+
             </div>
 
-            {/* Gift Note */}
-            <div>
-              <label className="block font-semibold mb-2 text-white">
-                Gift Note (Optional)
-              </label>
-              <textarea
-                {...register("giftNote")}
-                placeholder="E.g., 'You deserve all the joy!'"
-                maxLength={200}
-                rows={2}
-                className="w-full px-4 py-3 border border-white/20 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30"
-              />
-            </div>
+            <div className="lg:col-span-5">
+              <div className="lg:sticky lg:top-24 space-y-4">
 
             {/* Price Summary */}
-            <div className="bg-gradient-to-r from-primary/20 to-accent/20 border border-white/10 text-white p-6 rounded-2xl">
-              <h3 className="font-semibold mb-4">Order Summary</h3>
+            <div className="bg-gradient-to-r from-primary/20 to-accent/20 border border-white/10 text-white p-6 rounded-3xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Order Summary</h3>
+                <Sparkles size={18} className="text-secondary" />
+              </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Birthday Video</span>
@@ -450,18 +529,21 @@ export default function OrderFormSection() {
                     <span>Total</span>
                     <span className="text-secondary">{formatLocal(totalPrice)}</span>
                   </div>
+                  <p className="text-white/50 text-xs mt-2">Charged in USD at checkout</p>
+                  {localCurrency !== "USD" && (
+                    <p className="text-white/40 text-xs mt-1">
+                      Prices are estimates in your local currency.
+                    </p>
+                  )}
+                  {ratesNote && (
+                    <p className="text-white/30 text-xs mt-1">{ratesNote}</p>
+                  )}
                 </div>
               </div>
             </div>
 
-            {localCurrency !== "USD" && (
-              <p className="text-center text-sm text-white/40">
-                Prices are estimates in your local currency. You will be charged in USD.
-              </p>
-            )}
-
             {/* Terms */}
-            <div>
+            <div className="glass-card p-5">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -480,7 +562,7 @@ export default function OrderFormSection() {
                 </span>
               </label>
               {errors.termsAccepted && (
-                <p className="text-error text-sm mt-1">
+                <p className="text-error text-sm mt-2">
                   {errors.termsAccepted.message}
                 </p>
               )}
@@ -498,14 +580,30 @@ export default function OrderFormSection() {
                   Processing...
                 </>
               ) : (
-                <>Pay {formatPrice(totalPrice, "USD")} with Stripe</>
+                <>
+                  <CreditCard size={18} />
+                  Pay {formatLocal(totalPrice)}
+                </>
               )}
             </button>
 
-            <p className="text-center text-sm text-white/40 flex items-center justify-center gap-1">
-              <Lock size={14} />
-              Secure checkout powered by Stripe 🔒
-            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-white/50">
+              <div className="flex items-center gap-2 glass-card px-3 py-2">
+                <Lock size={14} className="text-accent" />
+                Secure credit card
+              </div>
+              <div className="flex items-center gap-2 glass-card px-3 py-2">
+                <ShieldCheck size={14} className="text-accent" />
+                Private & safe
+              </div>
+              <div className="flex items-center gap-2 glass-card px-3 py-2">
+                <Clock size={14} className="text-accent" />
+                24h delivery
+              </div>
+            </div>
+
+              </div>
+            </div>
           </form>
         </div>
       </div>

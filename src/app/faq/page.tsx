@@ -12,7 +12,7 @@ const faqs = [
   },
   {
     question: "What if I don't like the video?",
-    answer: "We offer a 100% money-back guarantee within 7 days. If you're not completely satisfied with your video, simply email us at hello@afrobirthday.com with your order ID, and we'll process a full refund - no questions asked!",
+    answer: "We offer a 100% money-back guarantee within 7 days. If you're not completely satisfied with your video, simply email us at support@afrobirthday.com with your order ID, and we'll process a full refund - no questions asked!",
   },
   {
     question: "Can I request a specific style or costume?",
@@ -32,11 +32,11 @@ const faqs = [
   },
   {
     question: "What if I want multiple videos?",
-    answer: "You can order as many videos as you need! Simply complete the order form multiple times. For bulk orders (5+ videos), contact us at hello@afrobirthday.com for special pricing.",
+    answer: "You can order as many videos as you need! Simply complete the order form multiple times. For bulk orders (5+ videos), contact us at support@afrobirthday.com for special pricing.",
   },
   {
     question: "Can I use this for corporate events?",
-    answer: "Absolutely! Many companies use our videos for employee birthdays and celebrations. Email info@afrobirthday.com for custom corporate pricing and branding options.",
+    answer: "Absolutely! Many companies use our videos for employee birthdays and celebrations. Email support@afrobirthday.com for custom corporate pricing and branding options.",
   },
   {
     question: "Is the video watermarked?",
@@ -52,7 +52,7 @@ const faqs = [
   },
   {
     question: "Do you ship physical DVDs?",
-    answer: "Not currently - all our videos are delivered digitally for the fastest possible delivery. However, if you're interested in physical copies, let us know at hello@afrobirthday.com!",
+    answer: "Not currently - all our videos are delivered digitally for the fastest possible delivery. However, if you're interested in physical copies, let us know at support@afrobirthday.com!",
   },
 ];
 
@@ -60,16 +60,16 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border-b border-gray-200 last:border-0">
+    <div className="border-b border-white/10 last:border-0">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full py-5 flex items-center justify-between text-left hover:text-primary transition-colors"
+        className="w-full py-5 flex items-center justify-between text-left hover:text-primary transition-colors text-white"
       >
         <span className="font-medium pr-4">{question}</span>
         <ChevronDown
           size={20}
           className={cn(
-            "flex-shrink-0 transition-transform duration-200",
+            "flex-shrink-0 transition-transform duration-200 text-white/70",
             isOpen && "rotate-180"
           )}
         />
@@ -80,7 +80,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
           isOpen ? "max-h-96 pb-5" : "max-h-0"
         )}
       >
-        <p className="text-dark/70">{answer}</p>
+        <p className="text-white/60">{answer}</p>
       </div>
     </div>
   );
@@ -88,35 +88,36 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 
 export default function FAQPage() {
   return (
-    <main className="pt-24 pb-20">
-      <div className="section-container">
+    <main className="pt-24 pb-20 bg-dark relative overflow-hidden">
+      <div className="section-container relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none -z-10" />
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="heading-1 mb-4">Frequently Asked Questions ❓</h1>
-          <p className="text-dark/70 text-lg max-w-2xl mx-auto">
+        <div className="text-center mb-12 relative">
+          <h1 className="heading-1 mb-4 text-white">Frequently Asked Questions ❓</h1>
+          <p className="text-white/60 text-lg max-w-2xl mx-auto">
             Everything you need to know about AfroBirthday. Can&apos;t find the answer you&apos;re looking for?{" "}
-            <a href="mailto:hello@afrobirthday.com" className="text-primary hover:underline">
+            <a href="mailto:support@afrobirthday.com" className="text-primary hover:underline">
               Contact us
             </a>
           </p>
         </div>
 
         {/* FAQ List */}
-        <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-12">
+        <div className="max-w-3xl mx-auto glass-card rounded-2xl p-6 md:p-8 mb-12 relative">
           {faqs.map((faq, index) => (
             <FAQItem key={index} question={faq.question} answer={faq.answer} />
           ))}
         </div>
 
         {/* Still have questions */}
-        <div className="text-center">
-          <div className="bg-light p-8 rounded-2xl max-w-xl mx-auto mb-8">
-            <h3 className="heading-3 mb-3">Still have questions?</h3>
-            <p className="text-dark/70 mb-4">
+        <div className="text-center relative">
+          <div className="glass-card p-8 rounded-2xl max-w-xl mx-auto mb-8">
+            <h3 className="heading-3 mb-3 text-white">Still have questions?</h3>
+            <p className="text-white/60 mb-4">
               We&apos;re here to help! Reach out to us anytime.
             </p>
             <a
-              href="mailto:hello@afrobirthday.com"
+              href="mailto:support@afrobirthday.com"
               className="btn-outline inline-block"
             >
               Email Us

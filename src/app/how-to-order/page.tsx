@@ -18,11 +18,11 @@ const steps = [
     icon: CreditCard,
     number: "02",
     title: "Pay Securely",
-    description: "Complete your payment through our secure Stripe checkout. We accept all major credit cards and Apple Pay.",
+    description: "Complete your payment through our secure checkout. We accept all major credit cards and Apple Pay.",
     tips: [
       "All payments are encrypted and secure",
       "You'll receive an instant confirmation email",
-      "No hidden fees - what you see is what you pay",
+      "Your video enters production immediately",
     ],
   },
   {
@@ -40,14 +40,15 @@ const steps = [
 
 export default function HowToOrderPage() {
   return (
-    <main className="pt-24 pb-20">
-      <div className="section-container">
+    <main className="pt-24 pb-20 bg-dark relative overflow-hidden">
+      <div className="section-container relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none -z-10" />
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 relative">
           <h1 className="heading-1 mb-4">
             How To Order Your Birthday Video 🎬
           </h1>
-          <p className="text-dark/70 text-lg max-w-2xl mx-auto">
+          <p className="text-white/60 text-lg max-w-2xl mx-auto">
             Getting your personalized birthday video is simple, fast, and fun.
             Follow these 3 easy steps!
           </p>
@@ -62,7 +63,7 @@ export default function HowToOrderPage() {
             >
               {/* Step Number & Icon */}
               <div className="flex-shrink-0">
-                <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center relative">
+                <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center relative">
                   <step.icon size={36} className="text-primary" />
                   <span className="absolute -top-2 -right-2 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">
                     {step.number}
@@ -72,13 +73,13 @@ export default function HowToOrderPage() {
 
               {/* Content */}
               <div className="flex-1">
-                <h2 className="heading-3 mb-3">{step.title}</h2>
-                <p className="text-dark/70 mb-4">{step.description}</p>
-                <div className="bg-light p-4 rounded-xl">
-                  <p className="font-medium text-sm text-dark/80 mb-2">Tips:</p>
+                <h2 className="heading-3 mb-3 text-white">{step.title}</h2>
+                <p className="text-white/60 mb-4">{step.description}</p>
+                <div className="glass-card p-4 rounded-xl">
+                  <p className="font-medium text-sm text-white/80 mb-2">Tips:</p>
                   <ul className="space-y-1">
                     {step.tips.map((tip, tipIndex) => (
-                      <li key={tipIndex} className="text-sm text-dark/60 flex items-start gap-2">
+                      <li key={tipIndex} className="text-sm text-white/60 flex items-start gap-2">
                         <span className="text-primary mt-1">✓</span>
                         {tip}
                       </li>
@@ -110,19 +111,19 @@ export default function HowToOrderPage() {
 
         {/* Security Badges */}
         <div className="text-center mb-16">
-          <h3 className="font-semibold mb-4">Secure & Trusted</h3>
+          <h3 className="font-semibold mb-4 text-white">Secure & Trusted</h3>
           <div className="flex justify-center items-center gap-8 flex-wrap">
-            <div className="flex items-center gap-2 text-dark/60">
+            <div className="flex items-center gap-2 text-white/60">
               <span className="text-2xl">🔒</span>
               <span className="text-sm">SSL Encrypted</span>
             </div>
-            <div className="flex items-center gap-2 text-dark/60">
+            <div className="flex items-center gap-2 text-white/60">
               <span className="text-2xl">💳</span>
-              <span className="text-sm">Stripe Payments</span>
+              <span className="text-sm">Credit Card Payments</span>
             </div>
-            <div className="flex items-center gap-2 text-dark/60">
+            <div className="flex items-center gap-2 text-white/60">
               <span className="text-2xl">💯</span>
-              <span className="text-sm">Money-back Guarantee</span>
+              <span className="text-sm">Satisfaction Guaranteed</span>
             </div>
           </div>
         </div>

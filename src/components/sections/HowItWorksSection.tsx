@@ -73,11 +73,14 @@ export default function HowItWorksSection() {
 
         {/* CTA */}
         <div className="text-center">
-          <Link href="#order" className="btn-primary inline-flex items-center gap-2 group">
+          <Link
+            href="#order"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold hover:opacity-90 transition group"
+          >
             Start Creating Now
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </Link>
-          <p className="text-white/40 text-sm mt-4">No account needed • Pay securely with Stripe</p>
+          <p className="text-white/40 text-sm mt-4">No account needed • Pay securely by credit card</p>
         </div>
       </div>
     </section>

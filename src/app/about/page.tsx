@@ -57,11 +57,11 @@ export default function AboutPage() {
             <div className="bg-light p-6 rounded-xl">
               <div className="space-y-3">
                 <a 
-                  href="mailto:hello@afrobirthday.com" 
+                  href="mailto:support@afrobirthday.com" 
                   className="flex items-center gap-3 text-dark/80 hover:text-primary transition-colors"
                 >
                   <Mail size={20} />
-                  hello@afrobirthday.com
+                  support@afrobirthday.com
                 </a>
                 <a 
                   href="https://instagram.com/afrobirthday" 

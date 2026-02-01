@@ -64,8 +64,8 @@ export default function SuccessPage() {
         <div className="bg-secondary/10 p-6 rounded-xl mb-8">
           <p className="text-dark/80">
             <strong>Questions?</strong> Contact us at{" "}
-            <a href="mailto:hello@afrobirthday.com" className="text-primary hover:underline">
-              hello@afrobirthday.com
+            <a href="mailto:support@afrobirthday.com" className="text-primary hover:underline">
+              support@afrobirthday.com
             </a>
           </p>
         </div>

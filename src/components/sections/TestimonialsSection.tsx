@@ -54,11 +54,13 @@ export default function TestimonialsSection() {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-light">
+    <section className="py-24 bg-dark relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
       <div className="section-container">
         <div className="text-center mb-12">
-          <h2 className="heading-2 mb-4">What Our Customers Say 💬</h2>
-          <p className="text-dark/70">Real reviews from real happy customers</p>
+          <h2 className="heading-2 mb-4 text-white">More Love From Customers</h2>
+          <p className="text-white/60">Real reviews from real happy customers</p>
         </div>
 
         {/* Desktop Grid */}
@@ -66,7 +68,7 @@ export default function TestimonialsSection() {
           {testimonials.slice(0, 3).map((testimonial, index) => (
             <div
               key={index}
-              className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
+              className="glass-card p-6 hover:bg-white/10 transition-all duration-300"
             >
               <div className="flex items-center gap-3 mb-4">
                 <Image
@@ -74,11 +76,11 @@ export default function TestimonialsSection() {
                   alt={testimonial.name}
                   width={56}
                   height={56}
-                  className="w-14 h-14 rounded-full object-cover"
+                  className="w-14 h-14 rounded-full object-cover ring-2 ring-white/10"
                 />
                 <div>
-                  <p className="font-semibold">{testimonial.name}</p>
-                  <p className="text-sm text-dark/60">{testimonial.location}</p>
+                  <p className="font-semibold text-white">{testimonial.name}</p>
+                  <p className="text-sm text-white/50">{testimonial.location}</p>
                 </div>
               </div>
               <div className="flex mb-3">
@@ -86,7 +88,7 @@ export default function TestimonialsSection() {
                   <Star key={i} size={16} className="text-secondary fill-secondary" />
                 ))}
               </div>
-              <p className="text-dark/80">&ldquo;{testimonial.text}&rdquo;</p>
+              <p className="text-white/80">&ldquo;{testimonial.text}&rdquo;</p>
             </div>
           ))}
         </div>
@@ -103,18 +105,18 @@ export default function TestimonialsSection() {
                   key={index}
                   className="w-full flex-shrink-0 px-2"
                 >
-                  <div className="bg-white p-6 rounded-2xl shadow-lg">
+                  <div className="glass-card p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <Image
                         src={testimonial.avatar}
                         alt={testimonial.name}
                         width={56}
                         height={56}
-                        className="w-14 h-14 rounded-full object-cover"
+                        className="w-14 h-14 rounded-full object-cover ring-2 ring-white/10"
                       />
                       <div>
-                        <p className="font-semibold">{testimonial.name}</p>
-                        <p className="text-sm text-dark/60">{testimonial.location}</p>
+                        <p className="font-semibold text-white">{testimonial.name}</p>
+                        <p className="text-sm text-white/50">{testimonial.location}</p>
                       </div>
                     </div>
                     <div className="flex mb-3">
@@ -122,7 +124,7 @@ export default function TestimonialsSection() {
                         <Star key={i} size={16} className="text-secondary fill-secondary" />
                       ))}
                     </div>
-                    <p className="text-dark/80">&ldquo;{testimonial.text}&rdquo;</p>
+                    <p className="text-white/80">&ldquo;{testimonial.text}&rdquo;</p>
                   </div>
                 </div>
               ))}
@@ -132,13 +134,13 @@ export default function TestimonialsSection() {
           {/* Navigation Buttons */}
           <button
             onClick={prevTestimonial}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 w-10 h-10 bg-white/10 border border-white/10 backdrop-blur shadow-lg rounded-full flex items-center justify-center hover:bg-white/20 text-white"
           >
             <ChevronLeft size={20} />
           </button>
           <button
             onClick={nextTestimonial}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 w-10 h-10 bg-white/10 border border-white/10 backdrop-blur shadow-lg rounded-full flex items-center justify-center hover:bg-white/20 text-white"
           >
             <ChevronRight size={20} />
           </button>
@@ -150,7 +152,7 @@ export default function TestimonialsSection() {
                 key={index}
                 onClick={() => setCurrentIndex(index)}
                 className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentIndex ? "bg-primary" : "bg-gray-300"
+                  index === currentIndex ? "bg-primary" : "bg-white/20"
                 }`}
               />
             ))}

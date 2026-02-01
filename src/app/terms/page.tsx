@@ -61,7 +61,7 @@ export default function TermsPage() {
           <section>
             <h2 className="heading-2 mb-4">6. Payment Terms</h2>
             <p className="text-dark/80">
-              All payments are processed securely through Stripe. Prices are displayed in 
+              All payments are processed securely by credit card. Prices are displayed in 
               Euros (€) and include applicable taxes where required. Refunds are processed 
               according to our Refund Policy.
             </p>
@@ -107,8 +107,8 @@ export default function TermsPage() {
             <h2 className="heading-2 mb-4">11. Contact</h2>
             <p className="text-dark/80">
               For questions about these terms, contact us at:{" "}
-              <a href="mailto:hello@afrobirthday.com" className="text-primary hover:underline">
-                hello@afrobirthday.com
+              <a href="mailto:support@afrobirthday.com" className="text-primary hover:underline">
+                support@afrobirthday.com
               </a>
             </p>
           </section>

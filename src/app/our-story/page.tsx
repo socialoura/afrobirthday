@@ -34,21 +34,22 @@ const metrics = [
 
 export default function OurStoryPage() {
   return (
-    <main className="pt-24 pb-20">
-      <div className="section-container">
+    <main className="pt-24 pb-20 bg-dark relative overflow-hidden">
+      <div className="section-container relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none -z-10" />
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="heading-1 mb-4">The Story Behind AfroBirthday 🌍</h1>
-          <p className="text-dark/70 text-lg max-w-2xl mx-auto">
+        <div className="text-center mb-16 relative">
+          <h1 className="heading-1 mb-4 text-white">The Story Behind AfroBirthday 🌍</h1>
+          <p className="text-white/60 text-lg max-w-2xl mx-auto">
             Connecting people across continents with authentic African energy and celebration.
           </p>
         </div>
 
         {/* Mission */}
         <div className="max-w-3xl mx-auto mb-20">
-          <div className="bg-gradient-to-br from-primary/10 to-secondary/10 p-8 md:p-12 rounded-3xl text-center">
-            <h2 className="heading-2 mb-6">Our Mission</h2>
-            <p className="text-lg text-dark/80 leading-relaxed">
+          <div className="glass-card p-8 md:p-12 rounded-3xl text-center">
+            <h2 className="heading-2 mb-6 text-white">Our Mission</h2>
+            <p className="text-lg text-white/70 leading-relaxed">
               We believe every birthday deserves a moment of pure joy. That&apos;s why we created 
               AfroBirthday — to connect people across continents with authentic African energy 
               and celebration. Our talented team of dancers and creators pour their hearts into 
@@ -59,18 +60,18 @@ export default function OurStoryPage() {
 
         {/* Values */}
         <div className="mb-20">
-          <h2 className="heading-2 text-center mb-10">Our Core Values</h2>
+          <h2 className="heading-2 text-center mb-10 text-white">Our Core Values</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((value, index) => (
               <div
                 key={index}
-                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow text-center"
+                className="glass-card p-6 rounded-2xl hover:bg-white/10 transition-shadow text-center"
               >
-                <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-14 h-14 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <value.icon size={28} className="text-primary" />
                 </div>
-                <h3 className="font-semibold text-lg mb-2">{value.title}</h3>
-                <p className="text-dark/70 text-sm">{value.description}</p>
+                <h3 className="font-semibold text-lg mb-2 text-white">{value.title}</h3>
+                <p className="text-white/60 text-sm">{value.description}</p>
               </div>
             ))}
           </div>
@@ -78,7 +79,7 @@ export default function OurStoryPage() {
 
         {/* Team Photos */}
         <div className="mb-20">
-          <h2 className="heading-2 text-center mb-10">Meet Our Creators 💃🕺</h2>
+          <h2 className="heading-2 text-center mb-10 text-white">Meet Our Creators 💃🕺</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden group">
               <Image
@@ -118,10 +119,10 @@ export default function OurStoryPage() {
             </div>
           </div>
           <div className="text-center mt-8">
-            <p className="text-dark/70 italic">
+            <p className="text-white/60 italic">
               &ldquo;It&apos;s not just a job, it&apos;s our passion. Every video we create carries a piece of our heart.&rdquo;
             </p>
-            <p className="font-medium mt-2">— The AfroBirthday Team</p>
+            <p className="font-medium mt-2 text-white">— The AfroBirthday Team</p>
           </div>
         </div>
 
@@ -142,7 +143,7 @@ export default function OurStoryPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <h3 className="heading-3 mb-4">Want to create magic?</h3>
+          <h3 className="heading-3 mb-4 text-white">Want to create magic?</h3>
           <Link href="/#order" className="btn-primary text-lg px-8 py-4 inline-flex items-center gap-2">
             Order your video now
             <ChevronRight size={20} />

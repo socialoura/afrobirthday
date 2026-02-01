@@ -18,20 +18,21 @@ const quickFaqs = [
 
 export default function FAQQuickSection() {
   return (
-    <section className="py-16 bg-white">
+    <section className="py-24 bg-dark relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
       <div className="section-container">
         <div className="text-center mb-10">
-          <h2 className="heading-2 mb-4">Quick Answers ❓</h2>
+          <h2 className="heading-2 mb-4 text-white">Quick Answers</h2>
         </div>
 
         <div className="max-w-2xl mx-auto space-y-4">
           {quickFaqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-light p-6 rounded-xl"
+              className="glass-card p-6 rounded-2xl"
             >
-              <h3 className="font-semibold text-lg mb-2">{faq.question}</h3>
-              <p className="text-dark/70">{faq.answer}</p>
+              <h3 className="font-semibold text-lg mb-2 text-white">{faq.question}</h3>
+              <p className="text-white/60">{faq.answer}</p>
             </div>
           ))}
         </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { attachStripeSessionToOrder, createOrder, ensureOrdersTable } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -18,7 +19,42 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, message, totalPrice, hasCustomSong, isExpress, giftNote } = body;
+    const {
+      orderId,
+      email,
+      message,
+      totalPrice,
+      hasCustomSong,
+      isExpress,
+      giftNote,
+      musicOption,
+      musicLink,
+      musicFileUrl,
+      deliveryMethod,
+      photoUrl,
+    } = body;
+
+    if (!orderId || typeof orderId !== "string") {
+      return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
+    }
+    if (!photoUrl || typeof photoUrl !== "string") {
+      return NextResponse.json({ error: "Missing photoUrl" }, { status: 400 });
+    }
+
+    await ensureOrdersTable();
+
+    await createOrder({
+      id: orderId,
+      email,
+      message,
+      giftNote,
+      musicOption: musicOption ?? (hasCustomSong ? "custom" : "default"),
+      musicLink,
+      musicFileUrl,
+      deliveryMethod: deliveryMethod ?? (isExpress ? "express" : "standard"),
+      photoUrl,
+      totalUsd: totalPrice,
+    });
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -41,6 +77,7 @@ export async function POST(request: NextRequest) {
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/#order`,
       metadata: {
+        orderId,
         email,
         message,
         hasCustomSong: hasCustomSong ? "true" : "false",
@@ -49,7 +86,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ url: session.url });
+    await attachStripeSessionToOrder(orderId, session.id);
+
+    return NextResponse.json({ url: session.url, orderId });
   } catch (error) {
     console.error("Stripe checkout error:", error);
     return NextResponse.json(

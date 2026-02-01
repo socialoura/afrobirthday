@@ -40,12 +40,12 @@ export default function ChatWidget() {
       return "It's easy! Just fill out the form on our homepage, upload a photo, add your message, and pay. You'll receive your video within 24-48 hours! 🎂";
     }
     if (lowerQuery.includes("track")) {
-      return "We'll email you a confirmation after your order. Your video will be delivered to your email within 24-48 hours. Need help? Email us at hello@afrobirthday.com";
+      return "We'll email you a confirmation after your order. Your video will be delivered to your email within 24-48 hours. Need help? Email us at support@afrobirthday.com";
     }
     if (lowerQuery.includes("refund")) {
-      return "We offer a 100% money-back guarantee within 7 days if you're not satisfied. Just email hello@afrobirthday.com with your order ID.";
+      return "We offer a 100% money-back guarantee within 7 days if you're not satisfied. Just email support@afrobirthday.com with your order ID.";
     }
-    return "Thanks for your message! Our team will get back to you soon. For faster response, email us at hello@afrobirthday.com 📧";
+    return "Thanks for your message! Our team will get back to you soon. For faster response, email us at support@afrobirthday.com 📧";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

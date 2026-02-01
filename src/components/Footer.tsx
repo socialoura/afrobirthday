@@ -117,11 +117,11 @@ export default function Footer() {
               Get in Touch
             </h4>
             <a
-              href="mailto:hello@afrobirthday.com"
+              href="mailto:support@afrobirthday.com"
               className="inline-flex items-center gap-2 text-white/70 hover:text-primary transition-colors text-sm mb-6"
             >
               <Mail size={16} />
-              hello@afrobirthday.com
+              support@afrobirthday.com
             </a>
 
             <div className="glass-card p-4 mt-4">

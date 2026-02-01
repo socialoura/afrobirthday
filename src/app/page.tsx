@@ -1,5 +1,4 @@
 import HeroSection from "@/components/sections/HeroSection";
-import SocialProofSection from "@/components/sections/SocialProofSection";
 import ProductShowcaseSection from "@/components/sections/ProductShowcaseSection";
 import HowItWorksSection from "@/components/sections/HowItWorksSection";
 import OrderFormSection from "@/components/sections/OrderFormSection";
@@ -10,10 +9,9 @@ export default function Home() {
   return (
     <>
       <HeroSection />
-      <SocialProofSection />
       <ProductShowcaseSection />
-      <HowItWorksSection />
       <OrderFormSection />
+      <HowItWorksSection />
       <FAQQuickSection />
       <TestimonialsSection />
     </>
