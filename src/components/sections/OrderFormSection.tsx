@@ -7,6 +7,12 @@ import { z } from "zod";
 import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard, Wallet } from "lucide-react";
 import { cn, formatPrice, type CurrencyCode, PRICES } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
+import { loadStripe } from "@stripe/stripe-js";
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
+
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 function currencyFromLocale(locale: string): CurrencyCode {
   const region = locale.split("-")[1]?.toUpperCase();
@@ -141,12 +147,24 @@ export default function OrderFormSection() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [musicFile, setMusicFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
+  const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
   const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
   const { rates, fetchedAt, loading: ratesLoading } = useExchangeRates();
 
   useEffect(() => {
     setLocalCurrency(currencyFromLocale(navigator.language || "en-US"));
   }, []);
+
+  useEffect(() => {
+    if (!isStripeModalOpen) return;
+
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isStripeModalOpen]);
 
   const {
     register,
@@ -263,10 +281,34 @@ export default function OrderFormSection() {
         if (url) musicFileUrl = url;
       }
 
-      const checkoutEndpoint =
-        data.paymentMethod === "paypal" ? "/api/paypal/create-order" : "/api/create-checkout";
+      if (data.paymentMethod === "paypal") {
+        const response = await fetch("/api/paypal/create-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId,
+            ...data,
+            photoUrl,
+            musicFileUrl,
+            totalPrice,
+            hasCustomSong: musicOption === "custom",
+            isExpress: deliveryMethod === "express",
+          }),
+        });
 
-      const response = await fetch(checkoutEndpoint, {
+        if (!response.ok) {
+          const err = (await response.json().catch(() => null)) as { error?: string } | null;
+          throw new Error(err?.error ?? "PayPal checkout failed");
+        }
+
+        const payload = (await response.json()) as { url?: string };
+        if (payload.url) {
+          window.location.href = payload.url;
+        }
+        return;
+      }
+
+      const response = await fetch("/api/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -280,10 +322,18 @@ export default function OrderFormSection() {
         }),
       });
 
-      const { url } = await response.json();
-      if (url) {
-        window.location.href = url;
+      if (!response.ok) {
+        const err = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(err?.error ?? "Stripe checkout failed");
       }
+
+      const payload = (await response.json()) as { clientSecret?: string };
+      if (!payload.clientSecret) {
+        throw new Error("Missing Stripe client secret");
+      }
+
+      setStripeClientSecret(payload.clientSecret);
+      setIsStripeModalOpen(true);
     } catch (error) {
       console.error("Checkout error:", error);
       alert("Something went wrong. Please try again.");
@@ -747,6 +797,42 @@ export default function OrderFormSection() {
           </form>
         </div>
       </div>
+
+      {isStripeModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="glass-card w-full max-w-2xl p-4 sm:p-6 relative max-h-[90vh] overflow-auto">
+            <button
+              type="button"
+              className="absolute right-4 top-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              onClick={() => {
+                setIsStripeModalOpen(false);
+                setStripeClientSecret(null);
+              }}
+              aria-label="Close"
+            >
+              <X size={18} className="text-white" />
+            </button>
+
+            {!stripePromise || !stripeClientSecret ? (
+              <div className="text-white/80">
+                Stripe is not configured.
+              </div>
+            ) : (
+              <EmbeddedCheckoutProvider
+                stripe={stripePromise}
+                options={{
+                  clientSecret: stripeClientSecret,
+                  onComplete: () => {
+                    window.location.href = "/success";
+                  },
+                }}
+              >
+                <EmbeddedCheckout />
+              </EmbeddedCheckoutProvider>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

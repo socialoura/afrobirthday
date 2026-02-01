@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
     });
 
     const session = await stripe.checkout.sessions.create({
+      ui_mode: "embedded",
       payment_method_types: ["card"],
       customer_email: email,
       line_items: [
@@ -75,8 +76,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: "payment",
-      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/#order`,
+      return_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       metadata: {
         orderId,
         email,
@@ -86,6 +86,13 @@ export async function POST(request: NextRequest) {
         giftNote: giftNote || "",
       },
     });
+
+    if (!session.client_secret) {
+      return NextResponse.json(
+        { error: "Missing Stripe client secret" },
+        { status: 500 }
+      );
+    }
 
     await attachStripeSessionToOrder(orderId, session.id);
 
@@ -110,7 +117,7 @@ export async function POST(request: NextRequest) {
       ],
     });
 
-    return NextResponse.json({ url: session.url, orderId });
+    return NextResponse.json({ clientSecret: session.client_secret, orderId });
   } catch (error) {
     console.error("Stripe checkout error:", error);
     return NextResponse.json(
