@@ -54,8 +54,8 @@ const config: Config = {
         success: "#22C55E",
       },
       fontFamily: {
-        display: ["Poppins", "Montserrat", "sans-serif"],
-        body: ["Inter", "Poppins", "sans-serif"],
+        display: ["Space Grotesk", "sans-serif"],
+        body: ["DM Sans", "sans-serif"],
       },
     },
   },

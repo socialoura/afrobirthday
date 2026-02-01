@@ -8,6 +8,15 @@ export const metadata: Metadata = {
   title: "AfroBirthday - Make Every Birthday VIRAL 🎂💃",
   description:
     "Get a personalized birthday video from real African dancers. Authentic energy, pure joy, delivered in 24-48 hours.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  manifest: "/site.webmanifest",
   keywords: [
     "birthday video",
     "personalized video",

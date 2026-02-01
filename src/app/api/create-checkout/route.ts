@@ -9,6 +9,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   try {
+    const origin = request.headers.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL;
+    if (!origin) {
+      return NextResponse.json(
+        { error: "Missing site URL configuration" },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
     const { email, message, totalPrice, hasCustomSong, isExpress, giftNote } = body;
 
@@ -18,11 +26,11 @@ export async function POST(request: NextRequest) {
       line_items: [
         {
           price_data: {
-            currency: "eur",
+            currency: "usd",
             product_data: {
               name: "Personalized Birthday Video",
               description: `Custom message: "${message}"${hasCustomSong ? " + Custom song" : ""}${isExpress ? " + Express delivery" : ""}`,
-              images: ["https://afrobirthday.com/logo.png"],
+              images: [`${origin}/logo.png`],
             },
             unit_amount: Math.round(totalPrice * 100),
           },
@@ -30,8 +38,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/#order`,
+      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/#order`,
       metadata: {
         email,
         message,

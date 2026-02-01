@@ -1,52 +1,146 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { Play, Sparkles, Star, Clock, Shield } from "lucide-react";
+import { type CurrencyCode, PRICES } from "@/lib/utils";
+import { useExchangeRates } from "@/lib/useExchangeRates";
+
+function currencyFromLocale(locale: string): CurrencyCode {
+  const region = locale.split("-")[1]?.toUpperCase();
+  if (region === "GB") return "GBP";
+  if (region === "CA") return "CAD";
+  if (region === "AU") return "AUD";
+  if (
+    region === "FR" ||
+    region === "DE" ||
+    region === "ES" ||
+    region === "IT" ||
+    region === "NL" ||
+    region === "BE" ||
+    region === "PT" ||
+    region === "IE" ||
+    region === "AT" ||
+    region === "FI" ||
+    region === "GR" ||
+    region === "LU"
+  ) {
+    return "EUR";
+  }
+  return "USD";
+}
 
 export default function HeroSection() {
+  const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
+  const { rates } = useExchangeRates();
+
+  useEffect(() => {
+    setLocalCurrency(currencyFromLocale(navigator.language || "en-US"));
+  }, []);
+
+  const estimatedLocal = useMemo(() => {
+    if (localCurrency === "USD") return null;
+    const converted = PRICES.base * rates[localCurrency];
+    return new Intl.NumberFormat(navigator.language || "en-US", {
+      style: "currency",
+      currency: localCurrency,
+      maximumFractionDigits: 2,
+    }).format(converted);
+  }, [localCurrency, rates]);
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center pt-20">
-      {/* Video Background */}
-      <div className="absolute inset-0 overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Animated background gradients */}
+      <div className="absolute inset-0 bg-dark">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/30 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: "2s" }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-secondary/10 rounded-full blur-3xl" />
+      </div>
+
+      {/* Video Background with overlay */}
+      <div className="absolute inset-0 overflow-hidden opacity-40">
         <video
           autoPlay
           muted
           loop
           playsInline
           poster="/showcase_1.jpg"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover scale-110"
         >
           <source src="/blessing_video_principal.MOV" type="video/quicktime" />
           <source src="/blessing_video_principal.MOV" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-dark/70 via-dark/50 to-dark/80" />
       </div>
 
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+
       {/* Content */}
-      <div className="relative z-10 section-container text-center text-white">
-        <h1 className="heading-1 text-4xl md:text-5xl lg:text-6xl mb-6 text-balance">
-          Make Every Birthday{" "}
-          <span className="text-secondary">VIRAL</span> 🎂💃
-        </h1>
-        <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl mx-auto">
-          Real African dancers, real energy, 24-hour delivery.
+      <div className="relative z-10 section-container text-center pt-32 pb-20">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-8">
+          <Star size={14} className="text-secondary fill-secondary" />
+          <span className="text-white/80 text-sm font-medium">Trusted by 500+ happy customers</span>
+        </div>
+
+        <h1 className="heading-1 mb-6 max-w-5xl mx-auto">
+          <span className="text-white">The Birthday Gift That</span>
           <br />
-          <span className="text-secondary font-medium">Personalized birthday videos</span> that create unforgettable moments.
+          <span className="gradient-text animate-gradient bg-gradient-to-r from-primary via-secondary to-accent">Goes Viral</span>
+        </h1>
+
+        <p className="text-lg md:text-xl text-white/60 mb-10 max-w-2xl mx-auto leading-relaxed">
+          Personalized video messages from real African dancers.
+          <br className="hidden md:block" />
+          Authentic energy. Pure joy. Delivered in 24 hours.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="#order" className="btn-primary text-lg px-8 py-4">
-            Order Now - €49.99
+
+        {/* Price highlight */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <span className="text-white/40 line-through text-lg">$39.99</span>
+          <span className="text-3xl md:text-4xl font-bold text-white">$19.99</span>
+          <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-semibold">50% OFF</span>
+        </div>
+
+        {estimatedLocal && (
+          <p className="text-white/50 text-sm mb-8">
+            ≈ {estimatedLocal} • Charged in USD
+          </p>
+        )}
+
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <Link href="#order" className="btn-primary text-lg group">
+            <Sparkles size={20} className="group-hover:rotate-12 transition-transform" />
+            Create Your Video
           </Link>
-          <Link href="#showcase" className="btn-outline border-white text-white hover:bg-white hover:text-dark px-8 py-4">
-            See Examples
+          <Link href="#showcase" className="btn-secondary text-lg group flex items-center gap-2">
+            <Play size={20} className="group-hover:scale-110 transition-transform" />
+            Watch Examples
           </Link>
         </div>
-        <p className="mt-8 text-white/70 text-sm">
-          ⚡ Delivered within 24-48 hours • 💯 100% Money-back guarantee
-        </p>
+
+        {/* Trust badges */}
+        <div className="flex flex-wrap justify-center gap-6 text-white/50 text-sm">
+          <div className="flex items-center gap-2">
+            <Clock size={16} className="text-accent" />
+            <span>24h Delivery</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Shield size={16} className="text-accent" />
+            <span>Money-back Guarantee</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Star size={16} className="text-secondary fill-secondary" />
+            <span>4.9/5 Rating</span>
+          </div>
+        </div>
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-white/50 rounded-full mt-2 animate-pulse" />
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+        <div className="w-6 h-10 border-2 border-white/20 rounded-full flex justify-center">
+          <div className="w-1 h-3 bg-white/40 rounded-full mt-2 animate-bounce" />
         </div>
       </div>
     </section>

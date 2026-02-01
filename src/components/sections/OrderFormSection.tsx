@@ -1,11 +1,36 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Upload, X, Check, Loader2, Lock } from "lucide-react";
-import { cn, formatPrice, PRICES } from "@/lib/utils";
+import { cn, formatPrice, type CurrencyCode, PRICES } from "@/lib/utils";
+import { useExchangeRates } from "@/lib/useExchangeRates";
+
+function currencyFromLocale(locale: string): CurrencyCode {
+  const region = locale.split("-")[1]?.toUpperCase();
+  if (region === "GB") return "GBP";
+  if (region === "CA") return "CAD";
+  if (region === "AU") return "AUD";
+  if (
+    region === "FR" ||
+    region === "DE" ||
+    region === "ES" ||
+    region === "IT" ||
+    region === "NL" ||
+    region === "BE" ||
+    region === "PT" ||
+    region === "IE" ||
+    region === "AT" ||
+    region === "FI" ||
+    region === "GR" ||
+    region === "LU"
+  ) {
+    return "EUR";
+  }
+  return "USD";
+}
 
 const orderSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -29,6 +54,12 @@ export default function OrderFormSection() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [musicFile, setMusicFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
+  const { rates } = useExchangeRates();
+
+  useEffect(() => {
+    setLocalCurrency(currencyFromLocale(navigator.language || "en-US"));
+  }, []);
 
   const {
     register,
@@ -51,6 +82,18 @@ export default function OrderFormSection() {
     PRICES.base +
     (musicOption === "custom" ? PRICES.customSong : 0) +
     (deliveryMethod === "express" ? PRICES.expressDelivery : 0);
+
+  const formatLocal = useMemo(() => {
+    return (priceUsd: number) => {
+      if (localCurrency === "USD") return formatPrice(priceUsd, "USD");
+      const converted = priceUsd * rates[localCurrency];
+      return new Intl.NumberFormat(navigator.language || "en-US", {
+        style: "currency",
+        currency: localCurrency,
+        maximumFractionDigits: 2,
+      }).format(converted);
+    };
+  }, [localCurrency, rates]);
 
   const handlePhotoDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -104,30 +147,37 @@ export default function OrderFormSection() {
   };
 
   return (
-    <section id="order" className="py-20 bg-gradient-to-b from-light to-white">
-      <div className="section-container">
+    <section id="order" className="py-24 bg-dark relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+
+      <div className="section-container relative">
         <div className="text-center mb-12">
-          <h2 className="heading-2 mb-4">Create Your Birthday Video 🎬</h2>
-          <p className="text-dark/70 max-w-xl mx-auto">
+          <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+            Order Now
+          </span>
+          <h2 className="heading-2 text-white mb-4">Create Your Birthday Video</h2>
+          <p className="text-white/60 max-w-xl mx-auto">
             Fill out the form below and we&apos;ll create a personalized video just for you!
           </p>
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="glass-card p-8 space-y-6">
             {/* Photo Upload */}
             <div>
-              <label className="block font-semibold mb-2">
-                Upload your birthday person&apos;s photo 📸 <span className="text-error">*</span>
+              <label className="block font-semibold mb-2 text-white">
+                Upload Photo <span className="text-error">*</span>
               </label>
               <div
                 onDrop={handlePhotoDrop}
                 onDragOver={(e) => e.preventDefault()}
                 className={cn(
-                  "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors",
+                  "border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all",
                   photoPreview
-                    ? "border-success bg-success/5"
-                    : "border-gray-300 hover:border-primary"
+                    ? "border-success bg-success/10"
+                    : "border-white/20 hover:border-primary bg-white/5"
                 )}
               >
                 {photoPreview ? (
@@ -150,12 +200,12 @@ export default function OrderFormSection() {
                   </div>
                 ) : (
                   <label className="cursor-pointer">
-                    <Upload size={40} className="mx-auto mb-2 text-gray-400" />
-                    <p className="text-dark/70">
+                    <Upload size={40} className="mx-auto mb-2 text-white/40" />
+                    <p className="text-white/70">
                       Drag & drop or{" "}
                       <span className="text-primary font-medium">browse</span>
                     </p>
-                    <p className="text-sm text-dark/50 mt-1">
+                    <p className="text-sm text-white/40 mt-1">
                       JPG, PNG, WebP • Max 5MB
                     </p>
                     <input
@@ -174,9 +224,8 @@ export default function OrderFormSection() {
 
             {/* Custom Message */}
             <div>
-              <label className="block font-semibold mb-2">
-                What would you like them to shout enthusiastically? 🎤{" "}
-                <span className="text-error">*</span>
+              <label className="block font-semibold mb-2 text-white">
+                Birthday Message <span className="text-error">*</span>
               </label>
               <textarea
                 {...register("message")}
@@ -184,18 +233,18 @@ export default function OrderFormSection() {
                 maxLength={100}
                 rows={3}
                 className={cn(
-                  "w-full px-4 py-3 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary",
-                  errors.message ? "border-error" : "border-gray-300"
+                  "w-full px-4 py-3 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30",
+                  errors.message ? "border-error" : "border-white/20"
                 )}
               />
               <div className="flex justify-between mt-1">
-                <p className="text-sm text-dark/50">
-                  Keep it fun, positive, and clear!
+                <p className="text-sm text-white/40">
+                  E.g., "Happy 30th Birthday Sarah!"
                 </p>
                 <p
                   className={cn(
                     "text-sm",
-                    message.length > 90 ? "text-error" : "text-dark/50"
+                    message.length > 90 ? "text-error" : "text-white/40"
                   )}
                 >
                   {message.length}/100
@@ -208,17 +257,16 @@ export default function OrderFormSection() {
 
             {/* Email */}
             <div>
-              <label className="block font-semibold mb-2">
-                What email should we send the video to? 📧{" "}
-                <span className="text-error">*</span>
+              <label className="block font-semibold mb-2 text-white">
+                Email <span className="text-error">*</span>
               </label>
               <input
                 type="email"
                 {...register("email")}
                 placeholder="birthday.person@email.com"
                 className={cn(
-                  "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary",
-                  errors.email ? "border-error" : "border-gray-300"
+                  "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30",
+                  errors.email ? "border-error" : "border-white/20"
                 )}
               />
               {errors.email && (
@@ -228,14 +276,14 @@ export default function OrderFormSection() {
 
             {/* Music Selection */}
             <div>
-              <label className="block font-semibold mb-3">Music Selection 🎵</label>
+              <label className="block font-semibold mb-3 text-white">Music Selection</label>
               <div className="space-y-3">
                 <label
                   className={cn(
                     "flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all",
                     musicOption === "default"
-                      ? "border-primary bg-primary/5"
-                      : "border-gray-300 hover:border-primary/50"
+                      ? "border-primary bg-primary/10"
+                      : "border-white/20 hover:border-primary/50 bg-white/5"
                   )}
                 >
                   <input
@@ -245,13 +293,13 @@ export default function OrderFormSection() {
                     className="w-5 h-5 text-primary"
                   />
                   <div className="flex-1">
-                    <p className="font-medium">🎵 We choose music for you</p>
-                    <p className="text-sm text-dark/60">
+                    <p className="font-medium text-white">🎵 We choose music for you</p>
+                    <p className="text-sm text-white/50">
                       Faster order, better dancing
                     </p>
                   </div>
                   <span className="font-semibold text-primary">
-                    {formatPrice(PRICES.base)}
+                    {formatLocal(PRICES.base)}
                   </span>
                 </label>
 
@@ -259,8 +307,8 @@ export default function OrderFormSection() {
                   className={cn(
                     "flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all",
                     musicOption === "custom"
-                      ? "border-primary bg-primary/5"
-                      : "border-gray-300 hover:border-primary/50"
+                      ? "border-primary bg-primary/10"
+                      : "border-white/20 hover:border-primary/50 bg-white/5"
                   )}
                 >
                   <input
@@ -270,13 +318,13 @@ export default function OrderFormSection() {
                     className="w-5 h-5 text-primary"
                   />
                   <div className="flex-1">
-                    <p className="font-medium">🎶 I want to provide my own song</p>
-                    <p className="text-sm text-dark/60">
+                    <p className="font-medium text-white">🎶 I want to provide my own song</p>
+                    <p className="text-sm text-white/50">
                       Upload or paste a link
                     </p>
                   </div>
                   <span className="font-semibold text-primary">
-                    +{formatPrice(PRICES.customSong)}
+                    +{formatLocal(PRICES.customSong)}
                   </span>
                 </label>
               </div>
@@ -287,13 +335,13 @@ export default function OrderFormSection() {
                     type="text"
                     {...register("musicLink")}
                     placeholder="Paste YouTube or Spotify link"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30"
                   />
-                  <div className="text-center text-dark/50 text-sm">or</div>
-                  <div className="border border-gray-300 rounded-xl p-4">
+                  <div className="text-center text-white/40 text-sm">or</div>
+                  <div className="border border-white/20 rounded-xl p-4 bg-white/5">
                     <label className="cursor-pointer flex items-center justify-center gap-2">
-                      <Upload size={20} className="text-gray-400" />
-                      <span className="text-dark/70">
+                      <Upload size={20} className="text-white/40" />
+                      <span className="text-white/60">
                         {musicFile ? musicFile.name : "Upload music file (MP3, WAV)"}
                       </span>
                       <input
@@ -313,14 +361,14 @@ export default function OrderFormSection() {
 
             {/* Delivery Method */}
             <div>
-              <label className="block font-semibold mb-3">Delivery Speed ⚡</label>
+              <label className="block font-semibold mb-3 text-white">Delivery Speed</label>
               <div className="grid grid-cols-2 gap-3">
                 <label
                   className={cn(
                     "flex flex-col items-center p-4 border rounded-xl cursor-pointer transition-all text-center",
                     deliveryMethod === "standard"
-                      ? "border-primary bg-primary/5"
-                      : "border-gray-300 hover:border-primary/50"
+                      ? "border-primary bg-primary/10"
+                      : "border-white/20 hover:border-primary/50 bg-white/5"
                   )}
                 >
                   <input
@@ -329,8 +377,8 @@ export default function OrderFormSection() {
                     value="standard"
                     className="sr-only"
                   />
-                  <p className="font-medium">Standard</p>
-                  <p className="text-sm text-dark/60">24-48 hours</p>
+                  <p className="font-medium text-white">Standard</p>
+                  <p className="text-sm text-white/50">24-48 hours</p>
                   <p className="text-primary font-semibold mt-1">Included</p>
                   {deliveryMethod === "standard" && (
                     <Check size={20} className="text-primary mt-2" />
@@ -341,8 +389,8 @@ export default function OrderFormSection() {
                   className={cn(
                     "flex flex-col items-center p-4 border rounded-xl cursor-pointer transition-all text-center",
                     deliveryMethod === "express"
-                      ? "border-primary bg-primary/5"
-                      : "border-gray-300 hover:border-primary/50"
+                      ? "border-primary bg-primary/10"
+                      : "border-white/20 hover:border-primary/50 bg-white/5"
                   )}
                 >
                   <input
@@ -351,10 +399,10 @@ export default function OrderFormSection() {
                     value="express"
                     className="sr-only"
                   />
-                  <p className="font-medium">Express ⚡</p>
-                  <p className="text-sm text-dark/60">12-24 hours</p>
+                  <p className="font-medium text-white">Express ⚡</p>
+                  <p className="text-sm text-white/50">12-24 hours</p>
                   <p className="text-primary font-semibold mt-1">
-                    +{formatPrice(PRICES.expressDelivery)}
+                    +{formatLocal(PRICES.expressDelivery)}
                   </p>
                   {deliveryMethod === "express" && (
                     <Check size={20} className="text-primary mt-2" />
@@ -365,46 +413,52 @@ export default function OrderFormSection() {
 
             {/* Gift Note */}
             <div>
-              <label className="block font-semibold mb-2">
-                Gift Note (Optional) 💝
+              <label className="block font-semibold mb-2 text-white">
+                Gift Note (Optional)
               </label>
               <textarea
                 {...register("giftNote")}
                 placeholder="E.g., 'You deserve all the joy!'"
                 maxLength={200}
                 rows={2}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-3 border border-white/20 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30"
               />
             </div>
 
             {/* Price Summary */}
-            <div className="bg-dark text-white p-6 rounded-2xl">
+            <div className="bg-gradient-to-r from-primary/20 to-accent/20 border border-white/10 text-white p-6 rounded-2xl">
               <h3 className="font-semibold mb-4">Order Summary</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Birthday Video</span>
-                  <span>{formatPrice(PRICES.base)}</span>
+                  <span>{formatLocal(PRICES.base)}</span>
                 </div>
                 {musicOption === "custom" && (
                   <div className="flex justify-between">
                     <span>Custom Song</span>
-                    <span>+{formatPrice(PRICES.customSong)}</span>
+                    <span>+{formatLocal(PRICES.customSong)}</span>
                   </div>
                 )}
                 {deliveryMethod === "express" && (
                   <div className="flex justify-between">
                     <span>Express Delivery</span>
-                    <span>+{formatPrice(PRICES.expressDelivery)}</span>
+                    <span>+{formatLocal(PRICES.expressDelivery)}</span>
                   </div>
                 )}
                 <div className="border-t border-white/20 pt-2 mt-2">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span className="text-secondary">{formatPrice(totalPrice)}</span>
+                    <span className="text-secondary">{formatLocal(totalPrice)}</span>
                   </div>
                 </div>
               </div>
             </div>
+
+            {localCurrency !== "USD" && (
+              <p className="text-center text-sm text-white/40">
+                Prices are estimates in your local currency. You will be charged in USD.
+              </p>
+            )}
 
             {/* Terms */}
             <div>
@@ -414,7 +468,7 @@ export default function OrderFormSection() {
                   {...register("termsAccepted")}
                   className="w-5 h-5 mt-0.5 text-primary rounded"
                 />
-                <span className="text-sm text-dark/70">
+                <span className="text-sm text-white/60">
                   I agree to the{" "}
                   <a href="/terms" className="text-primary hover:underline">
                     Terms of Service
@@ -444,11 +498,11 @@ export default function OrderFormSection() {
                   Processing...
                 </>
               ) : (
-                <>Pay {formatPrice(totalPrice)} with Stripe</>
+                <>Pay {formatPrice(totalPrice, "USD")} with Stripe</>
               )}
             </button>
 
-            <p className="text-center text-sm text-dark/50 flex items-center justify-center gap-1">
+            <p className="text-center text-sm text-white/40 flex items-center justify-center gap-1">
               <Lock size={14} />
               Secure checkout powered by Stripe 🔒
             </p>
