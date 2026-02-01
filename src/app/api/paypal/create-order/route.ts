@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
-import { attachStripeSessionToOrder, createOrder, ensureOrdersTable } from "@/lib/db";
+import { attachPayPalOrderToOrder, createOrder, ensureOrdersTable } from "@/lib/db";
 import { sendDiscordWebhook } from "@/lib/discordWebhook";
+import { createPayPalOrder } from "@/lib/paypal";
 
 export const runtime = "nodejs";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-});
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,64 +53,48 @@ export async function POST(request: NextRequest) {
       totalUsd: totalPrice,
     });
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      customer_email: email,
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "Personalized Birthday Video",
-              description: `Custom message: "${message}"${hasCustomSong ? " + Custom song" : ""}${isExpress ? " + Express delivery" : ""}`,
-              images: [`${origin}/logo.png`],
-            },
-            unit_amount: Math.round(totalPrice * 100),
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/#order`,
-      metadata: {
-        orderId,
-        email,
-        message,
-        hasCustomSong: hasCustomSong ? "true" : "false",
-        isExpress: isExpress ? "true" : "false",
-        giftNote: giftNote || "",
-      },
+    const returnUrl = `${origin}/paypal/success?orderId=${encodeURIComponent(orderId)}`;
+    const cancelUrl = `${origin}/#order`;
+
+    const { paypalOrderId, approveUrl } = await createPayPalOrder({
+      orderId,
+      amountUsd: Number(totalPrice),
+      returnUrl,
+      cancelUrl,
     });
 
-    await attachStripeSessionToOrder(orderId, session.id);
+    await attachPayPalOrderToOrder(orderId, paypalOrderId);
 
     await sendDiscordWebhook({
       username: "AfroBirthday",
       embeds: [
         {
-          title: "New order created",
+          title: "New order created (PayPal)",
           color: 0xf59e0b,
           timestamp: new Date().toISOString(),
           fields: [
             { name: "Order ID", value: String(orderId), inline: true },
             { name: "Email", value: String(email ?? ""), inline: true },
             { name: "Total (USD)", value: String(totalPrice), inline: true },
-            { name: "Delivery", value: String(deliveryMethod ?? (isExpress ? "express" : "standard")), inline: true },
+            {
+              name: "Delivery",
+              value: String(deliveryMethod ?? (isExpress ? "express" : "standard")),
+              inline: true,
+            },
             { name: "Custom song", value: hasCustomSong ? "yes" : "no", inline: true },
             { name: "Gift note", value: String(giftNote || "-") },
             { name: "Message", value: String(message || "-") },
-            { name: "Stripe session", value: String(session.id), inline: false },
+            { name: "PayPal order", value: String(paypalOrderId), inline: false },
           ],
         },
       ],
     });
 
-    return NextResponse.json({ url: session.url, orderId });
+    return NextResponse.json({ url: approveUrl, orderId, paypalOrderId });
   } catch (error) {
-    console.error("Stripe checkout error:", error);
+    console.error("PayPal create order error:", error);
     return NextResponse.json(
-      { error: "Failed to create checkout session" },
+      { error: "Failed to create PayPal order" },
       { status: 500 }
     );
   }

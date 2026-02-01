@@ -36,6 +36,13 @@ export async function ensureOrdersTable() {
       stripe_payment_intent_id text
     )
   `;
+
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS payment_provider text,
+    ADD COLUMN IF NOT EXISTS paypal_order_id text,
+    ADD COLUMN IF NOT EXISTS paypal_capture_id text
+  `;
 }
 
 export type OrderCreateInput = {
@@ -96,7 +103,27 @@ export async function markOrderPaid(orderId: string, paymentIntentId: string | n
 
   await sql`
     UPDATE orders
-    SET status = 'paid', stripe_payment_intent_id = ${paymentIntentId}
+    SET status = 'paid', payment_provider = 'stripe', stripe_payment_intent_id = ${paymentIntentId}
+    WHERE id = ${orderId}::uuid
+  `;
+}
+
+export async function attachPayPalOrderToOrder(orderId: string, paypalOrderId: string) {
+  const sql = getSql();
+
+  await sql`
+    UPDATE orders
+    SET payment_provider = 'paypal', paypal_order_id = ${paypalOrderId}
+    WHERE id = ${orderId}::uuid
+  `;
+}
+
+export async function markOrderPaidPayPal(orderId: string, paypalCaptureId: string | null) {
+  const sql = getSql();
+
+  await sql`
+    UPDATE orders
+    SET status = 'paid', payment_provider = 'paypal', paypal_capture_id = ${paypalCaptureId}
     WHERE id = ${orderId}::uuid
   `;
 }
@@ -158,6 +185,13 @@ export async function initAdminTables() {
     ADD COLUMN IF NOT EXISTS promo_code text,
     ADD COLUMN IF NOT EXISTS discount_amount numeric(10,2) DEFAULT 0
   `;
+
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS payment_provider text,
+    ADD COLUMN IF NOT EXISTS paypal_order_id text,
+    ADD COLUMN IF NOT EXISTS paypal_capture_id text
+  `;
 }
 
 // ============================================
@@ -180,11 +214,20 @@ export type Order = {
   total_usd: number;
   stripe_session_id: string | null;
   stripe_payment_intent_id: string | null;
+  payment_provider: string | null;
+  paypal_order_id: string | null;
+  paypal_capture_id: string | null;
   notes: string | null;
   cost: number;
   promo_code: string | null;
   discount_amount: number;
 };
+
+export async function getOrderById(orderId: string): Promise<Order | null> {
+  const sql = getSql();
+  const rows = await sql`SELECT * FROM orders WHERE id = ${orderId}::uuid LIMIT 1`;
+  return rows.length > 0 ? (rows[0] as Order) : null;
+}
 
 export async function getAllOrders(): Promise<Order[]> {
   const sql = getSql();

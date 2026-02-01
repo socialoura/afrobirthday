@@ -37,13 +37,12 @@ export default function Header() {
         <div className="flex items-center justify-between">
           {/* Logo - Enlarged, no text */}
           <Link href="/" className="flex items-center group">
-            <div className="relative">
+            <div className="relative h-12 w-32 md:h-14 md:w-52">
               <Image
                 src="/logo.png"
                 alt="AfroBirthday"
-                width={70}
-                height={70}
-                className="w-14 h-14 md:w-16 md:h-16 transition-transform duration-300 group-hover:scale-110"
+                fill
+                className="object-contain transition-transform duration-300 scale-150 md:scale-175 group-hover:scale-[1.9]"
               />
               <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 to-accent/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
