@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { ensureOrdersTable, getOrderById, markOrderPaidPayPal } from "@/lib/db";
 import { sendDiscordWebhook } from "@/lib/discordWebhook";
 import { capturePayPalOrder } from "@/lib/paypal";
+import { sendEmailWithResend } from "@/lib/resend";
+import {
+  renderOrderConfirmationEmailHtml,
+  renderOrderConfirmationEmailText,
+} from "@/lib/orderEmailTemplates";
 
 export const runtime = "nodejs";
 
@@ -22,6 +27,9 @@ export async function POST(request: NextRequest) {
 
     await ensureOrdersTable();
 
+    const existingOrder = await getOrderById(orderId);
+    const wasAlreadyPaid = existingOrder?.status === "paid";
+
     const capture = await capturePayPalOrder(paypalOrderId);
 
     if (capture.status !== "COMPLETED") {
@@ -31,9 +39,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await markOrderPaidPayPal(orderId, capture.captureId);
+    if (!wasAlreadyPaid) {
+      await markOrderPaidPayPal(orderId, capture.captureId);
+    }
 
-    const order = await getOrderById(orderId);
+    const order = (await getOrderById(orderId)) ?? existingOrder;
+
+    if (!wasAlreadyPaid && order?.email) {
+      try {
+        await sendEmailWithResend({
+          to: order.email,
+          subject: `AfroBirthday order confirmation (${order.id})`,
+          html: renderOrderConfirmationEmailHtml(order),
+          text: renderOrderConfirmationEmailText(order),
+        });
+      } catch (emailErr) {
+        console.error("Failed to send order confirmation email (PayPal):", emailErr);
+      }
+    }
 
     await sendDiscordWebhook({
       username: "AfroBirthday",

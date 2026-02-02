@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { markOrderPaid, markOrderCanceled } from "@/lib/db";
+import { ensureOrdersTable, getOrderById, markOrderPaid, markOrderCanceled } from "@/lib/db";
 import { sendDiscordWebhook } from "@/lib/discordWebhook";
+import { sendEmailWithResend } from "@/lib/resend";
+import {
+  renderOrderConfirmationEmailHtml,
+  renderOrderConfirmationEmailText,
+} from "@/lib/orderEmailTemplates";
 
 export const runtime = "nodejs";
 
@@ -31,8 +36,31 @@ export async function POST(request: Request) {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const orderId = session.metadata?.orderId;
-      if (orderId) {
+
+      await ensureOrdersTable();
+
+      const existingOrder = orderId ? await getOrderById(orderId) : null;
+      const wasAlreadyPaid = existingOrder?.status === "paid";
+
+      if (orderId && !wasAlreadyPaid) {
         await markOrderPaid(orderId, (session.payment_intent as string | null) ?? null);
+      }
+
+      if (orderId && !wasAlreadyPaid) {
+        const order = (await getOrderById(orderId)) ?? existingOrder;
+
+        if (order?.email) {
+          try {
+            await sendEmailWithResend({
+              to: order.email,
+              subject: `AfroBirthday order confirmation (${order.id})`,
+              html: renderOrderConfirmationEmailHtml(order),
+              text: renderOrderConfirmationEmailText(order),
+            });
+          } catch (emailErr) {
+            console.error("Failed to send order confirmation email (Stripe):", emailErr);
+          }
+        }
       }
 
       await sendDiscordWebhook({
