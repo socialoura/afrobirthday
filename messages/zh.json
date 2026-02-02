@@ -1,0 +1,457 @@
+{
+  "Header": {
+    "nav": {
+      "howItWorks": "如何下单",
+      "ourStory": "我们的故事",
+      "faq": "常见问题"
+    },
+    "cta": "获取你的视频"
+  },
+  "Hero": {
+    "badge": "500+ 位满意客户的信赖之选",
+    "title1": "让生日礼物",
+    "title2": "刷爆朋友圈",
+    "subtitle1": "来自真实非洲舞者的专属定制祝福视频。",
+    "subtitle2": "真实能量。纯粹快乐。24 小时内送达。",
+    "localCurrencyNote": "以你的本地货币显示 • 以 USD 结算",
+    "ctaOrder": "立即下单",
+    "ctaWatch": "观看示例",
+    "trust": {
+      "delivery": "24 小时送达",
+      "guarantee": "退款保证",
+      "rating": "评分 4.9/5"
+    }
+  },
+  "Footer": {
+    "brand": "把真实的非洲喜悦带到世界各地的生日。每个视频都用心制作。",
+    "navigate": "导航",
+    "legal": "法律",
+    "getInTouch": "联系我们",
+    "ctaLine": "准备让某人的一天变得难忘吗？",
+    "ctaButton": "立即下单",
+    "copyright": "保留所有权利。",
+    "madeWith": "用",
+    "inAfrica": "在非洲制作",
+    "links": {
+      "about": "关于我们",
+      "privacy": "隐私政策",
+      "refunds": "退款政策",
+      "terms": "服务条款"
+    }
+  },
+  "HowItWorks": {
+    "badge": "简单流程",
+    "title": "如何运作",
+    "subtitle": "3 个简单步骤，打造难忘的生日瞬间",
+    "steps": {
+      "customize": {
+        "title": "自定义",
+        "description": "上传照片并写下生日祝福。选择音乐与风格。"
+      },
+      "create": {
+        "title": "我们制作",
+        "description": "我们的非洲舞者用真实能量与快乐，为你录制独一无二的视频。"
+      },
+      "celebrate": {
+        "title": "尽情庆祝",
+        "description": "24–48 小时内收到视频。分享给对方，让 TA 笑到停不下来！"
+      }
+    },
+    "cta": "现在开始",
+    "note": "无需账号 • 安全卡支付"
+  },
+  "FAQQuick": {
+    "title": "快速解答",
+    "seeAll": "查看全部常见问题",
+    "items": {
+      "delivery": {
+        "q": "多久能收到视频？",
+        "a": "定制视频通常 24–48 小时送达（选择加急则 12–24 小时）。"
+      },
+      "refund": {
+        "q": "如果我不喜欢视频怎么办？",
+        "a": "7 天内 100% 退款保证，无需解释。"
+      },
+      "customize": {
+        "q": "可以完全自定义吗？",
+        "a": "可以！添加祝福语、照片，甚至你自己的音乐。"
+      }
+    }
+  },
+  "ProductShowcase": {
+    "badge": "视频展示",
+    "title": "看看魔法如何发生",
+    "subtitle": "每个视频都由真人用心制作，带来真实的非洲能量。看看来自全球客户的真实示例。",
+    "hero": {
+      "imageAlt": "生日视频预览",
+      "title": "观看一个生日祝福示例",
+      "subtitle": "点击播放 • 能量保证"
+    },
+    "aria": {
+      "playHero": "播放视频",
+      "play": "播放 {title}"
+    },
+    "videos": {
+      "0": { "title": "给 Sarah 的生日祝福", "views": "210 万次观看" },
+      "1": { "title": "来自肯尼亚的爱", "views": "180 万次观看" },
+      "2": { "title": "妈妈 60 岁惊喜", "views": "95.6 万次观看" },
+      "3": { "title": "公司庆祝视频", "views": "72.3 万次观看" }
+    }
+  },
+  "Testimonials": {
+    "title": "更多来自客户的好评",
+    "subtitle": "真实客户的真实反馈",
+    "aria": {
+      "prev": "上一条评价",
+      "next": "下一条评价",
+      "goTo": "跳转到评价 {index}"
+    },
+    "items": [
+      {
+        "name": "Marie L.",
+        "location": "布鲁塞尔，比利时",
+        "text": "我为爸爸的 65 岁生日订了这个视频，他直接看呆了！舞者太棒了，定制内容也很到位。绝对是最棒的礼物！",
+        "rating": 5,
+        "avatar": "/showcase_1.jpg"
+      },
+      {
+        "name": "Thomas H.",
+        "location": "阿姆斯特丹，荷兰",
+        "text": "我女朋友以为我真的请了舞者！质量很高，而且不到 24 小时就收到了。强烈推荐！",
+        "rating": 5,
+        "avatar": "/showcase_2.jpg"
+      },
+      {
+        "name": "Fatima A.",
+        "location": "伦敦，英国",
+        "text": "太真实、太感动了。我妈妈开心到流泪。视频里那种非洲能量非常感染人！",
+        "rating": 5,
+        "avatar": "/showcase_3.jpg"
+      },
+      {
+        "name": "Lucas M.",
+        "location": "巴黎，法国",
+        "text": "公司生日用的，整个办公室都很喜欢！我还会再订。",
+        "rating": 5,
+        "avatar": "/showcase_1.jpg"
+      },
+      {
+        "name": "Emma S.",
+        "location": "慕尼黑，德国",
+        "text": "自选音乐这个选项很值！他们把氛围抓得特别准。10/10！",
+        "rating": 5,
+        "avatar": "/showcase_2.jpg"
+      }
+    ]
+  },
+  "FAQPage": {
+    "title": "常见问题 ❓",
+    "intro": "关于 AfroBirthday 你需要知道的一切。没找到答案？",
+    "contactLink": "联系我们",
+    "still": {
+      "title": "还有疑问？",
+      "subtitle": "我们随时可以帮你。欢迎随时联系。",
+      "email": "给我们发邮件"
+    },
+    "cta": "准备下单了吗？",
+    "items": [
+      {
+        "question": "我多久能收到视频？",
+        "answer": "确认后通常 24–48 小时送达。选择加急（+€5.99）可在 12–24 小时内送达。"
+      },
+      {
+        "question": "如果我不喜欢视频怎么办？",
+        "answer": "7 天内 100% 退款保证。请将订单 ID 发到 support@afrobirthday.com，我们会为你处理全额退款。"
+      },
+      {
+        "question": "可以指定风格或服装吗？",
+        "answer": "可以！把你的要求写在留言里，我们会尽力满足。"
+      },
+      {
+        "question": "如果视频里的文字有错误怎么办？",
+        "answer": "我们会在拍摄前核对文字。如果错误来自我们，我们会在 24 小时内免费重做。"
+      },
+      {
+        "question": "我的照片安全吗？",
+        "answer": "是的。照片上传时会加密并安全存储。视频交付后 30 天内会删除。"
+      },
+      {
+        "question": "我可以下载视频吗？",
+        "answer": "可以！你会通过邮件收到下载链接，可以保存并分享（微信、WhatsApp、社交平台等）。"
+      },
+      {
+        "question": "如果我想要多个视频呢？",
+        "answer": "当然可以。你可以下单任意数量。批量订单（5+）请联系我们获取优惠。"
+      },
+      {
+        "question": "可以用于公司活动吗？",
+        "answer": "当然！很多公司用我们的视频做庆祝。联系我们获取企业报价。"
+      },
+      {
+        "question": "视频会有水印吗？",
+        "answer": "默认会有一个小的 AfroBirthday 标识。如果你希望去除，请在订单备注里说明。"
+      },
+      {
+        "question": "有哪些音乐选项？",
+        "answer": "你可以让我们选择音乐（包含在内），或提供你自己的歌曲（YouTube/Spotify 链接或 MP3）。"
+      },
+      {
+        "question": "我可以把视频当作礼物送人吗？",
+        "answer": "可以！你可以直接发送给收礼人，并添加礼物留言。"
+      },
+      {
+        "question": "你们会寄 DVD 吗？",
+        "answer": "目前不会。为了更快交付，我们提供数字版视频。"
+      }
+    ]
+  },
+  "OrderForm": {
+    "badge": "下单",
+    "title": "创建你的生日视频",
+    "subtitle": "填写下方表单，我们将为你制作专属定制视频！",
+    "photo": {
+      "label": "上传照片",
+      "help": "清晰的照片能帮助我们更好地定制视频。",
+      "private": "私密 & 安全",
+      "previewAlt": "预览",
+      "dropHere": "将图片拖拽到这里",
+      "or": "或",
+      "browse": "选择文件",
+      "formats": "JPG, PNG, WebP • 最大 5MB"
+    },
+    "message": {
+      "label": "生日祝福语",
+      "help": "尽量简短清晰，我们会用最有能量的方式喊出来。",
+      "placeholder": "例如：‘Sarah，30 岁生日快乐！’"
+    },
+    "email": {
+      "label": "邮箱",
+      "help": "我们会把最终视频发送到这个邮箱。",
+      "placeholder": "name@email.com"
+    },
+    "music": {
+      "label": "音乐选择",
+      "default": {
+        "title": "由我们为你选择音乐",
+        "subtitle": "下单更快、氛围更棒",
+        "price": "免费"
+      },
+      "custom": {
+        "title": "我想使用自己的歌曲",
+        "subtitle": "上传文件或粘贴链接"
+      },
+      "linkPlaceholder": "粘贴 YouTube 或 Spotify 链接",
+      "or": "或",
+      "filePlaceholder": "上传音频文件（MP3, WAV）"
+    },
+    "delivery": {
+      "label": "交付速度",
+      "standard": {
+        "title": "标准",
+        "time": "24–48 小时",
+        "price": "包含"
+      },
+      "express": {
+        "title": "加急 ⚡",
+        "time": "12–24 小时"
+      }
+    },
+    "gift": {
+      "label": "礼物留言（可选）",
+      "help": "可选文本，我们可以把它加入交付邮件内容中。",
+      "placeholder": "例如：‘祝你拥有世界上所有的快乐！’"
+    },
+    "payment": {
+      "label": "支付方式",
+      "card": {
+        "title": "银行卡",
+        "subtitle": "Visa, Mastercard, Amex"
+      },
+      "paypal": {
+        "subtitle": "使用 PayPal 余额付款"
+      }
+    },
+    "summary": {
+      "title": "订单摘要",
+      "items": {
+        "base": "生日视频",
+        "customSong": "自选音乐",
+        "express": "加急交付"
+      },
+      "total": "合计",
+      "chargedUsd": "结账时以 USD 扣款",
+      "estimate": "价格为本地货币估算值。"
+    },
+    "terms": {
+      "prefix": "我已阅读并同意",
+      "terms": "服务条款",
+      "and": "以及",
+      "refund": "退款政策"
+    },
+    "submit": {
+      "processing": "处理中…",
+      "paypal": "使用 PayPal 支付",
+      "pay": "支付 {amount}"
+    },
+    "trust": {
+      "secure": "安全支付",
+      "private": "私密安全",
+      "delivery": "24 小时交付"
+    },
+    "modal": {
+      "close": "关闭",
+      "notConfigured": "Stripe 未配置。"
+    },
+    "errors": {
+      "emailInvalid": "请输入有效的邮箱地址",
+      "messageMin": "祝福语至少需要 3 个字符",
+      "messageMax": "祝福语最多 100 个字符",
+      "termsRequired": "你必须同意条款"
+    },
+    "alerts": {
+      "photoTooLarge": "照片必须小于 5MB",
+      "photoMissing": "请上传照片",
+      "genericError": "发生错误，请重试。"
+    },
+    "rates": {
+      "updating": "汇率更新中…",
+      "unavailable": "实时汇率不可用，显示估算值。",
+      "recent": "汇率已最近更新",
+      "updatedAt": "汇率更新于 {time}"
+    }
+  },
+  "AboutPage": {
+    "meta": {
+      "title": "关于我们",
+      "description": "了解 AfroBirthday：我们的使命是把快乐带到世界各地，并通过定制生日视频支持非洲创作者。"
+    },
+    "title": "关于 AfroBirthday 🎂",
+    "who": {
+      "title": "我们是谁",
+      "p1": "AfroBirthday 是一个把世界各地的人与真实的非洲能量和喜悦连接起来的平台。我们由才华横溢的非洲舞者为你制作专属定制的生日祝福视频。",
+      "p2": "以传播快乐并支持非洲艺术家为使命，我们已经向 50+ 个国家交付了 500+ 个定制视频。"
+    },
+    "mission": {
+      "title": "我们的使命",
+      "p1": "我们相信每个生日都值得拥有纯粹的快乐。我们的使命是创造难忘的体验，连接文化，并支持非洲的创作者。"
+    },
+    "team": {
+      "title": "我们的团队",
+      "images": {
+        "0": "我们的团队",
+        "1": "制作视频",
+        "2": "庆祝时刻"
+      },
+      "p1": "我们的团队由肯尼亚及非洲各地的舞者、编舞与视频创作者组成。每个人都带来独特的能量与文化真实感。"
+    },
+    "contact": {
+      "title": "联系我们"
+    },
+    "cta": "制作我的视频"
+  },
+  "HowToOrderPage": {
+    "meta": {
+      "title": "如何下单",
+      "description": "如何订购 AfroBirthday：上传照片、填写祝福语、安全支付，并在 12–48 小时内通过邮箱收到视频。"
+    },
+    "title": "如何订购你的生日视频 🎬",
+    "subtitle": "简单、快速、有趣。只需 3 步！",
+    "tipsLabel": "小贴士：",
+    "steps": {
+      "0": {
+        "title": "填写表单",
+        "description": "上传清晰照片，填写祝福语（最多 100 字符），并选择音乐。",
+        "tips": {
+          "0": "选择光线充足、清晰的照片",
+          "1": "祝福语尽量简短明确",
+          "2": "想更快交付可选择“由我们为你选择音乐”"
+        }
+      },
+      "1": {
+        "title": "安全支付",
+        "description": "通过安全结账完成付款。支持主流银行卡。",
+        "tips": {
+          "0": "所有支付均加密并安全",
+          "1": "你会立即收到确认邮件",
+          "2": "我们会马上开始制作"
+        }
+      },
+      "2": {
+        "title": "收到视频",
+        "description": "标准 24–48 小时（加急 12–24 小时）通过邮箱收到视频。",
+        "tips": {
+          "0": "下载链接",
+          "1": "可在微信/WhatsApp/社媒分享",
+          "2": "不满意可退款保证"
+        }
+      }
+    },
+    "timeline": {
+      "title": "交付时间 ⚡",
+      "standard": "标准",
+      "or": "或",
+      "express": "加急（+€5.99）"
+    },
+    "secure": {
+      "title": "安全可靠",
+      "ssl": "SSL 加密",
+      "cards": "银行卡支付",
+      "guarantee": "满意保证"
+    },
+    "cta": "准备制造惊喜？立即下单"
+  },
+  "OurStoryPage": {
+    "meta": {
+      "title": "我们的故事",
+      "description": "了解 AfroBirthday 的故事：我们如何通过定制视频把世界与真实的非洲喜悦连接起来。"
+    },
+    "title": "AfroBirthday 的故事 🌍",
+    "subtitle": "用真实的非洲能量连接世界各地的人们。",
+    "mission": {
+      "title": "我们的使命",
+      "body": "我们相信每个生日都值得拥有纯粹的快乐。因此我们创建了 AfroBirthday：用真实的非洲能量连接世界各地的人。我们的团队把热爱注入每一个视频，让你的重要时刻变得难忘。"
+    },
+    "coreValuesTitle": "我们的价值观",
+    "values": {
+      "authenticity": {
+        "title": "真实",
+        "description": "真实的人、真实的文化、真实的快乐。每个视频都由才华横溢的非洲创作者用真诚能量制作。"
+      },
+      "joy": {
+        "title": "快乐",
+        "description": "每个生日都值得纯粹的幸福。我们的使命就是把笑容带到世界各地。"
+      },
+      "impact": {
+        "title": "影响力",
+        "description": "对创作者公平报酬。每一笔订单都在支持非洲艺术家及其社区。"
+      },
+      "quality": {
+        "title": "品质",
+        "description": "每个视频都追求高品质。我们以提供高质量的个性化内容为荣。"
+      }
+    },
+    "creators": {
+      "title": "认识我们的创作者 💃🕺",
+      "images": {
+        "0": { "alt": "团队工作中", "caption": "来自肯尼亚的魔法 🇰🇪" },
+        "1": { "alt": "舞蹈排练", "caption": "练习新的编舞" },
+        "2": { "alt": "团队庆祝", "caption": "庆祝每一个里程碑" }
+      },
+      "quote": "\u201c这不仅仅是工作，这是我们的热爱。每个视频都倾注了我们的心意。\u201d",
+      "signature": "AfroBirthday 团队"
+    },
+    "impact": {
+      "title": "我们的影响 ✨"
+    },
+    "metrics": {
+      "customers": "满意客户",
+      "creators": "支持的创作者",
+      "countries": "覆盖国家",
+      "rating": "平均评分"
+    },
+    "cta": {
+      "title": "想制造惊喜吗？",
+      "button": "立即下单"
+    }
+  }
+}

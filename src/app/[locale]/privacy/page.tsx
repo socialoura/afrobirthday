@@ -1,26 +1,34 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description:
-    "Read AfroBirthday's privacy policy to understand what data we collect, how we use it, and how we protect your photos and personal information.",
-  alternates: {
-    canonical: "/privacy",
-  },
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+
+  return {
     title: "Privacy Policy",
     description:
       "Read AfroBirthday's privacy policy to understand what data we collect, how we use it, and how we protect your photos and personal information.",
-    url: "/privacy",
-    images: [{ url: "/logo.png" }],
-  },
-  twitter: {
-    title: "Privacy Policy",
-    description:
-      "Read AfroBirthday's privacy policy to understand what data we collect, how we use it, and how we protect your photos and personal information.",
-    images: ["/logo.png"],
-  },
-};
+    alternates: {
+      canonical: `/${locale}/privacy`,
+    },
+    openGraph: {
+      title: "Privacy Policy",
+      description:
+        "Read AfroBirthday's privacy policy to understand what data we collect, how we use it, and how we protect your photos and personal information.",
+      url: `/${locale}/privacy`,
+      images: [{ url: "/logo.png" }],
+    },
+    twitter: {
+      title: "Privacy Policy",
+      description:
+        "Read AfroBirthday's privacy policy to understand what data we collect, how we use it, and how we protect your photos and personal information.",
+      images: ["/logo.png"],
+    },
+  };
+}
 
 export default function PrivacyPage() {
   return (
@@ -36,11 +44,21 @@ export default function PrivacyPage() {
               When you use AfroBirthday, we collect the following information:
             </p>
             <ul className="list-disc list-inside text-dark/80 space-y-2">
-              <li><strong>Contact Information:</strong> Email address for order delivery and communication</li>
-              <li><strong>Photos:</strong> Images you upload for video personalization</li>
-              <li><strong>Custom Messages:</strong> Text content you provide for your video</li>
-              <li><strong>Payment Information:</strong> Processed securely by our payment provider (we do not store card details)</li>
-              <li><strong>Usage Data:</strong> How you interact with our website for improvement purposes</li>
+              <li>
+                <strong>Contact Information:</strong> Email address for order delivery and communication
+              </li>
+              <li>
+                <strong>Photos:</strong> Images you upload for video personalization
+              </li>
+              <li>
+                <strong>Custom Messages:</strong> Text content you provide for your video
+              </li>
+              <li>
+                <strong>Payment Information:</strong> Processed securely by our payment provider (we do not store card details)
+              </li>
+              <li>
+                <strong>Usage Data:</strong> How you interact with our website for improvement purposes
+              </li>
             </ul>
           </section>
 
@@ -57,9 +75,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="heading-2 mb-4">3. Photo Handling & Deletion</h2>
-            <p className="text-dark/80 mb-4">
-              We take your privacy seriously. Photos you upload are:
-            </p>
+            <p className="text-dark/80 mb-4">We take your privacy seriously. Photos you upload are:</p>
             <ul className="list-disc pl-6 space-y-2 text-dark/80">
               <li>Encrypted during upload and storage</li>
               <li>Used only for creating your personalized video</li>
@@ -71,17 +87,15 @@ export default function PrivacyPage() {
           <section>
             <h2 className="heading-2 mb-4">4. Data Security</h2>
             <p className="text-dark/80">
-              We implement industry-standard security measures including SSL encryption, 
-              secure credit card payment processing, and regular security audits to 
+              We implement industry-standard security measures including SSL encryption,
+              secure credit card payment processing, and regular security audits to
               protect your personal information.
             </p>
           </section>
 
           <section>
             <h2 className="heading-2 mb-4">5. GDPR Compliance (EU Users)</h2>
-            <p className="text-dark/80 mb-4">
-              If you are in the European Union, you have the right to:
-            </p>
+            <p className="text-dark/80 mb-4">If you are in the European Union, you have the right to:</p>
             <ul className="list-disc pl-6 space-y-2 text-dark/80">
               <li>Access your personal data</li>
               <li>Request correction of inaccurate data</li>
@@ -89,16 +103,14 @@ export default function PrivacyPage() {
               <li>Object to processing of your data</li>
               <li>Data portability</li>
             </ul>
-            <p className="text-dark/80 mt-4">
-              To exercise these rights, contact us at support@afrobirthday.com
-            </p>
+            <p className="text-dark/80 mt-4">To exercise these rights, contact us at support@afrobirthday.com</p>
           </section>
 
           <section>
             <h2 className="heading-2 mb-4">6. Cookies</h2>
             <p className="text-dark/80">
-              We use essential cookies for website functionality and analytics cookies 
-              (with your consent) to understand how visitors use our site. You can 
+              We use essential cookies for website functionality and analytics cookies
+              (with your consent) to understand how visitors use our site. You can
               manage cookie preferences through your browser settings.
             </p>
           </section>
@@ -106,8 +118,8 @@ export default function PrivacyPage() {
           <section>
             <h2 className="heading-2 mb-4">7. Third-Party Services</h2>
             <p className="text-dark/80">
-              We use trusted third-party services including a payment provider for payments and 
-              analytics tools. These services have their own privacy policies and 
+              We use trusted third-party services including a payment provider for payments and
+              analytics tools. These services have their own privacy policies and
               handle data according to their terms.
             </p>
           </section>

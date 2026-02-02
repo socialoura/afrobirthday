@@ -1,5 +1,18 @@
 import Link from "next/link";
 import { CheckCircle, Mail, Clock, ArrowRight } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Payment Successful",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+};
 
 export default function SuccessPage() {
   return (

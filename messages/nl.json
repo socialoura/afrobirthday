@@ -1,0 +1,457 @@
+{
+  "Header": {
+    "nav": {
+      "howItWorks": "Hoe het werkt",
+      "ourStory": "Ons verhaal",
+      "faq": "FAQ"
+    },
+    "cta": "Bestel je video"
+  },
+  "Hero": {
+    "badge": "Vertrouwd door 500+ tevreden klanten",
+    "title1": "Het verjaardagscadeau dat",
+    "title2": "viraal gaat",
+    "subtitle1": "Gepersonaliseerde videoberichten van echte Afrikaanse dansers.",
+    "subtitle2": "Authentieke energie. Pure vreugde. Geleverd binnen 24 uur.",
+    "localCurrencyNote": "Getoond in je lokale valuta • In rekening gebracht in USD",
+    "ctaOrder": "Bestel mijn video",
+    "ctaWatch": "Bekijk voorbeelden",
+    "trust": {
+      "delivery": "Levering in 24u",
+      "guarantee": "Geld-terug-garantie",
+      "rating": "Score 4,9/5"
+    }
+  },
+  "Footer": {
+    "brand": "We brengen authentieke Afrikaanse vreugde naar verjaardagen wereldwijd. Elke video is met liefde gemaakt.",
+    "navigate": "Navigeren",
+    "legal": "Juridisch",
+    "getInTouch": "Contact",
+    "ctaLine": "Klaar om iemands dag onvergetelijk te maken?",
+    "ctaButton": "Bestel je video",
+    "copyright": "Alle rechten voorbehouden.",
+    "madeWith": "Gemaakt met",
+    "inAfrica": "in Afrika",
+    "links": {
+      "about": "Over",
+      "privacy": "Privacy",
+      "refunds": "Terugbetalingen",
+      "terms": "Voorwaarden"
+    }
+  },
+  "HowItWorks": {
+    "badge": "Eenvoudig proces",
+    "title": "Hoe het werkt",
+    "subtitle": "3 simpele stappen voor een onvergetelijk verjaardagmoment",
+    "steps": {
+      "customize": {
+        "title": "Personaliseer",
+        "description": "Upload een foto en schrijf je verjaardagsboodschap. Kies muziek en stijl."
+      },
+      "create": {
+        "title": "Wij maken",
+        "description": "Onze getalenteerde Afrikaanse dansers nemen jouw unieke video op met echte energie en vreugde."
+      },
+      "celebrate": {
+        "title": "Vier",
+        "description": "Ontvang je video binnen 24–48 uur. Deel hem en zie hun gezicht oplichten!"
+      }
+    },
+    "cta": "Start nu",
+    "note": "Geen account nodig • Veilige kaartbetaling"
+  },
+  "FAQQuick": {
+    "title": "Snelle antwoorden",
+    "seeAll": "Bekijk alle FAQ",
+    "items": {
+      "delivery": {
+        "q": "Wat is de levertijd?",
+        "a": "Je gepersonaliseerde video wordt geleverd binnen 24–48 uur (of 12–24 uur met Express)."
+      },
+      "refund": {
+        "q": "Wat als ik de video niet leuk vind?",
+        "a": "100% geld-terug-garantie binnen 7 dagen. Zonder vragen!"
+      },
+      "customize": {
+        "q": "Kan ik alles personaliseren?",
+        "a": "Ja! Voeg je bericht, een foto en zelfs je eigen muziek toe."
+      }
+    }
+  },
+  "ProductShowcase": {
+    "badge": "Videogalerij",
+    "title": "Zie de magie in actie",
+    "subtitle": "Elke video wordt met de hand gemaakt met authentieke Afrikaanse energie. Bekijk echte voorbeelden van blije klanten wereldwijd.",
+    "hero": {
+      "imageAlt": "Voorbeeld van een verjaardagsvideo",
+      "title": "Bekijk een voorbeeld van een verjaardagswens",
+      "subtitle": "Klik om af te spelen • Energie gegarandeerd"
+    },
+    "aria": {
+      "playHero": "Video afspelen",
+      "play": "{title} afspelen"
+    },
+    "videos": {
+      "0": { "title": "Verjaardag voor Sarah", "views": "2,1 mln weergaven" },
+      "1": { "title": "Uit Kenia met liefde", "views": "1,8 mln weergaven" },
+      "2": { "title": "Verrassing voor mama's 60e", "views": "956k weergaven" },
+      "3": { "title": "Bedrijfsfeest", "views": "723k weergaven" }
+    }
+  },
+  "Testimonials": {
+    "title": "Nog meer liefde van onze klanten",
+    "subtitle": "Echte reviews van echte, blije klanten",
+    "aria": {
+      "prev": "Vorige review",
+      "next": "Volgende review",
+      "goTo": "Ga naar review {index}"
+    },
+    "items": [
+      {
+        "name": "Marie L.",
+        "location": "Brussel, België",
+        "text": "Ik bestelde het voor de 65e verjaardag van mijn vader en hij was sprakeloos! De dansers waren geweldig en de personalisatie perfect. Beste cadeau!",
+        "rating": 5,
+        "avatar": "/showcase_1.jpg"
+      },
+      {
+        "name": "Thomas H.",
+        "location": "Amsterdam, Nederland",
+        "text": "Mijn vriendin dacht dat ik echte dansers had ingehuurd! Topkwaliteit en binnen 24 uur geleverd. Aanrader!",
+        "rating": 5,
+        "avatar": "/showcase_2.jpg"
+      },
+      {
+        "name": "Fatima A.",
+        "location": "Londen, VK",
+        "text": "Zo authentiek en ontroerend. Mijn moeder huilde van blijdschap. De Afrikaanse energie spat ervan af!",
+        "rating": 5,
+        "avatar": "/showcase_3.jpg"
+      },
+      {
+        "name": "Lucas M.",
+        "location": "Parijs, Frankrijk",
+        "text": "Gebruikt voor een bedrijfsverjaardag. Het hele kantoor vond het geweldig! Ik ga er nog bestellen.",
+        "rating": 5,
+        "avatar": "/showcase_1.jpg"
+      },
+      {
+        "name": "Emma S.",
+        "location": "München, Duitsland",
+        "text": "De optie met eigen muziek is het waard. Ze hebben de vibe perfect gepakt. 10/10!",
+        "rating": 5,
+        "avatar": "/showcase_2.jpg"
+      }
+    ]
+  },
+  "FAQPage": {
+    "title": "Veelgestelde vragen ❓",
+    "intro": "Alles wat je moet weten over AfroBirthday. Antwoord niet gevonden?",
+    "contactLink": "Neem contact op",
+    "still": {
+      "title": "Nog vragen?",
+      "subtitle": "We helpen je graag. Stuur ons gerust een bericht.",
+      "email": "E-mail ons"
+    },
+    "cta": "Klaar om te bestellen?",
+    "items": [
+      {
+        "question": "Hoe snel ontvang ik mijn video?",
+        "answer": "Je gepersonaliseerde verjaardagsvideo wordt geleverd binnen 24–48 uur na bevestiging. Met Express (+€5,99) binnen 12–24 uur."
+      },
+      {
+        "question": "Wat als ik de video niet leuk vind?",
+        "answer": "100% geld-terug-garantie binnen 7 dagen. Mail ons op support@afrobirthday.com met je order-ID voor een volledige terugbetaling."
+      },
+      {
+        "question": "Kan ik een specifieke stijl of outfit vragen?",
+        "answer": "Ja! Zet je verzoeken in het berichtveld. We doen ons best om ze te volgen."
+      },
+      {
+        "question": "Wat als de tekst verkeerd is in de video?",
+        "answer": "We controleren de tekst vóór opname. Als de fout bij ons ligt, maken we de video gratis opnieuw binnen 24 uur."
+      },
+      {
+        "question": "Is mijn foto veilig?",
+        "answer": "Ja. Je foto wordt versleuteld geüpload en veilig opgeslagen. Hij wordt binnen 30 dagen na levering verwijderd."
+      },
+      {
+        "question": "Kan ik de video downloaden?",
+        "answer": "Ja! Je ontvangt een downloadlink per e-mail. Je kunt hem bewaren en delen (WhatsApp, social media, etc.)."
+      },
+      {
+        "question": "Wat als ik meerdere video's wil?",
+        "answer": "Je kunt zoveel video's bestellen als je wilt. Voor bulkbestellingen (5+) kun je contact opnemen voor een speciale prijs."
+      },
+      {
+        "question": "Kan ik dit gebruiken voor een bedrijfsevenement?",
+        "answer": "Zeker! Veel bedrijven gebruiken onze video's voor verjaardagen en vieringen. Neem contact op voor zakelijke tarieven."
+      },
+      {
+        "question": "Heeft de video een watermark?",
+        "answer": "Standaard staat er een kleine AfroBirthday-branding op. Wil je het zonder? Zet het in je ordernotities."
+      },
+      {
+        "question": "Welke muziekopties zijn er?",
+        "answer": "Je kunt ons de muziek laten kiezen (inbegrepen) of je eigen nummer aanleveren (YouTube/Spotify-link of MP3-bestand)."
+      },
+      {
+        "question": "Kan ik de video cadeau doen?",
+        "answer": "Ja! Je kunt de video rechtstreeks naar de ontvanger sturen en een cadeaubericht toevoegen."
+      },
+      {
+        "question": "Versturen jullie dvd's?",
+        "answer": "Nog niet. Video's worden digitaal geleverd voor snelle levering."
+      }
+    ]
+  },
+  "OrderForm": {
+    "badge": "Bestellen",
+    "title": "Maak je verjaardagsvideo",
+    "subtitle": "Vul het formulier hieronder in en wij maken een gepersonaliseerde video voor je!",
+    "photo": {
+      "label": "Foto uploaden",
+      "help": "Een duidelijke foto helpt ons om de video perfect te personaliseren.",
+      "private": "Privé & veilig",
+      "previewAlt": "Voorbeeld",
+      "dropHere": "Sleep je afbeelding hier",
+      "or": "of",
+      "browse": "bestanden kiezen",
+      "formats": "JPG, PNG, WebP • Max 5 MB"
+    },
+    "message": {
+      "label": "Verjaardagsbericht",
+      "help": "Kort en duidelijk. We roepen het met energie.",
+      "placeholder": "Bijv.: 'Fijne 30e verjaardag, Sarah!'"
+    },
+    "email": {
+      "label": "E-mail",
+      "help": "We sturen de uiteindelijke video naar dit e-mailadres.",
+      "placeholder": "naam@email.com"
+    },
+    "music": {
+      "label": "Muziekkeuze",
+      "default": {
+        "title": "Wij kiezen de muziek",
+        "subtitle": "Sneller bestellen, nog betere vibe",
+        "price": "GRATIS"
+      },
+      "custom": {
+        "title": "Ik wil mijn eigen nummer",
+        "subtitle": "Upload een bestand of plak een link"
+      },
+      "linkPlaceholder": "Plak een YouTube- of Spotify-link",
+      "or": "of",
+      "filePlaceholder": "Upload een audiobestand (MP3, WAV)"
+    },
+    "delivery": {
+      "label": "Leversnelheid",
+      "standard": {
+        "title": "Standaard",
+        "time": "24–48 uur",
+        "price": "Inbegrepen"
+      },
+      "express": {
+        "title": "Express ⚡",
+        "time": "12–24 uur"
+      }
+    },
+    "gift": {
+      "label": "Cadeaunotitie (optioneel)",
+      "help": "Optionele tekst die we kunnen toevoegen aan het afleverbericht.",
+      "placeholder": "Bijv.: 'Je verdient alle vreugde van de wereld!'"
+    },
+    "payment": {
+      "label": "Betaalmethode",
+      "card": {
+        "title": "Kaart",
+        "subtitle": "Visa, Mastercard, Amex"
+      },
+      "paypal": {
+        "subtitle": "Betaal met je PayPal-saldo"
+      }
+    },
+    "summary": {
+      "title": "Overzicht",
+      "items": {
+        "base": "Verjaardagsvideo",
+        "customSong": "Eigen nummer",
+        "express": "Express levering"
+      },
+      "total": "Totaal",
+      "chargedUsd": "Afgerond in USD bij betaling",
+      "estimate": "Prijzen zijn schattingen in je lokale valuta."
+    },
+    "terms": {
+      "prefix": "Ik ga akkoord met de",
+      "terms": "Servicevoorwaarden",
+      "and": "en het",
+      "refund": "Terugbetalingsbeleid"
+    },
+    "submit": {
+      "processing": "Bezig...",
+      "paypal": "Betalen met PayPal",
+      "pay": "Betaal {amount}"
+    },
+    "trust": {
+      "secure": "Veilige betaling",
+      "private": "Privé & veilig",
+      "delivery": "24u levering"
+    },
+    "modal": {
+      "close": "Sluiten",
+      "notConfigured": "Stripe is niet ingesteld."
+    },
+    "errors": {
+      "emailInvalid": "Vul een geldig e-mailadres in",
+      "messageMin": "Het bericht moet minimaal 3 tekens bevatten",
+      "messageMax": "Het bericht mag maximaal 100 tekens bevatten",
+      "termsRequired": "Je moet akkoord gaan met de voorwaarden"
+    },
+    "alerts": {
+      "photoTooLarge": "De foto moet kleiner zijn dan 5 MB",
+      "photoMissing": "Upload een foto",
+      "genericError": "Er ging iets mis. Probeer het opnieuw."
+    },
+    "rates": {
+      "updating": "Koersen worden bijgewerkt…",
+      "unavailable": "Live koersen niet beschikbaar. Schatting wordt getoond.",
+      "recent": "Koersen onlangs bijgewerkt",
+      "updatedAt": "Koersen bijgewerkt {time}"
+    }
+  },
+  "AboutPage": {
+    "meta": {
+      "title": "Over ons",
+      "description": "Ontdek AfroBirthday, onze missie om wereldwijd vreugde te verspreiden en hoe we Afrikaanse creators ondersteunen met gepersonaliseerde verjaardagsvideo's."
+    },
+    "title": "Over AfroBirthday 🎂",
+    "who": {
+      "title": "Wie we zijn",
+      "p1": "AfroBirthday is een platform dat mensen wereldwijd verbindt met authentieke Afrikaanse energie en vreugde. We maken gepersonaliseerde verjaardagsvideo's uitgevoerd door getalenteerde Afrikaanse dansers.",
+      "p2": "Met als missie om vreugde te verspreiden én Afrikaanse artiesten te ondersteunen, hebben we al meer dan 500 gepersonaliseerde video's geleverd in meer dan 50 landen."
+    },
+    "mission": {
+      "title": "Onze missie",
+      "p1": "Wij geloven dat elke verjaardag een moment van pure vreugde verdient. Onze missie is om onvergetelijke ervaringen te creëren die culturen verbinden en creators in Afrika ondersteunen."
+    },
+    "team": {
+      "title": "Ons team",
+      "images": {
+        "0": "Ons team",
+        "1": "Video's maken",
+        "2": "Vieringen"
+      },
+      "p1": "Ons team bestaat uit dansers, choreografen en videomakers in Kenia en door heel Afrika. Iedereen brengt unieke energie en culturele authenticiteit mee."
+    },
+    "contact": {
+      "title": "Contact"
+    },
+    "cta": "Maak mijn video"
+  },
+  "HowToOrderPage": {
+    "meta": {
+      "title": "Hoe bestellen",
+      "description": "Hoe je je AfroBirthday-video bestelt: upload een foto, voeg een bericht toe, betaal veilig en ontvang je video per e-mail binnen 12–48 uur."
+    },
+    "title": "Zo bestel je je verjaardagsvideo 🎬",
+    "subtitle": "Simpel, snel en leuk. Volg deze 3 stappen!",
+    "tipsLabel": "Tips:",
+    "steps": {
+      "0": {
+        "title": "Vul het formulier in",
+        "description": "Upload een duidelijke foto, schrijf je bericht (tot 100 tekens) en kies de muziek.",
+        "tips": {
+          "0": "Gebruik een scherpe foto met goede belichting",
+          "1": "Houd je bericht kort en duidelijk",
+          "2": "Kies 'Wij kiezen de muziek' voor snellere levering"
+        }
+      },
+      "1": {
+        "title": "Betaal veilig",
+        "description": "Rond je betaling af via onze beveiligde checkout. We accepteren de belangrijkste kaarten.",
+        "tips": {
+          "0": "Alle betalingen zijn versleuteld en veilig",
+          "1": "Je ontvangt meteen een bevestigingsmail",
+          "2": "We starten direct met de productie"
+        }
+      },
+      "2": {
+        "title": "Ontvang je video",
+        "description": "Binnen 24–48 uur (of 12–24 uur met Express) ontvang je je video per e-mail.",
+        "tips": {
+          "0": "Downloadlink",
+          "1": "Deel via WhatsApp of social media",
+          "2": "Geld-terug-garantie als je niet tevreden bent"
+        }
+      }
+    },
+    "timeline": {
+      "title": "Levertijd ⚡",
+      "standard": "Standaard",
+      "or": "of",
+      "express": "Express (+€5,99)"
+    },
+    "secure": {
+      "title": "Veilig & betrouwbaar",
+      "ssl": "SSL-versleuteld",
+      "cards": "Kaartbetaling",
+      "guarantee": "Tevredenheid gegarandeerd"
+    },
+    "cta": "Klaar om magie te maken? Bestel nu"
+  },
+  "OurStoryPage": {
+    "meta": {
+      "title": "Ons verhaal",
+      "description": "Ontdek het verhaal achter AfroBirthday en hoe we mensen wereldwijd verbinden met authentieke Afrikaanse vreugde via gepersonaliseerde video's."
+    },
+    "title": "Het verhaal achter AfroBirthday 🌍",
+    "subtitle": "Mensen verbinden over continenten heen met authentieke Afrikaanse energie.",
+    "mission": {
+      "title": "Onze missie",
+      "body": "Wij geloven dat elke verjaardag een moment van pure vreugde verdient. Daarom hebben we AfroBirthday opgericht: om mensen wereldwijd te verbinden met authentieke Afrikaanse energie. Ons team stopt zijn hart in elke video om jouw dag onvergetelijk te maken."
+    },
+    "coreValuesTitle": "Onze waarden",
+    "values": {
+      "authenticity": {
+        "title": "Authenticiteit",
+        "description": "Echte mensen, echte cultuur, echte vreugde. Elke video wordt gemaakt door getalenteerde Afrikaanse creators met echte energie."
+      },
+      "joy": {
+        "title": "Vreugde",
+        "description": "Elke verjaardag verdient puur geluk. Dat is onze missie: overal ter wereld glimlachen verspreiden."
+      },
+      "impact": {
+        "title": "Impact",
+        "description": "Eerlijke vergoeding voor onze creators. Elke aankoop ondersteunt Afrikaanse artiesten en hun communities."
+      },
+      "quality": {
+        "title": "Kwaliteit",
+        "description": "Topkwaliteit in elke video. We zijn trots om steeds weer hoogwaardige, gepersonaliseerde content te leveren."
+      }
+    },
+    "creators": {
+      "title": "Ontmoet onze creators 💃🕺",
+      "images": {
+        "0": { "alt": "Ons team in actie", "caption": "Magie uit Kenia 🇰🇪" },
+        "1": { "alt": "Dansrepetitie", "caption": "Nieuwe choreo's oefenen" },
+        "2": { "alt": "Teamviering", "caption": "Elke mijlpaal vieren" }
+      },
+      "quote": "\u201cDit is niet zomaar werk, het is onze passie. Elke video draagt een stukje van ons hart.\u201d",
+      "signature": "Het AfroBirthday-team"
+    },
+    "impact": {
+      "title": "Onze impact ✨"
+    },
+    "metrics": {
+      "customers": "Blije klanten",
+      "creators": "Creators ondersteund",
+      "countries": "Landen bereikt",
+      "rating": "Gemiddelde beoordeling"
+    },
+    "cta": {
+      "title": "Wil je magie maken?",
+      "button": "Bestel nu"
+    }
+  }
+}

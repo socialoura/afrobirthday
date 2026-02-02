@@ -1,20 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { Menu, X, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const navLinks = [
-  { href: "/how-to-order", label: "How It Works" },
-  { href: "/our-story", label: "Our Story" },
-  { href: "/faq", label: "FAQ" },
-];
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 export default function Header() {
+  const tNav = useTranslations("Header.nav");
+  const tHeader = useTranslations("Header");
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const navLinks = [
+    { href: "/how-to-order", label: tNav("howItWorks") },
+    { href: "/our-story", label: tNav("ourStory") },
+    { href: "/faq", label: tNav("faq") },
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -64,7 +68,7 @@ export default function Header() {
               className="ml-4 btn-primary flex items-center gap-2 text-sm"
             >
               <Sparkles size={16} />
-              Get Your Video
+              {tHeader("cta")}
             </Link>
           </div>
 
@@ -103,7 +107,7 @@ export default function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <Sparkles size={16} />
-              Get Your Video
+              {tHeader("cta")}
             </Link>
           </div>
         </div>

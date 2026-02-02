@@ -1,0 +1,457 @@
+{
+  "Header": {
+    "nav": {
+      "howItWorks": "How It Works",
+      "ourStory": "Our Story",
+      "faq": "FAQ"
+    },
+    "cta": "Get Your Video"
+  },
+  "Hero": {
+    "badge": "Trusted by 500+ happy customers",
+    "title1": "The Birthday Gift That",
+    "title2": "Goes Viral",
+    "subtitle1": "Personalized video messages from real African dancers.",
+    "subtitle2": "Authentic energy. Pure joy. Delivered in 24 hours.",
+    "localCurrencyNote": "Displayed in your local currency • Charged in USD",
+    "ctaOrder": "Order My Video",
+    "ctaWatch": "Watch Examples",
+    "trust": {
+      "delivery": "24h Delivery",
+      "guarantee": "Money-back Guarantee",
+      "rating": "4.9/5 Rating"
+    }
+  },
+  "Footer": {
+    "brand": "Spreading authentic African joy to birthdays worldwide. Every video is crafted with love.",
+    "navigate": "Navigate",
+    "legal": "Legal",
+    "getInTouch": "Get in Touch",
+    "ctaLine": "Ready to make someone's day unforgettable?",
+    "ctaButton": "Order Your Video",
+    "copyright": "All rights reserved.",
+    "madeWith": "Made with",
+    "inAfrica": "in Africa",
+    "links": {
+      "about": "About",
+      "privacy": "Privacy",
+      "refunds": "Refunds",
+      "terms": "Terms"
+    }
+  },
+  "HowItWorks": {
+    "badge": "Simple Process",
+    "title": "How It Works",
+    "subtitle": "Three simple steps to create an unforgettable birthday moment",
+    "steps": {
+      "customize": {
+        "title": "Customize",
+        "description": "Upload a photo and write your personalized birthday message. Choose your music and style."
+      },
+      "create": {
+        "title": "We Create",
+        "description": "Our talented African dancers film your unique birthday video with authentic energy and joy."
+      },
+      "celebrate": {
+        "title": "Celebrate",
+        "description": "Receive your video within 24 hours. Share it and watch their face light up with pure joy!"
+      }
+    },
+    "cta": "Start Creating Now",
+    "note": "No account needed • Pay securely by credit card"
+  },
+  "FAQQuick": {
+    "title": "Quick Answers",
+    "seeAll": "See all FAQs",
+    "items": {
+      "delivery": {
+        "q": "How fast is delivery?",
+        "a": "Your personalized video will be delivered within 24-48 hours (or 12-24 hours with Express delivery)."
+      },
+      "refund": {
+        "q": "What if I don't like the video?",
+        "a": "We offer a 100% money-back guarantee within 7 days. No questions asked!"
+      },
+      "customize": {
+        "q": "Can I customize everything?",
+        "a": "Yes! You can add your own message, upload a photo, and even provide your own music."
+      }
+    }
+  },
+  "ProductShowcase": {
+    "badge": "Video Gallery",
+    "title": "See The Magic In Action",
+    "subtitle": "Every video is handcrafted with authentic African energy. Watch real examples from happy customers worldwide.",
+    "hero": {
+      "imageAlt": "Birthday video preview",
+      "title": "Watch a sample birthday blessing",
+      "subtitle": "Click to play • Full energy guaranteed"
+    },
+    "aria": {
+      "playHero": "Play video",
+      "play": "Play {title}"
+    },
+    "videos": {
+      "0": { "title": "Birthday for Sarah", "views": "2.1M views" },
+      "1": { "title": "From Kenya with love", "views": "1.8M views" },
+      "2": { "title": "Mom's 60th surprise", "views": "956K views" },
+      "3": { "title": "Corporate celebration", "views": "723K views" }
+    }
+  },
+  "Testimonials": {
+    "title": "More Love From Customers",
+    "subtitle": "Real reviews from real happy customers",
+    "aria": {
+      "prev": "Previous testimonial",
+      "next": "Next testimonial",
+      "goTo": "Go to testimonial {index}"
+    },
+    "items": [
+      {
+        "name": "Marie L.",
+        "location": "Brussels, Belgium",
+        "text": "I ordered for my dad's 65th birthday and he was speechless! The dancers were so energetic and the personalization was perfect. Best gift ever!",
+        "rating": 5,
+        "avatar": "/showcase_1.jpg"
+      },
+      {
+        "name": "Thomas H.",
+        "location": "Amsterdam, Netherlands",
+        "text": "My girlfriend thought I hired actual dancers! The video quality is amazing and it arrived in less than 24 hours. Highly recommend!",
+        "rating": 5,
+        "avatar": "/showcase_2.jpg"
+      },
+      {
+        "name": "Fatima A.",
+        "location": "London, UK",
+        "text": "So authentic and heartfelt. My mother cried happy tears. The African energy really comes through in the video!",
+        "rating": 5,
+        "avatar": "/showcase_3.jpg"
+      },
+      {
+        "name": "Lucas M.",
+        "location": "Paris, France",
+        "text": "Used it for a corporate birthday celebration. Everyone in the office loved it! Already planning to order more.",
+        "rating": 5,
+        "avatar": "/showcase_1.jpg"
+      },
+      {
+        "name": "Emma S.",
+        "location": "Munich, Germany",
+        "text": "The custom song option was worth every penny. They nailed the vibe perfectly. 10/10 would recommend!",
+        "rating": 5,
+        "avatar": "/showcase_2.jpg"
+      }
+    ]
+  },
+  "FAQPage": {
+    "title": "Frequently Asked Questions ❓",
+    "intro": "Everything you need to know about AfroBirthday. Can't find the answer you're looking for?",
+    "contactLink": "Contact us",
+    "still": {
+      "title": "Still have questions?",
+      "subtitle": "We're here to help! Reach out to us anytime.",
+      "email": "Email Us"
+    },
+    "cta": "Ready to order?",
+    "items": [
+      {
+        "question": "How long does it take to receive my video?",
+        "answer": "Your personalized birthday video will be delivered within 24-48 hours from order confirmation. With our Express option (+€5.99), you can receive it in just 12-24 hours!"
+      },
+      {
+        "question": "What if I don't like the video?",
+        "answer": "We offer a 100% money-back guarantee within 7 days. If you're not completely satisfied with your video, simply email us at support@afrobirthday.com with your order ID, and we'll process a full refund - no questions asked!"
+      },
+      {
+        "question": "Can I request a specific style or costume?",
+        "answer": "Absolutely! You can add any special requests in the custom message field of our order form. Our team will do their best to accommodate your wishes."
+      },
+      {
+        "question": "What if the text is wrong in the video?",
+        "answer": "We double-check all text before filming. However, if there's an error on our part, we'll remake the video for free within 24 hours."
+      },
+      {
+        "question": "Is my photo safe?",
+        "answer": "Yes! Your photo is encrypted during upload and stored securely. We delete all personal photos from our servers within 30 days after video delivery. We never share your data with third parties."
+      },
+      {
+        "question": "Can I download the video?",
+        "answer": "Yes! You'll receive a direct download link via email. The video is yours to keep forever and share however you like - on WhatsApp, social media, or save it for memories."
+      },
+      {
+        "question": "What if I want multiple videos?",
+        "answer": "You can order as many videos as you need! Simply complete the order form multiple times. For bulk orders (5+ videos), contact us at support@afrobirthday.com for special pricing."
+      },
+      {
+        "question": "Can I use this for corporate events?",
+        "answer": "Absolutely! Many companies use our videos for employee birthdays and celebrations. Email support@afrobirthday.com for custom corporate pricing and branding options."
+      },
+      {
+        "question": "Is the video watermarked?",
+        "answer": "By default, videos include a small, tasteful AfroBirthday logo. If you prefer no watermark, just mention it in your order notes - we're happy to accommodate!"
+      },
+      {
+        "question": "What music options are available?",
+        "answer": "You can either let us choose the perfect birthday music (included in base price) or provide your own song choice for an additional €8.56. You can upload an MP3 file or share a YouTube/Spotify link."
+      },
+      {
+        "question": "Can I gift this to someone?",
+        "answer": "Yes! During checkout, you can enter the recipient's email address, and we'll send the video directly to them. You can also add a personalized gift message."
+      },
+      {
+        "question": "Do you ship physical DVDs?",
+        "answer": "Not currently - all our videos are delivered digitally for the fastest possible delivery. However, if you're interested in physical copies, let us know at support@afrobirthday.com!"
+      }
+    ]
+  },
+  "OrderForm": {
+    "badge": "Order Now",
+    "title": "Create Your Birthday Video",
+    "subtitle": "Fill out the form below and we'll create a personalized video just for you!",
+    "photo": {
+      "label": "Upload Photo",
+      "help": "A clear photo helps us personalize the video perfectly.",
+      "private": "Private & secure",
+      "previewAlt": "Preview",
+      "dropHere": "Drop your image here",
+      "or": "or",
+      "browse": "browse files",
+      "formats": "JPG, PNG, WebP • Max 5MB"
+    },
+    "message": {
+      "label": "Birthday Message",
+      "help": "Keep it short and clear. We'll shout it with energy.",
+      "placeholder": "E.g., 'Happy 30th Birthday Sarah!'"
+    },
+    "email": {
+      "label": "Email",
+      "help": "We'll deliver the final video to this email.",
+      "placeholder": "birthday.person@email.com"
+    },
+    "music": {
+      "label": "Music Selection",
+      "default": {
+        "title": "We choose music for you",
+        "subtitle": "Faster order, better dancing",
+        "price": "FREE"
+      },
+      "custom": {
+        "title": "I want to provide my own song",
+        "subtitle": "Upload or paste a link"
+      },
+      "linkPlaceholder": "Paste YouTube or Spotify link",
+      "or": "or",
+      "filePlaceholder": "Upload music file (MP3, WAV)"
+    },
+    "delivery": {
+      "label": "Delivery Speed",
+      "standard": {
+        "title": "Standard",
+        "time": "24-48 hours",
+        "price": "Included"
+      },
+      "express": {
+        "title": "Express ⚡",
+        "time": "12-24 hours"
+      }
+    },
+    "gift": {
+      "label": "Gift Note (Optional)",
+      "help": "Optional text we can add to the video delivery message.",
+      "placeholder": "E.g., 'You deserve all the joy!'"
+    },
+    "payment": {
+      "label": "Payment method",
+      "card": {
+        "title": "Credit card",
+        "subtitle": "Visa, Mastercard, Amex"
+      },
+      "paypal": {
+        "subtitle": "Pay with your PayPal balance"
+      }
+    },
+    "summary": {
+      "title": "Order Summary",
+      "items": {
+        "base": "Birthday Video",
+        "customSong": "Custom Song",
+        "express": "Express Delivery"
+      },
+      "total": "Total",
+      "chargedUsd": "Charged in USD at checkout",
+      "estimate": "Prices are estimates in your local currency."
+    },
+    "terms": {
+      "prefix": "I agree to the",
+      "terms": "Terms of Service",
+      "and": "&",
+      "refund": "Refund Policy"
+    },
+    "submit": {
+      "processing": "Processing...",
+      "paypal": "Pay with PayPal",
+      "pay": "Pay {amount}"
+    },
+    "trust": {
+      "secure": "Secure credit card",
+      "private": "Private & safe",
+      "delivery": "24h delivery"
+    },
+    "modal": {
+      "close": "Close",
+      "notConfigured": "Stripe is not configured."
+    },
+    "errors": {
+      "emailInvalid": "Please enter a valid email address",
+      "messageMin": "Message must be at least 3 characters",
+      "messageMax": "Message must be at most 100 characters",
+      "termsRequired": "You must accept the terms"
+    },
+    "alerts": {
+      "photoTooLarge": "Photo must be less than 5MB",
+      "photoMissing": "Please upload a photo",
+      "genericError": "Something went wrong. Please try again."
+    },
+    "rates": {
+      "updating": "Rates updating…",
+      "unavailable": "Live rates unavailable. Showing estimated rates.",
+      "recent": "Rates updated recently",
+      "updatedAt": "Rates updated {time}"
+    }
+  },
+  "AboutPage": {
+    "meta": {
+      "title": "About",
+      "description": "Learn about AfroBirthday, our mission to spread joy worldwide, and how we support African creators through personalized birthday videos."
+    },
+    "title": "About AfroBirthday 🎂",
+    "who": {
+      "title": "Who We Are",
+      "p1": "AfroBirthday is a celebration platform that connects people around the world with authentic African joy and energy. We create personalized birthday video messages performed by talented African dancers who bring genuine happiness to every celebration.",
+      "p2": "Founded with a mission to spread joy globally while supporting African artists, we've delivered over 500 personalized videos to customers in more than 50 countries."
+    },
+    "mission": {
+      "title": "Our Mission",
+      "p1": "We believe every birthday deserves a moment of pure joy. Our mission is to create unforgettable birthday experiences that connect cultures, spread happiness, and support talented creators in Africa."
+    },
+    "team": {
+      "title": "Our Team",
+      "images": {
+        "0": "Our team",
+        "1": "Creating videos",
+        "2": "Celebrations"
+      },
+      "p1": "Our team consists of passionate dancers, choreographers, and video creators based in Kenya and across Africa. Every team member brings their unique energy and cultural authenticity to each video we create."
+    },
+    "contact": {
+      "title": "Contact Us"
+    },
+    "cta": "Create Your Birthday Video"
+  },
+  "HowToOrderPage": {
+    "meta": {
+      "title": "How to Order",
+      "description": "How to order your AfroBirthday personalized birthday video: upload a photo, add a message, pay securely, and receive your video by email in 12–48 hours."
+    },
+    "title": "How To Order Your Birthday Video 🎬",
+    "subtitle": "Getting your personalized birthday video is simple, fast, and fun. Follow these 3 easy steps!",
+    "tipsLabel": "Tips:",
+    "steps": {
+      "0": {
+        "title": "Fill Out the Form",
+        "description": "Upload a clear photo of the birthday person, write your personalized message (up to 100 characters), and choose your music preference.",
+        "tips": {
+          "0": "Use a high-quality photo with good lighting",
+          "1": "Keep your message short and clear",
+          "2": "Choose 'We choose music' for faster delivery"
+        }
+      },
+      "1": {
+        "title": "Pay Securely",
+        "description": "Complete your payment through our secure checkout. We accept all major credit cards and Apple Pay.",
+        "tips": {
+          "0": "All payments are encrypted and secure",
+          "1": "You'll receive an instant confirmation email",
+          "2": "Your video enters production immediately"
+        }
+      },
+      "2": {
+        "title": "Receive Your Video",
+        "description": "Within 24-48 hours (or 12-24 hours with Express), you'll receive your personalized birthday video via email.",
+        "tips": {
+          "0": "Video delivered as a downloadable link",
+          "1": "Share directly to WhatsApp, social media",
+          "2": "100% money-back guarantee if not satisfied"
+        }
+      }
+    },
+    "timeline": {
+      "title": "Delivery Timeline ⚡",
+      "standard": "Standard",
+      "or": "or",
+      "express": "Express (+€5.99)"
+    },
+    "secure": {
+      "title": "Secure & Trusted",
+      "ssl": "SSL Encrypted",
+      "cards": "Credit Card Payments",
+      "guarantee": "Satisfaction Guaranteed"
+    },
+    "cta": "Ready to create magic? Order now"
+  },
+  "OurStoryPage": {
+    "meta": {
+      "title": "Our Story",
+      "description": "Discover the story behind AfroBirthday and how we connect people worldwide with authentic African joy through personalized birthday videos."
+    },
+    "title": "The Story Behind AfroBirthday 🌍",
+    "subtitle": "Connecting people across continents with authentic African energy and celebration.",
+    "mission": {
+      "title": "Our Mission",
+      "body": "We believe every birthday deserves a moment of pure joy. That's why we created AfroBirthday — to connect people across continents with authentic African energy and celebration. Our talented team of dancers and creators pour their hearts into every video, making your special day truly unforgettable."
+    },
+    "coreValuesTitle": "Our Core Values",
+    "values": {
+      "authenticity": {
+        "title": "Authenticity",
+        "description": "Real people, real culture, real joy. Every video is created by talented African artists who bring genuine energy."
+      },
+      "joy": {
+        "title": "Joy",
+        "description": "We believe every birthday deserves a moment of pure happiness. That's our mission - spreading smiles globally."
+      },
+      "impact": {
+        "title": "Impact",
+        "description": "Fair compensation for our creators. Every purchase supports African artists and their communities."
+      },
+      "quality": {
+        "title": "Quality",
+        "description": "Excellence in every video. We take pride in delivering high-quality, personalized content every time."
+      }
+    },
+    "creators": {
+      "title": "Meet Our Creators 💃🕺",
+      "images": {
+        "0": { "alt": "Our team in action", "caption": "Creating magic in Kenya 🇰🇪" },
+        "1": { "alt": "Dance rehearsal", "caption": "Rehearsing new choreography" },
+        "2": { "alt": "Team celebration", "caption": "Celebrating every milestone" }
+      },
+      "quote": "\u201cIt's not just a job, it's our passion. Every video we create carries a piece of our heart.\u201d",
+      "signature": "The AfroBirthday Team"
+    },
+    "impact": {
+      "title": "Our Impact ✨"
+    },
+    "metrics": {
+      "customers": "Happy Customers",
+      "creators": "Creators Supported",
+      "countries": "Countries Reached",
+      "rating": "Average Rating"
+    },
+    "cta": {
+      "title": "Want to create magic?",
+      "button": "Order your video now"
+    }
+  }
+}

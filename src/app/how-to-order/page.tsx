@@ -1,6 +1,29 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Upload, CreditCard, Gift, ChevronRight } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "How to Order",
+  description:
+    "How to order your AfroBirthday personalized birthday video: upload a photo, add a message, pay securely, and receive your video by email in 12–48 hours.",
+  alternates: {
+    canonical: "/how-to-order",
+  },
+  openGraph: {
+    title: "How to Order",
+    description:
+      "How to order your AfroBirthday personalized birthday video: upload a photo, add a message, pay securely, and receive your video by email in 12–48 hours.",
+    url: "/how-to-order",
+    images: [{ url: "/logo.png" }],
+  },
+  twitter: {
+    title: "How to Order",
+    description:
+      "How to order your AfroBirthday personalized birthday video: upload a photo, add a message, pay securely, and receive your video by email in 12–48 hours.",
+    images: ["/logo.png"],
+  },
+};
 
 const steps = [
   {

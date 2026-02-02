@@ -3,35 +3,37 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Play } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 const videos = [
   {
     src: "/blessing_video1.mp4",
     poster: "/showcase_1.jpg",
-    title: "Birthday for Sarah",
-    views: "2.1M views",
+    titleKey: "videos.0.title",
+    viewsKey: "videos.0.views",
   },
   {
     src: "/blessing_video2.mp4",
     poster: "/showcase_2.jpg",
-    title: "From Kenya with love",
-    views: "1.8M views",
+    titleKey: "videos.1.title",
+    viewsKey: "videos.1.views",
   },
   {
     src: "/blessing_video3.MOV",
     poster: "/showcase_3.jpg",
-    title: "Mom's 60th surprise",
-    views: "956K views",
+    titleKey: "videos.2.title",
+    viewsKey: "videos.2.views",
   },
   {
     src: "/blessing_video4.MOV",
     poster: "/showcase_1.jpg",
-    title: "Corporate celebration",
-    views: "723K views",
+    titleKey: "videos.3.title",
+    viewsKey: "videos.3.views",
   },
 ];
 
 export default function ProductShowcaseSection() {
+  const t = useTranslations("ProductShowcase");
   const [activeVideo, setActiveVideo] = useState<number | null>(null);
 
   return (
@@ -44,12 +46,11 @@ export default function ProductShowcaseSection() {
       <div className="section-container relative">
         <div className="text-center mb-10 md:mb-16 px-4">
           <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            Video Gallery
+            {t("badge")}
           </span>
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4">See The Magic In Action</h2>
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4">{t("title")}</h2>
           <p className="text-white/60 max-w-2xl mx-auto text-sm md:text-base">
-            Every video is handcrafted with authentic African energy.
-            Watch real examples from happy customers worldwide.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -70,7 +71,7 @@ export default function ProductShowcaseSection() {
               <>
                 <Image
                   src="/showcase_1.jpg"
-                  alt="Birthday video preview"
+                  alt={t("hero.imageAlt")}
                   fill
                   sizes="(max-width: 768px) 100vw, 896px"
                   className="object-cover"
@@ -80,15 +81,15 @@ export default function ProductShowcaseSection() {
                 <button
                   onClick={() => setActiveVideo(0)}
                   className="absolute inset-0 flex items-center justify-center group"
-                  aria-label="Play video"
+                  aria-label={t("aria.playHero")}
                 >
                   <div className="w-16 h-16 md:w-24 md:h-24 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-2xl shadow-primary/30">
                     <Play size={32} className="text-white ml-1 md:ml-2 md:w-12 md:h-12" fill="white" />
                   </div>
                 </button>
                 <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
-                  <p className="text-white font-semibold text-base md:text-lg mb-1">Watch a sample birthday blessing</p>
-                  <p className="text-white/60 text-xs md:text-sm">Click to play • Full energy guaranteed</p>
+                  <p className="text-white font-semibold text-base md:text-lg mb-1">{t("hero.title")}</p>
+                  <p className="text-white/60 text-xs md:text-sm">{t("hero.subtitle")}</p>
                 </div>
               </>
             )}
@@ -101,7 +102,7 @@ export default function ProductShowcaseSection() {
             <button
               key={index}
               onClick={() => setActiveVideo(index)}
-              aria-label={`Play ${video.title}`}
+              aria-label={t("aria.play", { title: t(video.titleKey as never) })}
               className={`relative aspect-video rounded-xl md:rounded-2xl overflow-hidden group transition-all duration-300 min-h-[80px] ${
                 activeVideo === index 
                   ? "ring-2 ring-primary ring-offset-2 ring-offset-dark scale-[1.02]" 
@@ -110,7 +111,7 @@ export default function ProductShowcaseSection() {
             >
               <Image
                 src={video.poster}
-                alt={video.title}
+                alt={t(video.titleKey as never)}
                 fill
                 sizes="(max-width: 768px) 50vw, 25vw"
                 className="object-cover"
@@ -127,8 +128,8 @@ export default function ProductShowcaseSection() {
                 </div>
               </div>
               <div className="absolute bottom-2 left-2 right-2 md:bottom-3 md:left-3 md:right-3">
-                <p className="text-white text-xs md:text-sm font-medium truncate">{video.title}</p>
-                <p className="text-white/50 text-[10px] md:text-xs">{video.views}</p>
+                <p className="text-white text-xs md:text-sm font-medium truncate">{t(video.titleKey as never)}</p>
+                <p className="text-white/50 text-[10px] md:text-xs">{t(video.viewsKey as never)}</p>
               </div>
             </button>
           ))}

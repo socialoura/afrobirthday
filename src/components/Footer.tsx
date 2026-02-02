@@ -1,6 +1,7 @@
-import Link from "next/link";
 import Image from "next/image";
 import { Mail, Instagram, Heart, ArrowUpRight } from "lucide-react";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 
 const quickLinks = [
   { href: "/how-to-order", label: "How It Works" },
@@ -32,7 +33,10 @@ const socialLinks = [
   },
 ];
 
-export default function Footer() {
+export default async function Footer() {
+  const tFooter = await getTranslations("Footer");
+  const tNav = await getTranslations("Header.nav");
+
   return (
     <footer className="relative bg-dark border-t border-white/5">
       {/* Gradient overlay */}
@@ -52,7 +56,7 @@ export default function Footer() {
               />
             </Link>
             <p className="text-white/50 text-xs md:text-sm max-w-xs leading-relaxed">
-              Spreading authentic African joy to birthdays worldwide. Every video is crafted with love.
+              {tFooter("brand")}
             </p>
 
             {/* Social Links */}
@@ -75,7 +79,7 @@ export default function Footer() {
           {/* Quick Links */}
           <div className="col-span-1 md:col-span-2">
             <h4 className="font-display font-semibold text-white/90 mb-3 md:mb-4 text-xs md:text-sm uppercase tracking-wider">
-              Navigate
+              {tFooter("navigate")}
             </h4>
             <ul className="space-y-2 md:space-y-3">
               {quickLinks.map((link) => (
@@ -84,7 +88,9 @@ export default function Footer() {
                     href={link.href}
                     className="text-white/50 hover:text-white text-xs md:text-sm transition-colors duration-200 flex items-center gap-1 group py-1"
                   >
-                    {link.label}
+                    {link.href === "/how-to-order" && tNav("howItWorks")}
+                    {link.href === "/our-story" && tNav("ourStory")}
+                    {link.href === "/faq" && tNav("faq")}
                     <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                   </Link>
                 </li>
@@ -95,7 +101,7 @@ export default function Footer() {
           {/* Legal */}
           <div className="col-span-1 md:col-span-2">
             <h4 className="font-display font-semibold text-white/90 mb-3 md:mb-4 text-xs md:text-sm uppercase tracking-wider">
-              Legal
+              {tFooter("legal")}
             </h4>
             <ul className="space-y-2 md:space-y-3">
               {legalLinks.map((link) => (
@@ -104,7 +110,10 @@ export default function Footer() {
                     href={link.href}
                     className="text-white/50 hover:text-white text-xs md:text-sm transition-colors duration-200 py-1 inline-block"
                   >
-                    {link.label}
+                    {link.href === "/about" && tFooter("links.about")}
+                    {link.href === "/privacy" && tFooter("links.privacy")}
+                    {link.href === "/refund" && tFooter("links.refunds")}
+                    {link.href === "/terms" && tFooter("links.terms")}
                   </Link>
                 </li>
               ))}
@@ -114,7 +123,7 @@ export default function Footer() {
           {/* Contact & CTA */}
           <div className="col-span-2 md:col-span-4">
             <h4 className="font-display font-semibold text-white/90 mb-3 md:mb-4 text-xs md:text-sm uppercase tracking-wider">
-              Get in Touch
+              {tFooter("getInTouch")}
             </h4>
             <a
               href="mailto:support@afrobirthday.com"
@@ -126,13 +135,13 @@ export default function Footer() {
 
             <div className="glass-card p-4 mt-3 md:mt-4">
               <p className="text-white/70 text-xs md:text-sm mb-3">
-                Ready to make someone&apos;s day unforgettable?
+                {tFooter("ctaLine")}
               </p>
               <Link
                 href="/#order"
                 className="btn-primary w-full text-center text-sm py-3 min-h-[44px] flex items-center justify-center"
               >
-                Order Your Video
+                {tFooter("ctaButton")}
               </Link>
             </div>
           </div>
@@ -141,10 +150,10 @@ export default function Footer() {
         {/* Copyright */}
         <div className="border-t border-white/5 mt-8 md:mt-12 pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
           <p className="text-white/30 text-xs md:text-sm">
-            © {new Date().getFullYear()} AfroBirthday. All rights reserved.
+            © {new Date().getFullYear()} AfroBirthday. {tFooter("copyright")}
           </p>
           <p className="text-white/30 text-xs md:text-sm flex items-center gap-1">
-            Made with <Heart size={14} className="text-primary" /> in Africa
+            {tFooter("madeWith")} <Heart size={14} className="text-primary" /> {tFooter("inAfrica")}
           </p>
         </div>
       </div>

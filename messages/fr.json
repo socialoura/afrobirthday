@@ -1,0 +1,457 @@
+{
+  "Header": {
+    "nav": {
+      "howItWorks": "Comment ça marche",
+      "ourStory": "Notre histoire",
+      "faq": "FAQ"
+    },
+    "cta": "Commander ma vidéo"
+  },
+  "Hero": {
+    "badge": "Approuvé par plus de 500 clients heureux",
+    "title1": "Le cadeau d'anniversaire qui",
+    "title2": "devient viral",
+    "subtitle1": "Des messages vidéo personnalisés par de vrais danseurs africains.",
+    "subtitle2": "Énergie authentique. Joie pure. Livré en 24 heures.",
+    "localCurrencyNote": "Affiché dans votre devise • Facturé en USD",
+    "ctaOrder": "Commander ma vidéo",
+    "ctaWatch": "Voir des exemples",
+    "trust": {
+      "delivery": "Livraison 24h",
+      "guarantee": "Garantie satisfait ou remboursé",
+      "rating": "Note 4,9/5"
+    }
+  },
+  "Footer": {
+    "brand": "Nous répandons la joie africaine authentique pour des anniversaires partout dans le monde. Chaque vidéo est faite avec amour.",
+    "navigate": "Navigation",
+    "legal": "Mentions légales",
+    "getInTouch": "Contact",
+    "ctaLine": "Prêt à rendre une journée inoubliable ?",
+    "ctaButton": "Commander la vidéo",
+    "copyright": "Tous droits réservés.",
+    "madeWith": "Fait avec",
+    "inAfrica": "en Afrique",
+    "links": {
+      "about": "À propos",
+      "privacy": "Confidentialité",
+      "refunds": "Remboursements",
+      "terms": "Conditions"
+    }
+  },
+  "HowItWorks": {
+    "badge": "Processus simple",
+    "title": "Comment ça marche",
+    "subtitle": "Trois étapes simples pour créer un moment d'anniversaire inoubliable",
+    "steps": {
+      "customize": {
+        "title": "Personnalisez",
+        "description": "Téléversez une photo et écrivez votre message d'anniversaire. Choisissez votre musique et votre style."
+      },
+      "create": {
+        "title": "On crée",
+        "description": "Nos danseurs africains talentueux filment votre vidéo unique avec une énergie authentique et de la joie."
+      },
+      "celebrate": {
+        "title": "Célébrez",
+        "description": "Recevez votre vidéo sous 24 h. Partagez-la et regardez son visage s'illuminer de joie !"
+      }
+    },
+    "cta": "Commencer maintenant",
+    "note": "Pas de compte requis • Paiement sécurisé par carte"
+  },
+  "FAQQuick": {
+    "title": "Réponses rapides",
+    "seeAll": "Voir toutes les FAQ",
+    "items": {
+      "delivery": {
+        "q": "Quel est le délai de livraison ?",
+        "a": "Votre vidéo personnalisée est livrée sous 24–48 h (ou 12–24 h avec la livraison Express)."
+      },
+      "refund": {
+        "q": "Et si je n'aime pas la vidéo ?",
+        "a": "Garantie 100% satisfait ou remboursé pendant 7 jours. Sans questions !"
+      },
+      "customize": {
+        "q": "Puis-je tout personnaliser ?",
+        "a": "Oui ! Ajoutez votre message, une photo, et même votre propre musique."
+      }
+    }
+  },
+  "ProductShowcase": {
+    "badge": "Galerie vidéo",
+    "title": "Voyez la magie en action",
+    "subtitle": "Chaque vidéo est créée à la main avec une énergie africaine authentique. Regardez des exemples réels de clients heureux partout dans le monde.",
+    "hero": {
+      "imageAlt": "Aperçu d'une vidéo d'anniversaire",
+      "title": "Regarder un exemple de bénédiction d'anniversaire",
+      "subtitle": "Cliquez pour lancer • Énergie garantie"
+    },
+    "aria": {
+      "playHero": "Lire la vidéo",
+      "play": "Lire {title}"
+    },
+    "videos": {
+      "0": { "title": "Anniversaire pour Sarah", "views": "2,1 M de vues" },
+      "1": { "title": "Du Kenya avec amour", "views": "1,8 M de vues" },
+      "2": { "title": "Surprise pour les 60 ans de maman", "views": "956 k vues" },
+      "3": { "title": "Célébration d'entreprise", "views": "723 k vues" }
+    }
+  },
+  "Testimonials": {
+    "title": "Encore plus d'amour de nos clients",
+    "subtitle": "De vrais avis de vrais clients heureux",
+    "aria": {
+      "prev": "Avis précédent",
+      "next": "Avis suivant",
+      "goTo": "Aller à l'avis {index}"
+    },
+    "items": [
+      {
+        "name": "Marie L.",
+        "location": "Bruxelles, Belgique",
+        "text": "J'ai commandé pour les 65 ans de mon papa et il est resté sans voix ! Les danseurs étaient incroyables et la personnalisation parfaite. Meilleur cadeau !",
+        "rating": 5,
+        "avatar": "/showcase_1.jpg"
+      },
+      {
+        "name": "Thomas H.",
+        "location": "Amsterdam, Pays-Bas",
+        "text": "Ma copine a cru que j'avais engagé de vrais danseurs ! La qualité est top et c'est arrivé en moins de 24 h. Je recommande !",
+        "rating": 5,
+        "avatar": "/showcase_2.jpg"
+      },
+      {
+        "name": "Fatima A.",
+        "location": "Londres, Royaume-Uni",
+        "text": "Tellement authentique et touchant. Ma mère a pleuré de joie. L'énergie africaine ressort vraiment dans la vidéo !",
+        "rating": 5,
+        "avatar": "/showcase_3.jpg"
+      },
+      {
+        "name": "Lucas M.",
+        "location": "Paris, France",
+        "text": "Utilisé pour un anniversaire en entreprise. Tout le bureau a adoré ! Je vais en recommander d'autres.",
+        "rating": 5,
+        "avatar": "/showcase_1.jpg"
+      },
+      {
+        "name": "Emma S.",
+        "location": "Munich, Allemagne",
+        "text": "L'option musique personnalisée vaut clairement le coup. Ils ont parfaitement capté l'ambiance. 10/10 !",
+        "rating": 5,
+        "avatar": "/showcase_2.jpg"
+      }
+    ]
+  },
+  "FAQPage": {
+    "title": "Foire aux questions ❓",
+    "intro": "Tout ce qu'il faut savoir sur AfroBirthday. Vous ne trouvez pas la réponse ?",
+    "contactLink": "Contactez-nous",
+    "still": {
+      "title": "Encore des questions ?",
+      "subtitle": "On est là pour vous aider. Contactez-nous quand vous voulez.",
+      "email": "Nous écrire"
+    },
+    "cta": "Prêt à commander ?",
+    "items": [
+      {
+        "question": "Quel est le délai pour recevoir ma vidéo ?",
+        "answer": "Votre vidéo d'anniversaire personnalisée est livrée sous 24–48 h après confirmation. Avec l'option Express (+5,99 €), vous pouvez la recevoir en 12–24 h."
+      },
+      {
+        "question": "Et si je n'aime pas la vidéo ?",
+        "answer": "Garantie 100% remboursé pendant 7 jours. Écrivez-nous à support@afrobirthday.com avec votre ID de commande et nous traiterons le remboursement complet."
+      },
+      {
+        "question": "Puis-je demander un style ou un costume spécifique ?",
+        "answer": "Oui ! Ajoutez vos demandes dans le champ message. Notre équipe fera au mieux pour les respecter."
+      },
+      {
+        "question": "Et si le texte est incorrect dans la vidéo ?",
+        "answer": "Nous vérifions les textes avant tournage. Si l'erreur vient de nous, nous refaisons la vidéo gratuitement sous 24 h."
+      },
+      {
+        "question": "Ma photo est-elle en sécurité ?",
+        "answer": "Oui. Votre photo est chiffrée lors de l'envoi et stockée de manière sécurisée. Elle est supprimée sous 30 jours après livraison."
+      },
+      {
+        "question": "Puis-je télécharger la vidéo ?",
+        "answer": "Oui ! Vous recevez un lien de téléchargement par email. Vous pouvez la conserver et la partager (WhatsApp, réseaux sociaux, etc.)."
+      },
+      {
+        "question": "Et si je veux plusieurs vidéos ?",
+        "answer": "Vous pouvez commander autant de vidéos que vous voulez. Pour les commandes en volume (5+), contactez-nous pour un tarif spécial."
+      },
+      {
+        "question": "Puis-je l'utiliser pour un événement d'entreprise ?",
+        "answer": "Bien sûr ! Beaucoup d'entreprises utilisent nos vidéos pour les anniversaires et célébrations. Contactez-nous pour un tarif entreprise."
+      },
+      {
+        "question": "La vidéo est-elle marquée ?",
+        "answer": "Par défaut, une petite marque AfroBirthday apparaît. Si vous préférez sans, dites-le dans vos notes de commande."
+      },
+      {
+        "question": "Quelles options de musique sont disponibles ?",
+        "answer": "Vous pouvez nous laisser choisir la musique (incluse) ou fournir votre propre chanson (en lien YouTube/Spotify ou fichier MP3)."
+      },
+      {
+        "question": "Puis-je offrir la vidéo ?",
+        "answer": "Oui ! Vous pouvez envoyer la vidéo directement au destinataire et ajouter un message cadeau."
+      },
+      {
+        "question": "Envoyez-vous des DVD ?",
+        "answer": "Pas pour le moment. Les vidéos sont livrées en numérique pour une livraison rapide."
+      }
+    ]
+  },
+  "OrderForm": {
+    "badge": "Commander",
+    "title": "Créez votre vidéo d'anniversaire",
+    "subtitle": "Remplissez le formulaire ci-dessous et nous créerons une vidéo personnalisée pour vous !",
+    "photo": {
+      "label": "Téléverser une photo",
+      "help": "Une photo nette nous aide à personnaliser la vidéo parfaitement.",
+      "private": "Privé & sécurisé",
+      "previewAlt": "Aperçu",
+      "dropHere": "Déposez votre image ici",
+      "or": "ou",
+      "browse": "parcourir les fichiers",
+      "formats": "JPG, PNG, WebP • Max 5 Mo"
+    },
+    "message": {
+      "label": "Message d'anniversaire",
+      "help": "Court et clair. On le crie avec énergie.",
+      "placeholder": "Ex. : 'Joyeux 30 ans Sarah !'"
+    },
+    "email": {
+      "label": "Email",
+      "help": "Nous enverrons la vidéo finale à cet email.",
+      "placeholder": "prenom.nom@email.com"
+    },
+    "music": {
+      "label": "Choix de musique",
+      "default": {
+        "title": "On choisit la musique pour vous",
+        "subtitle": "Commande plus rapide, danse encore meilleure",
+        "price": "GRATUIT"
+      },
+      "custom": {
+        "title": "Je veux fournir ma propre chanson",
+        "subtitle": "Téléversez ou collez un lien"
+      },
+      "linkPlaceholder": "Coller un lien YouTube ou Spotify",
+      "or": "ou",
+      "filePlaceholder": "Téléverser un fichier audio (MP3, WAV)"
+    },
+    "delivery": {
+      "label": "Vitesse de livraison",
+      "standard": {
+        "title": "Standard",
+        "time": "24–48 heures",
+        "price": "Inclus"
+      },
+      "express": {
+        "title": "Express ⚡",
+        "time": "12–24 heures"
+      }
+    },
+    "gift": {
+      "label": "Note cadeau (optionnel)",
+      "help": "Texte optionnel que nous pouvons ajouter au message de livraison.",
+      "placeholder": "Ex. : 'Tu mérites toute la joie du monde !'"
+    },
+    "payment": {
+      "label": "Méthode de paiement",
+      "card": {
+        "title": "Carte bancaire",
+        "subtitle": "Visa, Mastercard, Amex"
+      },
+      "paypal": {
+        "subtitle": "Payer avec votre solde PayPal"
+      }
+    },
+    "summary": {
+      "title": "Récapitulatif",
+      "items": {
+        "base": "Vidéo d'anniversaire",
+        "customSong": "Chanson personnalisée",
+        "express": "Livraison express"
+      },
+      "total": "Total",
+      "chargedUsd": "Facturé en USD au paiement",
+      "estimate": "Les prix sont des estimations dans votre devise locale."
+    },
+    "terms": {
+      "prefix": "J'accepte les",
+      "terms": "Conditions d'utilisation",
+      "and": "et la",
+      "refund": "Politique de remboursement"
+    },
+    "submit": {
+      "processing": "Traitement...",
+      "paypal": "Payer avec PayPal",
+      "pay": "Payer {amount}"
+    },
+    "trust": {
+      "secure": "Paiement sécurisé",
+      "private": "Privé & sûr",
+      "delivery": "Livraison 24 h"
+    },
+    "modal": {
+      "close": "Fermer",
+      "notConfigured": "Stripe n'est pas configuré."
+    },
+    "errors": {
+      "emailInvalid": "Veuillez entrer une adresse email valide",
+      "messageMin": "Le message doit contenir au moins 3 caractères",
+      "messageMax": "Le message doit contenir au maximum 100 caractères",
+      "termsRequired": "Vous devez accepter les conditions"
+    },
+    "alerts": {
+      "photoTooLarge": "La photo doit faire moins de 5 Mo",
+      "photoMissing": "Veuillez téléverser une photo",
+      "genericError": "Une erreur est survenue. Veuillez réessayer."
+    },
+    "rates": {
+      "updating": "Taux en cours de mise à jour…",
+      "unavailable": "Taux en direct indisponibles. Estimation affichée.",
+      "recent": "Taux mis à jour récemment",
+      "updatedAt": "Taux mis à jour {time}"
+    }
+  },
+  "AboutPage": {
+    "meta": {
+      "title": "À propos",
+      "description": "Découvrez AfroBirthday, notre mission de répandre la joie, et comment nous soutenons les créateurs africains grâce à des vidéos d'anniversaire personnalisées."
+    },
+    "title": "À propos d'AfroBirthday 🎂",
+    "who": {
+      "title": "Qui sommes-nous ?",
+      "p1": "AfroBirthday est une plateforme de célébration qui connecte des personnes partout dans le monde avec une joie et une énergie africaines authentiques. Nous créons des vidéos d'anniversaire personnalisées réalisées par des danseurs africains talentueux.",
+      "p2": "Créée pour répandre la joie tout en soutenant des artistes africains, AfroBirthday a livré plus de 500 vidéos personnalisées dans plus de 50 pays."
+    },
+    "mission": {
+      "title": "Notre mission",
+      "p1": "Nous pensons que chaque anniversaire mérite un moment de joie pure. Notre mission est de créer des expériences inoubliables qui rapprochent les cultures et soutiennent des créateurs en Afrique."
+    },
+    "team": {
+      "title": "Notre équipe",
+      "images": {
+        "0": "Notre équipe",
+        "1": "Création de vidéos",
+        "2": "Célébrations"
+      },
+      "p1": "Notre équipe regroupe des danseurs, chorégraphes et créateurs vidéo passionnés basés au Kenya et dans toute l'Afrique. Chaque membre apporte son énergie et son authenticité culturelle."
+    },
+    "contact": {
+      "title": "Nous contacter"
+    },
+    "cta": "Créer ma vidéo"
+  },
+  "HowToOrderPage": {
+    "meta": {
+      "title": "Comment commander",
+      "description": "Comment commander votre vidéo AfroBirthday : téléverser une photo, ajouter un message, payer en toute sécurité, et recevoir votre vidéo par email en 12 à 48 h."
+    },
+    "title": "Comment commander votre vidéo d'anniversaire 🎬",
+    "subtitle": "C'est simple, rapide et fun. Suivez ces 3 étapes !",
+    "tipsLabel": "Conseils :",
+    "steps": {
+      "0": {
+        "title": "Remplissez le formulaire",
+        "description": "Téléversez une photo nette, écrivez votre message (jusqu'à 100 caractères) et choisissez votre musique.",
+        "tips": {
+          "0": "Utilisez une photo de bonne qualité avec une bonne lumière",
+          "1": "Gardez le message court et clair",
+          "2": "Choisissez 'On choisit la musique' pour une livraison plus rapide"
+        }
+      },
+      "1": {
+        "title": "Payez en toute sécurité",
+        "description": "Finalisez votre paiement via notre checkout sécurisé. Nous acceptons les principales cartes bancaires.",
+        "tips": {
+          "0": "Paiements chiffrés et sécurisés",
+          "1": "Email de confirmation immédiat",
+          "2": "La production démarre tout de suite"
+        }
+      },
+      "2": {
+        "title": "Recevez votre vidéo",
+        "description": "Sous 24–48 h (ou 12–24 h en Express), vous recevez votre vidéo par email.",
+        "tips": {
+          "0": "Lien téléchargeable",
+          "1": "Partage WhatsApp et réseaux sociaux",
+          "2": "Garantie remboursé si non satisfait"
+        }
+      }
+    },
+    "timeline": {
+      "title": "Délais de livraison ⚡",
+      "standard": "Standard",
+      "or": "ou",
+      "express": "Express (+5,99 €)"
+    },
+    "secure": {
+      "title": "Sécurisé & fiable",
+      "ssl": "Chiffré SSL",
+      "cards": "Paiement par carte",
+      "guarantee": "Satisfaction garantie"
+    },
+    "cta": "Prêt à créer de la magie ? Commander"
+  },
+  "OurStoryPage": {
+    "meta": {
+      "title": "Notre histoire",
+      "description": "Découvrez l'histoire d'AfroBirthday et comment nous connectons le monde avec une joie africaine authentique via des vidéos personnalisées."
+    },
+    "title": "L'histoire d'AfroBirthday 🌍",
+    "subtitle": "Relier les personnes à travers les continents avec une énergie africaine authentique.",
+    "mission": {
+      "title": "Notre mission",
+      "body": "Chaque anniversaire mérite un moment de joie pure. AfroBirthday est né pour connecter les personnes avec une énergie africaine authentique. Notre équipe met tout son cœur dans chaque vidéo pour rendre votre journée inoubliable."
+    },
+    "coreValuesTitle": "Nos valeurs",
+    "values": {
+      "authenticity": {
+        "title": "Authenticité",
+        "description": "De vraies personnes, une vraie culture, une vraie joie. Chaque vidéo est créée par des artistes africains talentueux."
+      },
+      "joy": {
+        "title": "Joie",
+        "description": "Nous croyons que chaque anniversaire mérite un bonheur pur. C'est notre mission : répandre des sourires."
+      },
+      "impact": {
+        "title": "Impact",
+        "description": "Une rémunération juste. Chaque achat soutient les artistes africains et leurs communautés."
+      },
+      "quality": {
+        "title": "Qualité",
+        "description": "Excellence à chaque vidéo. Nous sommes fiers de livrer du contenu personnalisé de grande qualité."
+      }
+    },
+    "creators": {
+      "title": "Rencontrez nos créateurs 💃🕺",
+      "images": {
+        "0": { "alt": "Notre équipe en action", "caption": "La magie au Kenya 🇰🇪" },
+        "1": { "alt": "Répétition de danse", "caption": "Nouvelles chorégraphies" },
+        "2": { "alt": "Célébration d'équipe", "caption": "Chaque étape compte" }
+      },
+      "quote": "\u201cCe n'est pas juste un travail, c'est notre passion. Chaque vidéo porte une partie de notre cœur.\u201d",
+      "signature": "L'équipe AfroBirthday"
+    },
+    "impact": {
+      "title": "Notre impact ✨"
+    },
+    "metrics": {
+      "customers": "Clients heureux",
+      "creators": "Créateurs soutenus",
+      "countries": "Pays touchés",
+      "rating": "Note moyenne"
+    },
+    "cta": {
+      "title": "Envie de créer de la magie ?",
+      "button": "Commander maintenant"
+    }
+  }
+}

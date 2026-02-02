@@ -1,31 +1,34 @@
 import { Upload, Film, PartyPopper, ArrowRight } from "lucide-react";
-import Link from "next/link";
-
-const steps = [
-  {
-    icon: Upload,
-    number: "01",
-    title: "Customize",
-    description: "Upload a photo and write your personalized birthday message. Choose your music and style.",
-    color: "from-primary to-primary/70",
-  },
-  {
-    icon: Film,
-    number: "02",
-    title: "We Create",
-    description: "Our talented African dancers film your unique birthday video with authentic energy and joy.",
-    color: "from-accent to-accent/70",
-  },
-  {
-    icon: PartyPopper,
-    number: "03",
-    title: "Celebrate",
-    description: "Receive your video within 24 hours. Share it and watch their face light up with pure joy!",
-    color: "from-secondary to-secondary/70",
-  },
-];
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 export default function HowItWorksSection() {
+  const t = useTranslations("HowItWorks");
+
+  const steps = [
+    {
+      icon: Upload,
+      number: "01",
+      title: t("steps.customize.title"),
+      description: t("steps.customize.description"),
+      color: "from-primary to-primary/70",
+    },
+    {
+      icon: Film,
+      number: "02",
+      title: t("steps.create.title"),
+      description: t("steps.create.description"),
+      color: "from-accent to-accent/70",
+    },
+    {
+      icon: PartyPopper,
+      number: "03",
+      title: t("steps.celebrate.title"),
+      description: t("steps.celebrate.description"),
+      color: "from-secondary to-secondary/70",
+    },
+  ];
+
   return (
     <section className="py-16 md:py-24 bg-[#151515] relative overflow-hidden">
       {/* Grid pattern */}
@@ -34,11 +37,11 @@ export default function HowItWorksSection() {
       <div className="section-container relative">
         <div className="text-center mb-10 md:mb-16 px-4">
           <span className="inline-block px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium mb-4">
-            Simple Process
+            {t("badge")}
           </span>
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4">How It Works</h2>
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4">{t("title")}</h2>
           <p className="text-white/50 max-w-xl mx-auto text-sm md:text-base">
-            Three simple steps to create an unforgettable birthday moment
+            {t("subtitle")}
           </p>
         </div>
 
@@ -74,13 +77,13 @@ export default function HowItWorksSection() {
         {/* CTA */}
         <div className="text-center px-4">
           <Link
-            href="#order"
+            href="/#order"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold hover:opacity-90 transition group min-h-[48px] w-full sm:w-auto"
           >
-            Start Creating Now
+            {t("cta")}
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </Link>
-          <p className="text-white/40 text-xs md:text-sm mt-4">No account needed • Pay securely by credit card</p>
+          <p className="text-white/40 text-xs md:text-sm mt-4">{t("note")}</p>
         </div>
       </div>
     </section>

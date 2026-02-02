@@ -1,6 +1,29 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, Globe, Users, Sparkles, ChevronRight } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Our Story",
+  description:
+    "Discover the story behind AfroBirthday and how we connect people worldwide with authentic African joy through personalized birthday videos.",
+  alternates: {
+    canonical: "/our-story",
+  },
+  openGraph: {
+    title: "Our Story",
+    description:
+      "Discover the story behind AfroBirthday and how we connect people worldwide with authentic African joy through personalized birthday videos.",
+    url: "/our-story",
+    images: [{ url: "/logo.png" }],
+  },
+  twitter: {
+    title: "Our Story",
+    description:
+      "Discover the story behind AfroBirthday and how we connect people worldwide with authentic African joy through personalized birthday videos.",
+    images: ["/logo.png"],
+  },
+};
 
 const values = [
   {

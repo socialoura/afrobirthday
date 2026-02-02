@@ -9,6 +9,8 @@ import { cn, formatPrice, type CurrencyCode, PRICES } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -38,23 +40,24 @@ function currencyFromLocale(locale: string): CurrencyCode {
   return "USD";
 }
 
-const orderSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  message: z
-    .string()
-    .min(3, "Message must be at least 3 characters")
-    .max(100, "Message must be at most 100 characters"),
-  paymentMethod: z.enum(["card", "paypal"]),
-  musicOption: z.enum(["default", "custom"]),
-  musicLink: z.string().url().optional().or(z.literal("")),
-  deliveryMethod: z.enum(["standard", "express"]),
-  giftNote: z.string().max(200).optional(),
-  termsAccepted: z.literal(true, {
-    errorMap: () => ({ message: "You must accept the terms" }),
-  }),
-});
+const createOrderSchema = (t: ReturnType<typeof useTranslations>) =>
+  z.object({
+    email: z.string().email(t("errors.emailInvalid")),
+    message: z
+      .string()
+      .min(3, t("errors.messageMin"))
+      .max(100, t("errors.messageMax")),
+    paymentMethod: z.enum(["card", "paypal"]),
+    musicOption: z.enum(["default", "custom"]),
+    musicLink: z.string().url().optional().or(z.literal("")),
+    deliveryMethod: z.enum(["standard", "express"]),
+    giftNote: z.string().max(200).optional(),
+    termsAccepted: z.literal(true, {
+      errorMap: () => ({ message: t("errors.termsRequired") }),
+    }),
+  });
 
-type OrderFormData = z.infer<typeof orderSchema>;
+type OrderFormData = z.infer<ReturnType<typeof createOrderSchema>>;
 
 function VisaLogo() {
   return (
@@ -143,6 +146,9 @@ function CardLogos() {
 }
 
 export default function OrderFormSection() {
+  const t = useTranslations("OrderForm");
+  const orderSchema = useMemo(() => createOrderSchema(t), [t]);
+
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [musicFile, setMusicFile] = useState<File | null>(null);
@@ -204,14 +210,16 @@ export default function OrderFormSection() {
 
   const ratesNote = useMemo(() => {
     if (localCurrency === "USD") return null;
-    if (ratesLoading) return "Rates updating…";
-    if (!fetchedAt) return "Live rates unavailable. Showing estimated rates.";
+    if (ratesLoading) return t("rates.updating");
+    if (!fetchedAt) return t("rates.unavailable");
     const dt = new Date(fetchedAt);
-    if (Number.isNaN(dt.getTime())) return "Rates updated recently";
-    return `Rates updated ${dt.toLocaleString(navigator.language || "en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })}`;
+    if (Number.isNaN(dt.getTime())) return t("rates.recent");
+    return t("rates.updatedAt", {
+      time: dt.toLocaleString(navigator.language || "en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    });
   }, [fetchedAt, localCurrency, ratesLoading]);
 
   const handlePhotoDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -224,7 +232,7 @@ export default function OrderFormSection() {
 
   const handlePhotoSelect = (file: File) => {
     if (file.size > 5 * 1024 * 1024) {
-      alert("Photo must be less than 5MB");
+      alert(t("alerts.photoTooLarge"));
       return;
     }
     setPhoto(file);
@@ -235,7 +243,7 @@ export default function OrderFormSection() {
 
   const onSubmit = async (data: OrderFormData) => {
     if (!photo) {
-      alert("Please upload a photo");
+      alert(t("alerts.photoMissing"));
       return;
     }
 
@@ -336,7 +344,7 @@ export default function OrderFormSection() {
       setIsStripeModalOpen(true);
     } catch (error) {
       console.error("Checkout error:", error);
-      alert("Something went wrong. Please try again.");
+      alert(t("alerts.genericError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -351,11 +359,11 @@ export default function OrderFormSection() {
       <div className="section-container relative">
         <div className="text-center mb-12">
           <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            Order Now
+            {t("badge")}
           </span>
-          <h2 className="heading-2 text-white mb-4">Create Your Birthday Video</h2>
+          <h2 className="heading-2 text-white mb-4">{t("title")}</h2>
           <p className="text-white/60 max-w-xl mx-auto">
-            Fill out the form below and we&apos;ll create a personalized video just for you!
+            {t("subtitle")}
           </p>
         </div>
 
@@ -367,15 +375,15 @@ export default function OrderFormSection() {
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div>
                     <label className="block font-semibold text-white">
-                      Upload Photo <span className="text-error">*</span>
+                      {t("photo.label")} <span className="text-error">*</span>
                     </label>
                     <p className="text-white/40 text-sm mt-1">
-                      A clear photo helps us personalize the video perfectly.
+                      {t("photo.help")}
                     </p>
                   </div>
                   <div className="hidden sm:flex items-center gap-2 text-white/40 text-sm">
                     <ShieldCheck size={16} className="text-accent" />
-                    Private & secure
+                    {t("photo.private")}
                   </div>
                 </div>
 
@@ -393,7 +401,7 @@ export default function OrderFormSection() {
                     <div className="relative inline-block">
                       <img
                         src={photoPreview}
-                        alt="Preview"
+                        alt={t("photo.previewAlt")}
                         className="max-h-56 rounded-2xl mx-auto"
                       />
                       <button
@@ -412,12 +420,12 @@ export default function OrderFormSection() {
                       <div className="mx-auto w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
                         <Upload size={26} className="text-white/60" />
                       </div>
-                      <p className="text-white/80 font-medium">Drop your image here</p>
+                      <p className="text-white/80 font-medium">{t("photo.dropHere")}</p>
                       <p className="text-white/40 text-sm mt-1">
-                        or <span className="text-primary font-semibold">browse files</span>
+                        {t("photo.or")} <span className="text-primary font-semibold">{t("photo.browse")}</span>
                       </p>
                       <p className="text-xs text-white/30 mt-3">
-                        JPG, PNG, WebP • Max 5MB
+                        {t("photo.formats")}
                       </p>
                       <input
                         type="file"
@@ -438,10 +446,10 @@ export default function OrderFormSection() {
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div>
                     <label className="block font-semibold text-white">
-                      Birthday Message <span className="text-error">*</span>
+                      {t("message.label")} <span className="text-error">*</span>
                     </label>
                     <p className="text-white/40 text-sm mt-1">
-                      Keep it short and clear. We&apos;ll shout it with energy.
+                      {t("message.help")}
                     </p>
                   </div>
                   <div className={cn("text-sm", message.length > 90 ? "text-error" : "text-white/40")}>
@@ -451,7 +459,7 @@ export default function OrderFormSection() {
 
                 <textarea
                   {...register("message")}
-                  placeholder="E.g., 'Happy 30th Birthday Sarah!'"
+                  placeholder={t("message.placeholder")}
                   maxLength={100}
                   rows={3}
                   className={cn(
@@ -467,15 +475,15 @@ export default function OrderFormSection() {
               {/* Email */}
               <div className="glass-card p-6">
                 <label className="block font-semibold mb-2 text-white">
-                  Email <span className="text-error">*</span>
+                  {t("email.label")} <span className="text-error">*</span>
                 </label>
                 <p className="text-white/40 text-sm mb-4">
-                  We&apos;ll deliver the final video to this email.
+                  {t("email.help")}
                 </p>
                 <input
                   type="email"
                   {...register("email")}
-                  placeholder="birthday.person@email.com"
+                  placeholder={t("email.placeholder")}
                   className={cn(
                     "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30 text-base h-12",
                     errors.email ? "border-error" : "border-white/20"
@@ -488,7 +496,7 @@ export default function OrderFormSection() {
 
               {/* Music Selection */}
               <div className="glass-card p-6">
-                <label className="block font-semibold mb-4 text-white">Music Selection</label>
+                <label className="block font-semibold mb-4 text-white">{t("music.label")}</label>
                 <div className="space-y-3">
                 <label
                   className={cn(
@@ -505,12 +513,12 @@ export default function OrderFormSection() {
                     className="w-5 h-5 text-primary"
                   />
                   <div className="flex-1">
-                    <p className="font-medium text-white">🎵 We choose music for you</p>
+                    <p className="font-medium text-white">🎵 {t("music.default.title")}</p>
                     <p className="text-sm text-white/50">
-                      Faster order, better dancing
+                      {t("music.default.subtitle")}
                     </p>
                   </div>
-                  <span className="font-semibold text-primary">FREE</span>
+                  <span className="font-semibold text-primary">{t("music.default.price")}</span>
                 </label>
 
                 <label
@@ -528,9 +536,9 @@ export default function OrderFormSection() {
                     className="w-5 h-5 text-primary"
                   />
                   <div className="flex-1">
-                    <p className="font-medium text-white">🎶 I want to provide my own song</p>
+                    <p className="font-medium text-white">🎶 {t("music.custom.title")}</p>
                     <p className="text-sm text-white/50">
-                      Upload or paste a link
+                      {t("music.custom.subtitle")}
                     </p>
                   </div>
                   <span className="font-semibold text-primary">
@@ -544,15 +552,15 @@ export default function OrderFormSection() {
                   <input
                     type="text"
                     {...register("musicLink")}
-                    placeholder="Paste YouTube or Spotify link"
+                    placeholder={t("music.linkPlaceholder")}
                     className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30 text-base h-12"
                   />
-                  <div className="text-center text-white/40 text-sm">or</div>
+                  <div className="text-center text-white/40 text-sm">{t("music.or")}</div>
                   <div className="border border-white/20 rounded-xl p-4 bg-white/5">
                     <label className="cursor-pointer flex items-center justify-center gap-2">
                       <Upload size={20} className="text-white/40" />
                       <span className="text-white/60">
-                        {musicFile ? musicFile.name : "Upload music file (MP3, WAV)"}
+                        {musicFile ? musicFile.name : t("music.filePlaceholder")}
                       </span>
                       <input
                         type="file"
@@ -571,7 +579,7 @@ export default function OrderFormSection() {
 
               {/* Delivery Method */}
               <div className="glass-card p-6">
-                <label className="block font-semibold mb-4 text-white">Delivery Speed</label>
+                <label className="block font-semibold mb-4 text-white">{t("delivery.label")}</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label
                   className={cn(
@@ -587,9 +595,9 @@ export default function OrderFormSection() {
                     value="standard"
                     className="sr-only"
                   />
-                  <p className="font-medium text-white">Standard</p>
-                  <p className="text-sm text-white/50">24-48 hours</p>
-                  <p className="text-primary font-semibold mt-1">Included</p>
+                  <p className="font-medium text-white">{t("delivery.standard.title")}</p>
+                  <p className="text-sm text-white/50">{t("delivery.standard.time")}</p>
+                  <p className="text-primary font-semibold mt-1">{t("delivery.standard.price")}</p>
                   {deliveryMethod === "standard" && (
                     <Check size={20} className="text-primary mt-2" />
                   )}
@@ -609,8 +617,8 @@ export default function OrderFormSection() {
                     value="express"
                     className="sr-only"
                   />
-                  <p className="font-medium text-white">Express ⚡</p>
-                  <p className="text-sm text-white/50">12-24 hours</p>
+                  <p className="font-medium text-white">{t("delivery.express.title")}</p>
+                  <p className="text-sm text-white/50">{t("delivery.express.time")}</p>
                   <p className="text-primary font-semibold mt-1">
                     +{formatLocal(PRICES.expressDelivery)}
                   </p>
@@ -624,14 +632,14 @@ export default function OrderFormSection() {
               {/* Gift Note */}
               <div className="glass-card p-6">
                 <label className="block font-semibold mb-2 text-white">
-                  Gift Note (Optional)
+                  {t("gift.label")}
                 </label>
                 <p className="text-white/40 text-sm mb-4">
-                  Optional text we can add to the video delivery message.
+                  {t("gift.help")}
                 </p>
                 <textarea
                   {...register("giftNote")}
-                  placeholder="E.g., 'You deserve all the joy!'"
+                  placeholder={t("gift.placeholder")}
                   maxLength={200}
                   rows={2}
                   className="w-full px-4 py-3 border border-white/20 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30 text-base min-h-[80px]"
@@ -645,7 +653,7 @@ export default function OrderFormSection() {
 
             {/* Payment Method */}
             <div className="glass-card p-5">
-              <label className="block font-semibold mb-3 text-white">Payment method</label>
+              <label className="block font-semibold mb-3 text-white">{t("payment.label")}</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label
                   className={cn(
@@ -663,8 +671,8 @@ export default function OrderFormSection() {
                   />
                   <CardLogos />
                   <div>
-                    <p className="font-medium text-white">Credit card</p>
-                    <p className="text-xs text-white/50">Visa, Mastercard, Amex</p>
+                    <p className="font-medium text-white">{t("payment.card.title")}</p>
+                    <p className="text-xs text-white/50">{t("payment.card.subtitle")}</p>
                   </div>
                 </label>
 
@@ -685,7 +693,7 @@ export default function OrderFormSection() {
                   <PayPalLogo />
                   <div>
                     <p className="font-medium text-white">PayPal</p>
-                    <p className="text-xs text-white/50">Pay with your PayPal balance</p>
+                    <p className="text-xs text-white/50">{t("payment.paypal.subtitle")}</p>
                   </div>
                 </label>
               </div>
@@ -694,35 +702,35 @@ export default function OrderFormSection() {
             {/* Price Summary */}
             <div className="bg-gradient-to-r from-primary/20 to-accent/20 border border-white/10 text-white p-6 rounded-3xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">Order Summary</h3>
+                <h3 className="font-semibold">{t("summary.title")}</h3>
                 <Sparkles size={18} className="text-secondary" />
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span>Birthday Video</span>
+                  <span>{t("summary.items.base")}</span>
                   <span>{formatLocal(PRICES.base)}</span>
                 </div>
                 {musicOption === "custom" && (
                   <div className="flex justify-between">
-                    <span>Custom Song</span>
+                    <span>{t("summary.items.customSong")}</span>
                     <span>+{formatLocal(PRICES.customSong)}</span>
                   </div>
                 )}
                 {deliveryMethod === "express" && (
                   <div className="flex justify-between">
-                    <span>Express Delivery</span>
+                    <span>{t("summary.items.express")}</span>
                     <span>+{formatLocal(PRICES.expressDelivery)}</span>
                   </div>
                 )}
                 <div className="border-t border-white/20 pt-2 mt-2">
                   <div className="flex justify-between text-lg font-bold">
-                    <span>Total</span>
+                    <span>{t("summary.total")}</span>
                     <span className="text-secondary">{formatLocal(totalPrice)}</span>
                   </div>
-                  <p className="text-white/50 text-xs mt-2">Charged in USD at checkout</p>
+                  <p className="text-white/50 text-xs mt-2">{t("summary.chargedUsd")}</p>
                   {localCurrency !== "USD" && (
                     <p className="text-white/40 text-xs mt-1">
-                      Prices are estimates in your local currency.
+                      {t("summary.estimate")}
                     </p>
                   )}
                   {ratesNote && (
@@ -741,14 +749,14 @@ export default function OrderFormSection() {
                   className="w-6 h-6 mt-0.5 text-primary rounded flex-shrink-0"
                 />
                 <span className="text-sm text-white/60">
-                  I agree to the{" "}
-                  <a href="/terms" className="text-primary hover:underline">
-                    Terms of Service
-                  </a>{" "}
-                  &{" "}
-                  <a href="/refund" className="text-primary hover:underline">
-                    Refund Policy
-                  </a>
+                  {t("terms.prefix")}{" "}
+                  <Link href="/terms" className="text-primary hover:underline">
+                    {t("terms.terms")}
+                  </Link>{" "}
+                  {t("terms.and")}{" "}
+                  <Link href="/refund" className="text-primary hover:underline">
+                    {t("terms.refund")}
+                  </Link>
                 </span>
               </label>
               {errors.termsAccepted && (
@@ -767,12 +775,14 @@ export default function OrderFormSection() {
               {isSubmitting ? (
                 <>
                   <Loader2 size={20} className="animate-spin" />
-                  Processing...
+                  {t("submit.processing")}
                 </>
               ) : (
                 <>
                   {paymentMethod === "paypal" ? <Wallet size={18} /> : <CreditCard size={18} />}
-                  {paymentMethod === "paypal" ? "Pay with PayPal" : `Pay ${formatLocal(totalPrice)}`}
+                  {paymentMethod === "paypal"
+                    ? t("submit.paypal")
+                    : t("submit.pay", { amount: formatLocal(totalPrice) })}
                 </>
               )}
             </button>
@@ -780,15 +790,15 @@ export default function OrderFormSection() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-white/50">
               <div className="flex items-center gap-2 glass-card px-3 py-2">
                 <Lock size={14} className="text-accent" />
-                Secure credit card
+                {t("trust.secure")}
               </div>
               <div className="flex items-center gap-2 glass-card px-3 py-2">
                 <ShieldCheck size={14} className="text-accent" />
-                Private & safe
+                {t("trust.private")}
               </div>
               <div className="flex items-center gap-2 glass-card px-3 py-2">
                 <Clock size={14} className="text-accent" />
-                24h delivery
+                {t("trust.delivery")}
               </div>
             </div>
 
@@ -808,14 +818,14 @@ export default function OrderFormSection() {
                 setIsStripeModalOpen(false);
                 setStripeClientSecret(null);
               }}
-              aria-label="Close"
+              aria-label={t("modal.close")}
             >
               <X size={18} className="text-white" />
             </button>
 
             {!stripePromise || !stripeClientSecret ? (
               <div className="text-white/80">
-                Stripe is not configured.
+                {t("modal.notConfigured")}
               </div>
             ) : (
               <EmbeddedCheckoutProvider

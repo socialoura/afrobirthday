@@ -1,27 +1,36 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Refund Policy",
-  description:
-    "AfroBirthday refund policy and money-back guarantee. Learn eligibility, how to request a refund, and expected processing times.",
-  alternates: {
-    canonical: "/refund",
-  },
-  openGraph: {
+import { Link } from "@/i18n/navigation";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+
+  return {
     title: "Refund Policy",
     description:
       "AfroBirthday refund policy and money-back guarantee. Learn eligibility, how to request a refund, and expected processing times.",
-    url: "/refund",
-    images: [{ url: "/logo.png" }],
-  },
-  twitter: {
-    title: "Refund Policy",
-    description:
-      "AfroBirthday refund policy and money-back guarantee. Learn eligibility, how to request a refund, and expected processing times.",
-    images: ["/logo.png"],
-  },
-};
+    alternates: {
+      canonical: `/${locale}/refund`,
+    },
+    openGraph: {
+      title: "Refund Policy",
+      description:
+        "AfroBirthday refund policy and money-back guarantee. Learn eligibility, how to request a refund, and expected processing times.",
+      url: `/${locale}/refund`,
+      images: [{ url: "/logo.png" }],
+    },
+    twitter: {
+      title: "Refund Policy",
+      description:
+        "AfroBirthday refund policy and money-back guarantee. Learn eligibility, how to request a refund, and expected processing times.",
+      images: ["/logo.png"],
+    },
+  };
+}
 
 export default function RefundPage() {
   return (
@@ -32,11 +41,9 @@ export default function RefundPage() {
 
         <div className="prose prose-lg max-w-none space-y-8">
           <div className="bg-success/10 border border-success/20 p-6 rounded-xl mb-8">
-            <h2 className="text-xl font-semibold text-success mb-2">
-              💯 100% Money-Back Guarantee
-            </h2>
+            <h2 className="text-xl font-semibold text-success mb-2">💯 100% Money-Back Guarantee</h2>
             <p className="text-dark/80 mb-0">
-              We stand behind our product. If you&apos;re not completely satisfied with your 
+              We stand behind our product. If you&apos;re not completely satisfied with your
               birthday video, we&apos;ll give you a full refund within 7 days of delivery.
             </p>
           </div>
@@ -44,8 +51,8 @@ export default function RefundPage() {
           <section>
             <h2 className="heading-2 mb-4">Our Guarantee</h2>
             <p className="text-dark/80">
-              At AfroBirthday, customer satisfaction is our top priority. We want you to 
-              love your personalized birthday video. If for any reason you&apos;re not happy 
+              At AfroBirthday, customer satisfaction is our top priority. We want you to
+              love your personalized birthday video. If for any reason you&apos;re not happy
               with the result, we offer a straightforward refund process.
             </p>
           </section>
@@ -64,9 +71,7 @@ export default function RefundPage() {
 
           <section>
             <h2 className="heading-2 mb-4">How to Request a Refund</h2>
-            <p className="text-dark/80 mb-4">
-              Requesting a refund is simple. Just follow these steps:
-            </p>
+            <p className="text-dark/80 mb-4">Requesting a refund is simple. Just follow these steps:</p>
             <ol className="list-decimal pl-6 space-y-3 text-dark/80">
               <li>
                 <strong>Email us</strong> at{" "}
@@ -89,9 +94,9 @@ export default function RefundPage() {
           <section>
             <h2 className="heading-2 mb-4">Refund Processing</h2>
             <p className="text-dark/80">
-              Refunds are processed back to your original payment method. Depending on 
-              your bank or card issuer, it may take 5-7 business days for the refund 
-              to appear in your account. You will receive an email confirmation once 
+              Refunds are processed back to your original payment method. Depending on
+              your bank or card issuer, it may take 5-7 business days for the refund
+              to appear in your account. You will receive an email confirmation once
               the refund has been processed.
             </p>
           </section>
@@ -99,9 +104,9 @@ export default function RefundPage() {
           <section>
             <h2 className="heading-2 mb-4">Free Remake Option</h2>
             <p className="text-dark/80">
-              Before requesting a refund, consider our free remake option! If there&apos;s 
-              something specific you&apos;d like changed about your video, we&apos;ll remake it 
-              at no extra cost. Just email us with your feedback, and we&apos;ll create a 
+              Before requesting a refund, consider our free remake option! If there&apos;s
+              something specific you&apos;d like changed about your video, we&apos;ll remake it
+              at no extra cost. Just email us with your feedback, and we&apos;ll create a
               new video within 24 hours.
             </p>
           </section>
@@ -109,7 +114,7 @@ export default function RefundPage() {
           <section>
             <h2 className="heading-2 mb-4">Exceptions</h2>
             <p className="text-dark/80 mb-4">
-              While we strive to accommodate all refund requests, the following situations 
+              While we strive to accommodate all refund requests, the following situations
               may not be eligible:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-dark/80">

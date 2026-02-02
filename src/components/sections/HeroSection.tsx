@@ -6,6 +6,7 @@ import { Play, Sparkles, Star, Clock, Shield } from "lucide-react";
 import OptimizedVideo from "@/components/OptimizedVideo";
 import { type CurrencyCode, PRICES } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
+import { useTranslations } from "next-intl";
 
 function currencyFromLocale(locale: string): CurrencyCode {
   const region = locale.split("-")[1]?.toUpperCase();
@@ -32,6 +33,8 @@ function currencyFromLocale(locale: string): CurrencyCode {
 }
 
 export default function HeroSection() {
+  const tHero = useTranslations("Hero");
+
   const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
   const { rates } = useExchangeRates();
 
@@ -80,19 +83,19 @@ export default function HeroSection() {
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-8">
           <Star size={14} className="text-secondary fill-secondary" />
-          <span className="text-white/80 text-sm font-medium">Trusted by 500+ happy customers</span>
+          <span className="text-white/80 text-sm font-medium">{tHero("badge")}</span>
         </div>
 
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 max-w-5xl mx-auto">
-          <span className="text-white">The Birthday Gift That</span>
+          <span className="text-white">{tHero("title1")}</span>
           <br />
-          <span className="gradient-text animate-gradient bg-gradient-to-r from-primary via-secondary to-accent">Goes Viral</span>
+          <span className="gradient-text animate-gradient bg-gradient-to-r from-primary via-secondary to-accent">{tHero("title2")}</span>
         </h1>
 
         <p className="text-base md:text-lg lg:text-xl text-white/60 mb-6 md:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
-          Personalized video messages from real African dancers.
+          {tHero("subtitle1")}
           <br className="hidden md:block" />
-          Authentic energy. Pure joy. Delivered in 24 hours.
+          {tHero("subtitle2")}
         </p>
 
         {/* Price highlight */}
@@ -104,7 +107,7 @@ export default function HeroSection() {
 
         {localCurrency !== "USD" && (
           <p className="text-white/50 text-xs md:text-sm mb-6 md:mb-8">
-            Displayed in your local currency • Charged in USD
+            {tHero("localCurrencyNote")}
           </p>
         )}
 
@@ -112,11 +115,11 @@ export default function HeroSection() {
         <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center mb-8 md:mb-12 px-4">
           <Link href="#order" className="btn-primary text-base md:text-lg group min-h-[48px] flex items-center justify-center">
             <Sparkles size={20} className="group-hover:rotate-12 transition-transform" />
-            Order My Video
+            {tHero("ctaOrder")}
           </Link>
           <Link href="#showcase" className="btn-secondary text-base md:text-lg group flex items-center justify-center gap-2 min-h-[48px]">
             <Play size={20} className="group-hover:scale-110 transition-transform" />
-            Watch Examples
+            {tHero("ctaWatch")}
           </Link>
         </div>
 
@@ -124,15 +127,15 @@ export default function HeroSection() {
         <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-white/50 text-xs md:text-sm">
           <div className="flex items-center gap-2">
             <Clock size={16} className="text-accent" />
-            <span>24h Delivery</span>
+            <span>{tHero("trust.delivery")}</span>
           </div>
           <div className="flex items-center gap-2">
             <Shield size={16} className="text-accent" />
-            <span>Money-back Guarantee</span>
+            <span>{tHero("trust.guarantee")}</span>
           </div>
           <div className="flex items-center gap-2">
             <Star size={16} className="text-secondary fill-secondary" />
-            <span>4.9/5 Rating</span>
+            <span>{tHero("trust.rating")}</span>
           </div>
         </div>
       </div>

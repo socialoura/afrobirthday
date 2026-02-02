@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import ChatWidgetWrapper from "@/components/ChatWidgetWrapper";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { getLocale } from "next-intl/server";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://afrobirthday.com";
 
 export const metadata: Metadata = {
-  title: "AfroBirthday - Make Every Birthday VIRAL 🎂💃",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "AfroBirthday - Personalized Birthday Videos from African Dancers",
+    template: "%s | AfroBirthday",
+  },
   description:
-    "Get a personalized birthday video from real African dancers. Authentic energy, pure joy, delivered in 24-48 hours.",
+    "Order a personalized birthday video from real African dancers. Upload a photo, add your message, choose delivery (12–48h), and receive it by email.",
   icons: {
     icon: [
       { url: "/favicon.ico" },
@@ -25,40 +29,55 @@ export const metadata: Metadata = {
     "african dancers",
     "birthday gift",
     "viral birthday",
+    "birthday surprise",
+    "custom birthday message",
   ],
   openGraph: {
-    title: "AfroBirthday - Make Every Birthday VIRAL 🎂💃",
+    title: "AfroBirthday - Personalized Birthday Videos from African Dancers",
     description:
-      "Get a personalized birthday video from real African dancers. Authentic energy, pure joy, delivered in 24-48 hours.",
-    url: "https://afrobirthday.com",
+      "Order a personalized birthday video from real African dancers. Upload a photo, add your message, choose delivery (12–48h), and receive it by email.",
+    url: siteUrl,
     siteName: "AfroBirthday",
     locale: "en_US",
     type: "website",
+    images: [{ url: "/logo.png" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AfroBirthday - Make Every Birthday VIRAL 🎂💃",
+    title: "AfroBirthday - Personalized Birthday Videos from African Dancers",
     description:
-      "Get a personalized birthday video from real African dancers. Authentic energy, pure joy, delivered in 24-48 hours.",
+      "Order a personalized birthday video from real African dancers. Upload a photo, add your message, choose delivery (12–48h), and receive it by email.",
+    images: ["/logo.png"],
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let locale = "en";
+  try {
+    locale = await getLocale();
+  } catch {
+    locale = "en";
+  }
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body>
-        <Header />
-        <main className="min-h-screen">{children}</main>
-        <Footer />
-        <ChatWidgetWrapper />
+        {children}
         <Analytics />
         <SpeedInsights />
       </body>
