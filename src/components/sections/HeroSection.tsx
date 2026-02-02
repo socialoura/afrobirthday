@@ -36,22 +36,25 @@ export default function HeroSection() {
   const tHero = useTranslations("Hero");
 
   const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
+  const [browserLocale, setBrowserLocale] = useState("en-US");
   const { rates } = useExchangeRates();
 
   useEffect(() => {
-    setLocalCurrency(currencyFromLocale(navigator.language || "en-US"));
+    const nextLocale = navigator.language || "en-US";
+    setBrowserLocale(nextLocale);
+    setLocalCurrency(currencyFromLocale(nextLocale));
   }, []);
 
   const formatLocal = useMemo(() => {
     return (priceUsd: number) => {
       const converted = localCurrency === "USD" ? priceUsd : priceUsd * rates[localCurrency];
-      return new Intl.NumberFormat(navigator.language || "en-US", {
+      return new Intl.NumberFormat(browserLocale, {
         style: "currency",
         currency: localCurrency,
         maximumFractionDigits: 2,
       }).format(converted);
     };
-  }, [localCurrency, rates]);
+  }, [browserLocale, localCurrency, rates]);
 
   const displayPrice = useMemo(() => formatLocal(PRICES.base), [formatLocal]);
   const displayOriginalPrice = useMemo(() => formatLocal(39.99), [formatLocal]);

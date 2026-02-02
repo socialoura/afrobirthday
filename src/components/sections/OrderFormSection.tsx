@@ -156,10 +156,13 @@ export default function OrderFormSection() {
   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
   const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
   const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
+  const [browserLocale, setBrowserLocale] = useState("en-US");
   const { rates, fetchedAt, loading: ratesLoading } = useExchangeRates();
 
   useEffect(() => {
-    setLocalCurrency(currencyFromLocale(navigator.language || "en-US"));
+    const nextLocale = navigator.language || "en-US";
+    setBrowserLocale(nextLocale);
+    setLocalCurrency(currencyFromLocale(nextLocale));
   }, []);
 
   useEffect(() => {
@@ -200,13 +203,13 @@ export default function OrderFormSection() {
     return (priceUsd: number) => {
       if (localCurrency === "USD") return formatPrice(priceUsd, "USD");
       const converted = priceUsd * rates[localCurrency];
-      return new Intl.NumberFormat(navigator.language || "en-US", {
+      return new Intl.NumberFormat(browserLocale, {
         style: "currency",
         currency: localCurrency,
         maximumFractionDigits: 2,
       }).format(converted);
     };
-  }, [localCurrency, rates]);
+  }, [browserLocale, localCurrency, rates]);
 
   const ratesNote = useMemo(() => {
     if (localCurrency === "USD") return null;
@@ -215,12 +218,12 @@ export default function OrderFormSection() {
     const dt = new Date(fetchedAt);
     if (Number.isNaN(dt.getTime())) return t("rates.recent");
     return t("rates.updatedAt", {
-      time: dt.toLocaleString(navigator.language || "en-US", {
+      time: dt.toLocaleString(browserLocale, {
         hour: "2-digit",
         minute: "2-digit",
       }),
     });
-  }, [fetchedAt, localCurrency, ratesLoading]);
+  }, [browserLocale, fetchedAt, localCurrency, ratesLoading]);
 
   const handlePhotoDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();

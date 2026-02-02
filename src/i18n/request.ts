@@ -24,8 +24,9 @@ function deepMerge(
   return result;
 }
 
-export default getRequestConfig(async ({ locale }) => {
-  const resolvedLocale = (locale ?? defaultLocale) as never;
+export default getRequestConfig(async ({ requestLocale }) => {
+  const locale = await requestLocale;
+  const resolvedLocale = (locale && locales.includes(locale as never) ? locale : defaultLocale) as never;
 
   if (!locales.includes(resolvedLocale)) {
     notFound();
