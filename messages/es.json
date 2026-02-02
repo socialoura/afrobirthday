@@ -206,8 +206,9 @@
     ]
   },
   "OrderForm": {
-    "badge": "Pedir",
-    "title": "Crea tu vídeo de cumpleaños",
+    "badge": "Pedir ahora",
+    "title": "Crea Tu Vídeo de Cumpleaños",
+    "productName": "Vídeo de cumpleaños personalizado",
     "subtitle": "Rellena el formulario y crearemos un vídeo personalizado para ti.",
     "photo": {
       "label": "Subir una foto",
@@ -454,6 +455,29 @@
     "cta": {
       "title": "¿Quieres crear magia?",
       "button": "Pide tu vídeo ahora"
+    }
+  },
+  "PaymentModal": {
+    "title": "Completa Tu Pago",
+    "close": "Cerrar",
+    "securePayment": "Pago rápido y seguro con Link",
+    "cardNumber": "Número de tarjeta",
+    "expiry": "Fecha de caducidad",
+    "cvc": "Código de seguridad",
+    "country": "País",
+    "termsPrefix": "He leído y acepto los",
+    "termsLink": "términos y condiciones",
+    "payButton": "Pagar {amount}",
+    "processing": "Procesando...",
+    "errors": {
+      "termsRequired": "Debes aceptar los términos y condiciones",
+      "cardMissing": "Por favor, introduce los datos de tu tarjeta",
+      "generic": "Ha ocurrido un error. Inténtalo de nuevo."
+    },
+    "badges": {
+      "secure": "Transacción Segura",
+      "ssl": "Cifrado SSL",
+      "guaranteed": "Servicio Garantizado"
     }
   }
 }

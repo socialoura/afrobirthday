@@ -208,6 +208,7 @@
   "OrderForm": {
     "badge": "Bestellen",
     "title": "Maak je verjaardagsvideo",
+    "productName": "Gepersonaliseerde verjaardagsvideo",
     "subtitle": "Vul het formulier hieronder in en wij maken een gepersonaliseerde video voor je!",
     "photo": {
       "label": "Foto uploaden",
@@ -454,6 +455,29 @@
     "cta": {
       "title": "Wil je magie maken?",
       "button": "Bestel nu"
+    }
+  },
+  "PaymentModal": {
+    "title": "Voltooi Je Betaling",
+    "close": "Sluiten",
+    "securePayment": "Snelle & veilige betaling met Link",
+    "cardNumber": "Kaartnummer",
+    "expiry": "Vervaldatum",
+    "cvc": "Beveiligingscode",
+    "country": "Land",
+    "termsPrefix": "Ik heb de",
+    "termsLink": "algemene voorwaarden gelezen en ga akkoord",
+    "payButton": "Betaal {amount}",
+    "processing": "Bezig...",
+    "errors": {
+      "termsRequired": "Je moet de voorwaarden accepteren",
+      "cardMissing": "Voer je kaartgegevens in",
+      "generic": "Er is een fout opgetreden. Probeer opnieuw."
+    },
+    "badges": {
+      "secure": "Veilige Transactie",
+      "ssl": "SSL Versleuteld",
+      "guaranteed": "Gegarandeerde Service"
     }
   }
 }

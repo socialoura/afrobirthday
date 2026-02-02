@@ -208,6 +208,7 @@
   "OrderForm": {
     "badge": "Order Now",
     "title": "Create Your Birthday Video",
+    "productName": "Personalized Birthday Video",
     "subtitle": "Fill out the form below and we'll create a personalized video just for you!",
     "photo": {
       "label": "Upload Photo",
@@ -454,6 +455,29 @@
     "cta": {
       "title": "Want to create magic?",
       "button": "Order your video now"
+    }
+  },
+  "PaymentModal": {
+    "title": "Complete Your Payment",
+    "close": "Close",
+    "securePayment": "Fast & secure payment with Link",
+    "cardNumber": "Card number",
+    "expiry": "Expiration date",
+    "cvc": "Security code",
+    "country": "Country",
+    "termsPrefix": "I have read and accept the",
+    "termsLink": "terms and conditions",
+    "payButton": "Pay {amount}",
+    "processing": "Processing...",
+    "errors": {
+      "termsRequired": "You must accept the terms and conditions",
+      "cardMissing": "Please enter your card details",
+      "generic": "An error occurred. Please try again."
+    },
+    "badges": {
+      "secure": "Secure Transaction",
+      "ssl": "SSL Encrypted",
+      "guaranteed": "Guaranteed Service"
     }
   }
 }

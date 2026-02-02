@@ -208,6 +208,7 @@
   "OrderForm": {
     "badge": "下单",
     "title": "创建你的生日视频",
+    "productName": "定制生日视频",
     "subtitle": "填写下方表单，我们将为你制作专属定制视频！",
     "photo": {
       "label": "上传照片",
@@ -454,6 +455,29 @@
     "cta": {
       "title": "想制造惊喜吗？",
       "button": "立即下单"
+    }
+  },
+  "PaymentModal": {
+    "title": "完成支付",
+    "close": "关闭",
+    "securePayment": "使用 Link 快速安全支付",
+    "cardNumber": "卡号",
+    "expiry": "有效期",
+    "cvc": "安全码",
+    "country": "国家",
+    "termsPrefix": "我已阅读并同意",
+    "termsLink": "条款和条件",
+    "payButton": "支付 {amount}",
+    "processing": "处理中...",
+    "errors": {
+      "termsRequired": "您必须同意条款和条件",
+      "cardMissing": "请输入卡片信息",
+      "generic": "发生错误，请重试。"
+    },
+    "badges": {
+      "secure": "安全交易",
+      "ssl": "SSL 加密",
+      "guaranteed": "服务保障"
     }
   }
 }

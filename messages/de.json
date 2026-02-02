@@ -206,8 +206,9 @@
     ]
   },
   "OrderForm": {
-    "badge": "Bestellen",
-    "title": "Erstelle dein Geburtstagsvideo",
+    "badge": "Jetzt bestellen",
+    "title": "Erstelle Dein Geburtstagsvideo",
+    "productName": "Personalisiertes Geburtstagsvideo",
     "subtitle": "Fülle das Formular aus und wir erstellen ein personalisiertes Video für dich!",
     "photo": {
       "label": "Foto hochladen",
@@ -454,6 +455,29 @@
     "cta": {
       "title": "Willst du Magie schaffen?",
       "button": "Jetzt Video bestellen"
+    }
+  },
+  "PaymentModal": {
+    "title": "Zahlung Abschließen",
+    "close": "Schließen",
+    "securePayment": "Schnelle & sichere Zahlung mit Link",
+    "cardNumber": "Kartennummer",
+    "expiry": "Ablaufdatum",
+    "cvc": "Sicherheitscode",
+    "country": "Land",
+    "termsPrefix": "Ich habe die",
+    "termsLink": "AGB gelesen und akzeptiere sie",
+    "payButton": "{amount} bezahlen",
+    "processing": "Wird verarbeitet...",
+    "errors": {
+      "termsRequired": "Sie müssen die AGB akzeptieren",
+      "cardMissing": "Bitte geben Sie Ihre Kartendaten ein",
+      "generic": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    },
+    "badges": {
+      "secure": "Sichere Transaktion",
+      "ssl": "SSL-Verschlüsselt",
+      "guaranteed": "Garantierter Service"
     }
   }
 }

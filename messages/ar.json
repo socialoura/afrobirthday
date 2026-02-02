@@ -208,6 +208,7 @@
   "OrderForm": {
     "badge": "اطلب",
     "title": "أنشئ فيديو عيد ميلادك",
+    "productName": "فيديو عيد ميلاد مخصص",
     "subtitle": "املأ النموذج وسنصنع فيديو مخصصًا لك.",
     "photo": {
       "label": "رفع صورة",
@@ -454,6 +455,29 @@
     "cta": {
       "title": "هل تريد صنع السحر؟",
       "button": "اطلب الآن"
+    }
+  },
+  "PaymentModal": {
+    "title": "أكمل الدفع",
+    "close": "إغلاق",
+    "securePayment": "دفع سريع وآمن مع Link",
+    "cardNumber": "رقم البطاقة",
+    "expiry": "تاريخ الانتهاء",
+    "cvc": "رمز الأمان",
+    "country": "البلد",
+    "termsPrefix": "لقد قرأت وأوافق على",
+    "termsLink": "الشروط والأحكام",
+    "payButton": "ادفع {amount}",
+    "processing": "جارٍ المعالجة...",
+    "errors": {
+      "termsRequired": "يجب الموافقة على الشروط والأحكام",
+      "cardMissing": "يرجى إدخال بيانات البطاقة",
+      "generic": "حدث خطأ. يرجى المحاولة مرة أخرى."
+    },
+    "badges": {
+      "secure": "معاملة آمنة",
+      "ssl": "تشفير SSL",
+      "guaranteed": "خدمة مضمونة"
     }
   }
 }

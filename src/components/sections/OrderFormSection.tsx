@@ -7,14 +7,11 @@ import { z } from "zod";
 import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard, Wallet } from "lucide-react";
 import { cn, formatPrice, type CurrencyCode, PRICES } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
-import { loadStripe } from "@stripe/stripe-js";
-import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import dynamic from "next/dynamic";
 
-const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-  : null;
+const CustomPaymentModal = dynamic(() => import("@/components/CustomPaymentModal"), { ssr: false });
 
 function currencyFromLocale(locale: string): CurrencyCode {
   const region = locale.split("-")[1]?.toUpperCase();
@@ -319,7 +316,7 @@ export default function OrderFormSection() {
         return;
       }
 
-      const response = await fetch("/api/create-checkout", {
+      const response = await fetch("/api/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -335,12 +332,12 @@ export default function OrderFormSection() {
 
       if (!response.ok) {
         const err = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(err?.error ?? "Stripe checkout failed");
+        throw new Error(err?.error ?? "Payment failed");
       }
 
       const payload = (await response.json()) as { clientSecret?: string };
       if (!payload.clientSecret) {
-        throw new Error("Missing Stripe client secret");
+        throw new Error("Missing payment client secret");
       }
 
       setStripeClientSecret(payload.clientSecret);
@@ -811,79 +808,20 @@ export default function OrderFormSection() {
         </div>
       </div>
 
-      {isStripeModalOpen && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setIsStripeModalOpen(false);
-              setStripeClientSecret(null);
-            }
+      {stripeClientSecret && (
+        <CustomPaymentModal
+          isOpen={isStripeModalOpen}
+          onClose={() => {
+            setIsStripeModalOpen(false);
+            setStripeClientSecret(null);
           }}
-        >
-          {/* Overlay with gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-dark/95 via-dark/90 to-primary/20 backdrop-blur-md" />
-          
-          {/* Modal Container */}
-          <div className="relative w-full max-w-lg animate-in fade-in zoom-in-95 duration-300">
-            {/* Header with close button */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
-                  <CreditCard size={20} className="text-white" />
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold text-lg">{t("modal.title")}</h3>
-                  <p className="text-white/60 text-sm">{t("modal.subtitle")}</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-red-500/80 border border-white/20 hover:border-red-500 flex items-center justify-center transition-all duration-200 group"
-                onClick={() => {
-                  setIsStripeModalOpen(false);
-                  setStripeClientSecret(null);
-                }}
-                aria-label={t("modal.close")}
-              >
-                <X size={20} className="text-white/70 group-hover:text-white transition-colors" />
-              </button>
-            </div>
-
-            {/* Stripe Checkout Container */}
-            <div className="bg-white rounded-2xl shadow-2xl shadow-primary/20 overflow-hidden ring-1 ring-white/20">
-              {!stripePromise || !stripeClientSecret ? (
-                <div className="p-8 text-center text-gray-600">
-                  {t("modal.notConfigured")}
-                </div>
-              ) : (
-                <EmbeddedCheckoutProvider
-                  stripe={stripePromise}
-                  options={{
-                    clientSecret: stripeClientSecret,
-                    onComplete: () => {
-                      window.location.href = "/success";
-                    },
-                  }}
-                >
-                  <EmbeddedCheckout className="min-h-[400px]" />
-                </EmbeddedCheckoutProvider>
-              )}
-            </div>
-
-            {/* Trust badges below modal */}
-            <div className="flex items-center justify-center gap-4 mt-4 text-white/50 text-xs">
-              <div className="flex items-center gap-1.5">
-                <Lock size={12} className="text-accent" />
-                <span>{t("trust.secure")}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <ShieldCheck size={12} className="text-accent" />
-                <span>{t("trust.private")}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+          clientSecret={stripeClientSecret}
+          amount={formatLocal(totalPrice)}
+          productName={t("productName")}
+          onSuccess={() => {
+            window.location.href = "/success";
+          }}
+        />
       )}
     </section>
   );
