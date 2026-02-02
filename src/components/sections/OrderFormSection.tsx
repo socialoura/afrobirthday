@@ -812,37 +812,76 @@ export default function OrderFormSection() {
       </div>
 
       {isStripeModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="glass-card w-full max-w-2xl p-4 sm:p-6 relative max-h-[90vh] overflow-auto">
-            <button
-              type="button"
-              className="absolute right-4 top-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              onClick={() => {
-                setIsStripeModalOpen(false);
-                setStripeClientSecret(null);
-              }}
-              aria-label={t("modal.close")}
-            >
-              <X size={18} className="text-white" />
-            </button>
-
-            {!stripePromise || !stripeClientSecret ? (
-              <div className="text-white/80">
-                {t("modal.notConfigured")}
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsStripeModalOpen(false);
+              setStripeClientSecret(null);
+            }
+          }}
+        >
+          {/* Overlay with gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-dark/95 via-dark/90 to-primary/20 backdrop-blur-md" />
+          
+          {/* Modal Container */}
+          <div className="relative w-full max-w-lg animate-in fade-in zoom-in-95 duration-300">
+            {/* Header with close button */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
+                  <CreditCard size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold text-lg">{t("modal.title")}</h3>
+                  <p className="text-white/60 text-sm">{t("modal.subtitle")}</p>
+                </div>
               </div>
-            ) : (
-              <EmbeddedCheckoutProvider
-                stripe={stripePromise}
-                options={{
-                  clientSecret: stripeClientSecret,
-                  onComplete: () => {
-                    window.location.href = "/success";
-                  },
+              <button
+                type="button"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-red-500/80 border border-white/20 hover:border-red-500 flex items-center justify-center transition-all duration-200 group"
+                onClick={() => {
+                  setIsStripeModalOpen(false);
+                  setStripeClientSecret(null);
                 }}
+                aria-label={t("modal.close")}
               >
-                <EmbeddedCheckout />
-              </EmbeddedCheckoutProvider>
-            )}
+                <X size={20} className="text-white/70 group-hover:text-white transition-colors" />
+              </button>
+            </div>
+
+            {/* Stripe Checkout Container */}
+            <div className="bg-white rounded-2xl shadow-2xl shadow-primary/20 overflow-hidden ring-1 ring-white/20">
+              {!stripePromise || !stripeClientSecret ? (
+                <div className="p-8 text-center text-gray-600">
+                  {t("modal.notConfigured")}
+                </div>
+              ) : (
+                <EmbeddedCheckoutProvider
+                  stripe={stripePromise}
+                  options={{
+                    clientSecret: stripeClientSecret,
+                    onComplete: () => {
+                      window.location.href = "/success";
+                    },
+                  }}
+                >
+                  <EmbeddedCheckout className="min-h-[400px]" />
+                </EmbeddedCheckoutProvider>
+              )}
+            </div>
+
+            {/* Trust badges below modal */}
+            <div className="flex items-center justify-center gap-4 mt-4 text-white/50 text-xs">
+              <div className="flex items-center gap-1.5">
+                <Lock size={12} className="text-accent" />
+                <span>{t("trust.secure")}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck size={12} className="text-accent" />
+                <span>{t("trust.private")}</span>
+              </div>
+            </div>
           </div>
         </div>
       )}

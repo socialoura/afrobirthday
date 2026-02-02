@@ -299,6 +299,8 @@
       "delivery": "Entrega 24h"
     },
     "modal": {
+      "title": "Pagamento seguro",
+      "subtitle": "Finalize seu pedido",
       "close": "Fechar",
       "notConfigured": "Stripe não está configurado."
     },

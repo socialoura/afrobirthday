@@ -299,8 +299,10 @@
       "delivery": "24u levering"
     },
     "modal": {
+      "title": "Veilige betaling",
+      "subtitle": "Voltooi je bestelling",
       "close": "Sluiten",
-      "notConfigured": "Stripe is niet ingesteld."
+      "notConfigured": "Stripe is niet geconfigureerd."
     },
     "errors": {
       "emailInvalid": "Vul een geldig e-mailadres in",

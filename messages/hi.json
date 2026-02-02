@@ -299,6 +299,8 @@
       "delivery": "24h डिलीवरी"
     },
     "modal": {
+      "title": "सुरक्षित भुगतान",
+      "subtitle": "अपना ऑर्डर पूरा करें",
       "close": "बंद करें",
       "notConfigured": "Stripe कॉन्फ़िगर नहीं है।"
     },

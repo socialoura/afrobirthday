@@ -299,6 +299,8 @@
       "delivery": "24 小时交付"
     },
     "modal": {
+      "title": "安全支付",
+      "subtitle": "完成您的订单",
       "close": "关闭",
       "notConfigured": "Stripe 未配置。"
     },
