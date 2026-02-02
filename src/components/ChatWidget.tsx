@@ -97,7 +97,7 @@ export default function ChatWidget() {
           "fixed bottom-4 right-4 md:bottom-5 md:right-5 z-50",
           "w-[calc(100vw-32px)] md:w-[350px] max-w-[350px]",
           "max-h-[70vh] md:max-h-[500px]",
-          "bg-white rounded-2xl shadow-2xl overflow-hidden",
+          "bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden",
           "transition-all duration-300 transform",
           isOpen
             ? "opacity-100 translate-y-0"
@@ -127,7 +127,7 @@ export default function ChatWidget() {
               className={cn(
                 "max-w-[80%] p-3 rounded-2xl text-sm",
                 message.sender === "bot"
-                  ? "bg-white shadow-sm rounded-bl-none"
+                  ? "bg-white text-slate-900 shadow-sm rounded-bl-none"
                   : "bg-primary text-white ml-auto rounded-br-none"
               )}
             >
@@ -152,7 +152,7 @@ export default function ChatWidget() {
               <button
                 key={reply}
                 onClick={() => handleQuickReply(reply)}
-                className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-full transition-colors"
+                className="text-xs text-slate-900 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-full transition-colors"
               >
                 {reply}
               </button>
@@ -168,7 +168,7 @@ export default function ChatWidget() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type your message..."
-              className="flex-1 px-4 py-3 border rounded-full text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent h-12"
+              className="flex-1 px-4 py-3 border rounded-full text-base text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent h-12"
             />
             <button
               type="submit"
