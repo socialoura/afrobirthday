@@ -45,6 +45,16 @@ export async function ensureOrdersTable() {
   `;
 }
 
+export async function ensureSettingsTable() {
+  const sql = getSql();
+  await sql`
+    CREATE TABLE IF NOT EXISTS settings (
+      key text PRIMARY KEY,
+      value text NOT NULL
+    )
+  `;
+}
+
 export type OrderCreateInput = {
   id: string;
   email: string;
@@ -85,6 +95,7 @@ export async function createOrder(input: OrderCreateInput) {
       ${input.photoUrl},
       ${input.totalUsd}
     )
+    ON CONFLICT (id) DO NOTHING
   `;
 }
 
@@ -94,6 +105,16 @@ export async function attachStripeSessionToOrder(orderId: string, stripeSessionI
   await sql`
     UPDATE orders
     SET stripe_session_id = ${stripeSessionId}
+    WHERE id = ${orderId}::uuid
+  `;
+}
+
+export async function attachStripePaymentIntentToOrder(orderId: string, paymentIntentId: string) {
+  const sql = getSql();
+
+  await sql`
+    UPDATE orders
+    SET payment_provider = 'stripe', stripe_payment_intent_id = ${paymentIntentId}
     WHERE id = ${orderId}::uuid
   `;
 }
@@ -270,12 +291,14 @@ export async function deleteOrder(orderId: string) {
 // ============================================
 
 export async function getSetting(key: string): Promise<string | null> {
+  await ensureSettingsTable();
   const sql = getSql();
   const rows = await sql`SELECT value FROM settings WHERE key = ${key}`;
   return rows.length > 0 ? rows[0].value : null;
 }
 
 export async function setSetting(key: string, value: string) {
+  await ensureSettingsTable();
   const sql = getSql();
   await sql`
     INSERT INTO settings (key, value) VALUES (${key}, ${value})
@@ -292,6 +315,47 @@ export async function getStripeSettings() {
 export async function updateStripeSettings(secretKey: string, publishableKey: string) {
   await setSetting('stripe_secret_key', secretKey);
   await setSetting('stripe_publishable_key', publishableKey);
+}
+
+export type PricingSettings = {
+  base: number;
+  customSong: number;
+  expressDelivery: number;
+};
+
+export const DEFAULT_PRICING_SETTINGS: PricingSettings = {
+  base: 19.99,
+  customSong: 9.99,
+  expressDelivery: 7.99,
+};
+
+export async function getPricingSettings(): Promise<PricingSettings> {
+  const base = await getSetting('price_base');
+  const customSong = await getSetting('price_custom_song');
+  const expressDelivery = await getSetting('price_express_delivery');
+
+  const parsedBase = base != null ? Number.parseFloat(base) : NaN;
+  const parsedCustomSong = customSong != null ? Number.parseFloat(customSong) : NaN;
+  const parsedExpress = expressDelivery != null ? Number.parseFloat(expressDelivery) : NaN;
+
+  return {
+    base: Number.isFinite(parsedBase) ? parsedBase : DEFAULT_PRICING_SETTINGS.base,
+    customSong: Number.isFinite(parsedCustomSong) ? parsedCustomSong : DEFAULT_PRICING_SETTINGS.customSong,
+    expressDelivery: Number.isFinite(parsedExpress) ? parsedExpress : DEFAULT_PRICING_SETTINGS.expressDelivery,
+  };
+}
+
+export async function updatePricingSettings(input: Partial<PricingSettings>) {
+  const current = await getPricingSettings();
+  const next: PricingSettings = {
+    base: input.base ?? current.base,
+    customSong: input.customSong ?? current.customSong,
+    expressDelivery: input.expressDelivery ?? current.expressDelivery,
+  };
+
+  await setSetting('price_base', String(next.base));
+  await setSetting('price_custom_song', String(next.customSong));
+  await setSetting('price_express_delivery', String(next.expressDelivery));
 }
 
 // ============================================

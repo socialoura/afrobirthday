@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { attachStripeSessionToOrder, createOrder, ensureOrdersTable } from "@/lib/db";
-import { sendDiscordWebhook } from "@/lib/discordWebhook";
+import {
+  attachStripeSessionToOrder,
+  createOrder,
+  ensureOrdersTable,
+  getPricingSettings,
+} from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -44,17 +48,25 @@ export async function POST(request: NextRequest) {
 
     await ensureOrdersTable();
 
+    const pricing = await getPricingSettings();
+    const resolvedMusicOption = musicOption ?? (hasCustomSong ? "custom" : "default");
+    const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
+    const computedTotalUsd =
+      pricing.base +
+      (resolvedMusicOption === "custom" ? pricing.customSong : 0) +
+      (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0);
+
     await createOrder({
       id: orderId,
       email,
       message,
       giftNote,
-      musicOption: musicOption ?? (hasCustomSong ? "custom" : "default"),
+      musicOption: resolvedMusicOption,
       musicLink,
       musicFileUrl,
-      deliveryMethod: deliveryMethod ?? (isExpress ? "express" : "standard"),
+      deliveryMethod: resolvedDeliveryMethod,
       photoUrl,
-      totalUsd: totalPrice,
+      totalUsd: computedTotalUsd,
     });
 
     const session = await stripe.checkout.sessions.create({
@@ -70,7 +82,7 @@ export async function POST(request: NextRequest) {
               description: `Custom message: "${message}"${hasCustomSong ? " + Custom song" : ""}${isExpress ? " + Express delivery" : ""}`,
               images: [`${origin}/logo.png`],
             },
-            unit_amount: Math.round(totalPrice * 100),
+            unit_amount: Math.round(computedTotalUsd * 100),
           },
           quantity: 1,
         },
@@ -81,8 +93,8 @@ export async function POST(request: NextRequest) {
         orderId,
         email,
         message,
-        hasCustomSong: hasCustomSong ? "true" : "false",
-        isExpress: isExpress ? "true" : "false",
+        hasCustomSong: resolvedMusicOption === "custom" ? "true" : "false",
+        isExpress: resolvedDeliveryMethod === "express" ? "true" : "false",
         giftNote: giftNote || "",
       },
     });
@@ -95,27 +107,6 @@ export async function POST(request: NextRequest) {
     }
 
     await attachStripeSessionToOrder(orderId, session.id);
-
-    await sendDiscordWebhook({
-      username: "AfroBirthday",
-      embeds: [
-        {
-          title: "New order created",
-          color: 0xf59e0b,
-          timestamp: new Date().toISOString(),
-          fields: [
-            { name: "Order ID", value: String(orderId), inline: true },
-            { name: "Email", value: String(email ?? ""), inline: true },
-            { name: "Total (USD)", value: String(totalPrice), inline: true },
-            { name: "Delivery", value: String(deliveryMethod ?? (isExpress ? "express" : "standard")), inline: true },
-            { name: "Custom song", value: hasCustomSong ? "yes" : "no", inline: true },
-            { name: "Gift note", value: String(giftNote || "-") },
-            { name: "Message", value: String(message || "-") },
-            { name: "Stripe session", value: String(session.id), inline: false },
-          ],
-        },
-      ],
-    });
 
     return NextResponse.json({ clientSecret: session.client_secret, orderId });
   } catch (error) {

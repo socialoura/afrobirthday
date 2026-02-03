@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { attachStripeSessionToOrder, createOrder, ensureOrdersTable } from "@/lib/db";
-import { sendDiscordWebhook } from "@/lib/discordWebhook";
+import {
+  attachStripePaymentIntentToOrder,
+  createOrder,
+  ensureOrdersTable,
+  getPricingSettings,
+} from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -36,21 +40,29 @@ export async function POST(request: NextRequest) {
 
     await ensureOrdersTable();
 
+    const pricing = await getPricingSettings();
+    const resolvedMusicOption = musicOption ?? (hasCustomSong ? "custom" : "default");
+    const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
+    const computedTotalUsd =
+      pricing.base +
+      (resolvedMusicOption === "custom" ? pricing.customSong : 0) +
+      (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0);
+
     await createOrder({
       id: orderId,
       email,
       message,
       giftNote,
-      musicOption: musicOption ?? (hasCustomSong ? "custom" : "default"),
+      musicOption: resolvedMusicOption,
       musicLink,
       musicFileUrl,
-      deliveryMethod: deliveryMethod ?? (isExpress ? "express" : "standard"),
+      deliveryMethod: resolvedDeliveryMethod,
       photoUrl,
-      totalUsd: totalPrice,
+      totalUsd: computedTotalUsd,
     });
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(totalPrice * 100),
+      amount: Math.round(computedTotalUsd * 100),
       currency: "usd",
       receipt_email: email,
       metadata: {
@@ -66,28 +78,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    await attachStripeSessionToOrder(orderId, paymentIntent.id);
-
-    await sendDiscordWebhook({
-      username: "AfroBirthday",
-      embeds: [
-        {
-          title: "New order created",
-          color: 0xf59e0b,
-          timestamp: new Date().toISOString(),
-          fields: [
-            { name: "Order ID", value: String(orderId), inline: true },
-            { name: "Email", value: String(email ?? ""), inline: true },
-            { name: "Total (USD)", value: String(totalPrice), inline: true },
-            { name: "Delivery", value: String(deliveryMethod ?? (isExpress ? "express" : "standard")), inline: true },
-            { name: "Custom song", value: hasCustomSong ? "yes" : "no", inline: true },
-            { name: "Gift note", value: String(giftNote || "-") },
-            { name: "Message", value: String(message || "-") },
-            { name: "Payment Intent", value: String(paymentIntent.id), inline: false },
-          ],
-        },
-      ],
-    });
+    await attachStripePaymentIntentToOrder(orderId, paymentIntent.id);
 
     return NextResponse.json({ 
       clientSecret: paymentIntent.client_secret, 

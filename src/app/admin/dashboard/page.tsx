@@ -64,6 +64,7 @@ export default function AdminDashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("paid");
   const [dateFilter, setDateFilter] = useState("all");
   const [editingNotes, setEditingNotes] = useState<Record<string, string>>({});
   const [editingCost, setEditingCost] = useState<Record<string, string>>({});
@@ -85,6 +86,12 @@ export default function AdminDashboardPage() {
   const [stripeSettings, setStripeSettings] = useState({
     secretKey: "",
     publishableKey: "",
+  });
+
+  const [pricingSettings, setPricingSettings] = useState({
+    base: 19.99,
+    customSong: 9.99,
+    expressDelivery: 7.99,
   });
 
   // Google Ads state
@@ -174,6 +181,25 @@ export default function AdminDashboardPage() {
     }
   }, [token]);
 
+  const fetchPricingSettings = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch("/api/admin/pricing", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPricingSettings({
+          base: typeof data.base === "number" ? data.base : 19.99,
+          customSong: typeof data.customSong === "number" ? data.customSong : 9.99,
+          expressDelivery: typeof data.expressDelivery === "number" ? data.expressDelivery : 7.99,
+        });
+      }
+    } catch (error) {
+      console.error("Fetch pricing settings error:", error);
+    }
+  }, [token]);
+
   const fetchGoogleAdsExpenses = useCallback(async () => {
     if (!token) return;
     try {
@@ -198,6 +224,7 @@ export default function AdminDashboardPage() {
       fetchGoogleAdsExpenses();
     } else if (activeTab === "settings") {
       fetchStripeSettings();
+      fetchPricingSettings();
     } else if (activeTab === "promo") {
       fetchPromoCodes();
       fetchPromoSettings();
@@ -209,6 +236,7 @@ export default function AdminDashboardPage() {
     fetchPromoCodes,
     fetchPromoSettings,
     fetchStripeSettings,
+    fetchPricingSettings,
     fetchGoogleAdsExpenses,
   ]);
 
@@ -327,6 +355,15 @@ export default function AdminDashboardPage() {
     alert("Stripe settings saved");
   };
 
+  const savePricingSettings = async () => {
+    await fetch("/api/admin/pricing", {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify(pricingSettings),
+    });
+    alert("Pricing saved");
+  };
+
   // Google Ads actions
   const saveGoogleAdsExpense = async () => {
     if (!newAdsMonth || !newAdsAmount) return;
@@ -354,6 +391,11 @@ export default function AdminDashboardPage() {
         return false;
       }
     }
+
+    if (paymentStatusFilter !== "all" && order.status !== paymentStatusFilter) {
+      return false;
+    }
+
     if (statusFilter !== "all" && order.order_status !== statusFilter) {
       return false;
     }
@@ -449,6 +491,16 @@ export default function AdminDashboardPage() {
                 <option value="processing">Processing</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
+              </select>
+              <select
+                value={paymentStatusFilter}
+                onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+              >
+                <option value="paid">Paid (default)</option>
+                <option value="pending">Pending</option>
+                <option value="canceled">Canceled</option>
+                <option value="all">All payments</option>
               </select>
               <select
                 value={dateFilter}
@@ -920,6 +972,72 @@ export default function AdminDashboardPage() {
                   className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                 >
                   Save Stripe Settings
+                </button>
+              </div>
+            </div>
+
+            <div className="glass-card p-6 rounded-xl">
+              <h3 className="text-lg font-semibold text-white mb-4">Pricing (USD)</h3>
+              <p className="text-white/60 text-sm mb-4">
+                These prices are used server-side to calculate Stripe/PayPal amounts.
+              </p>
+              <div className="space-y-4">
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm text-white/60 mb-1">Base</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={pricingSettings.base}
+                      onChange={(e) =>
+                        setPricingSettings((p) => ({
+                          ...p,
+                          base: Number.parseFloat(e.target.value || "0"),
+                        }))
+                      }
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-white/60 mb-1">Custom song</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={pricingSettings.customSong}
+                      onChange={(e) =>
+                        setPricingSettings((p) => ({
+                          ...p,
+                          customSong: Number.parseFloat(e.target.value || "0"),
+                        }))
+                      }
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-white/60 mb-1">Express delivery</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={pricingSettings.expressDelivery}
+                      onChange={(e) =>
+                        setPricingSettings((p) => ({
+                          ...p,
+                          expressDelivery: Number.parseFloat(e.target.value || "0"),
+                        }))
+                      }
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={savePricingSettings}
+                  className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                >
+                  Save Pricing
                 </button>
               </div>
             </div>

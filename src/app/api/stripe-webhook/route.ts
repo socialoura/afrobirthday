@@ -33,6 +33,81 @@ export async function POST(request: Request) {
   }
 
   try {
+    if (event.type === "payment_intent.succeeded") {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const orderId = paymentIntent.metadata?.orderId;
+
+      await ensureOrdersTable();
+
+      const existingOrder = orderId ? await getOrderById(orderId) : null;
+      const wasAlreadyPaid = existingOrder?.status === "paid";
+
+      if (orderId && !wasAlreadyPaid) {
+        await markOrderPaid(orderId, paymentIntent.id);
+      }
+
+      if (orderId && !wasAlreadyPaid) {
+        const order = (await getOrderById(orderId)) ?? existingOrder;
+
+        if (order?.email) {
+          try {
+            await sendEmailWithResend({
+              to: order.email,
+              subject: `AfroBirthday order confirmation (${order.id})`,
+              html: renderOrderConfirmationEmailHtml(order),
+              text: renderOrderConfirmationEmailText(order),
+            });
+          } catch (emailErr) {
+            console.error("Failed to send order confirmation email (Stripe PI):", emailErr);
+          }
+        }
+
+        await sendDiscordWebhook({
+          username: "AfroBirthday",
+          embeds: [
+            {
+              title: "Payment confirmed",
+              color: 0x22c55e,
+              timestamp: new Date().toISOString(),
+              fields: [
+                { name: "Order ID", value: String(orderId ?? "-"), inline: true },
+                { name: "Email", value: String(order?.email ?? paymentIntent.receipt_email ?? "-"), inline: true },
+                { name: "Amount", value: paymentIntent.amount != null ? String(paymentIntent.amount / 100) : "-", inline: true },
+                { name: "Currency", value: String(paymentIntent.currency ?? "-"), inline: true },
+                { name: "Payment intent", value: String(paymentIntent.id ?? "-"), inline: false },
+              ],
+            },
+          ],
+        });
+      }
+    }
+
+    if (event.type === "payment_intent.canceled") {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const orderId = paymentIntent.metadata?.orderId;
+
+      await ensureOrdersTable();
+
+      if (orderId) {
+        await markOrderCanceled(orderId);
+      }
+
+      await sendDiscordWebhook({
+        username: "AfroBirthday",
+        embeds: [
+          {
+            title: "Payment canceled",
+            color: 0xef4444,
+            timestamp: new Date().toISOString(),
+            fields: [
+              { name: "Order ID", value: String(orderId ?? "-"), inline: true },
+              { name: "Payment intent", value: String(paymentIntent.id ?? "-"), inline: false },
+            ],
+          },
+        ],
+      });
+    }
+
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const orderId = session.metadata?.orderId;
@@ -61,26 +136,26 @@ export async function POST(request: Request) {
             console.error("Failed to send order confirmation email (Stripe):", emailErr);
           }
         }
-      }
 
-      await sendDiscordWebhook({
-        username: "AfroBirthday",
-        embeds: [
-          {
-            title: "Payment confirmed",
-            color: 0x22c55e,
-            timestamp: new Date().toISOString(),
-            fields: [
-              { name: "Order ID", value: String(orderId ?? "-"), inline: true },
-              { name: "Email", value: String(session.customer_email ?? session.metadata?.email ?? "-"), inline: true },
-              { name: "Amount total", value: session.amount_total != null ? String(session.amount_total / 100) : "-", inline: true },
-              { name: "Currency", value: String(session.currency ?? "-"), inline: true },
-              { name: "Payment intent", value: String((session.payment_intent as string | null) ?? "-"), inline: false },
-              { name: "Stripe session", value: String(session.id), inline: false },
-            ],
-          },
-        ],
-      });
+        await sendDiscordWebhook({
+          username: "AfroBirthday",
+          embeds: [
+            {
+              title: "Payment confirmed",
+              color: 0x22c55e,
+              timestamp: new Date().toISOString(),
+              fields: [
+                { name: "Order ID", value: String(orderId ?? "-"), inline: true },
+                { name: "Email", value: String(session.customer_email ?? session.metadata?.email ?? "-"), inline: true },
+                { name: "Amount total", value: session.amount_total != null ? String(session.amount_total / 100) : "-", inline: true },
+                { name: "Currency", value: String(session.currency ?? "-"), inline: true },
+                { name: "Payment intent", value: String((session.payment_intent as string | null) ?? "-"), inline: false },
+                { name: "Stripe session", value: String(session.id), inline: false },
+              ],
+            },
+          ],
+        });
+      }
     }
 
     if (event.type === "checkout.session.expired") {

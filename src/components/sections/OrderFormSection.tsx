@@ -154,12 +154,51 @@ export default function OrderFormSection() {
   const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
   const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
   const [browserLocale, setBrowserLocale] = useState("en-US");
+  const [pricing, setPricing] = useState<{ base: number; customSong: number; expressDelivery: number }>(() => ({
+    base: PRICES.base,
+    customSong: PRICES.customSong,
+    expressDelivery: PRICES.expressDelivery,
+  }));
   const { rates, fetchedAt, loading: ratesLoading } = useExchangeRates();
 
   useEffect(() => {
     const nextLocale = navigator.language || "en-US";
     setBrowserLocale(nextLocale);
     setLocalCurrency(currencyFromLocale(nextLocale));
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPricing = async () => {
+      try {
+        const res = await fetch("/api/pricing", { method: "GET" });
+        if (!res.ok) return;
+        const data = (await res.json()) as Partial<{ base: number; customSong: number; expressDelivery: number }>;
+
+        if (!isMounted) return;
+
+        setPricing((prev) => ({
+          base: typeof data.base === "number" && Number.isFinite(data.base) ? data.base : prev.base,
+          customSong:
+            typeof data.customSong === "number" && Number.isFinite(data.customSong)
+              ? data.customSong
+              : prev.customSong,
+          expressDelivery:
+            typeof data.expressDelivery === "number" && Number.isFinite(data.expressDelivery)
+              ? data.expressDelivery
+              : prev.expressDelivery,
+        }));
+      } catch {
+        // ignore
+      }
+    };
+
+    loadPricing();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -192,9 +231,9 @@ export default function OrderFormSection() {
   const message = watch("message") || "";
 
   const totalPrice =
-    PRICES.base +
-    (musicOption === "custom" ? PRICES.customSong : 0) +
-    (deliveryMethod === "express" ? PRICES.expressDelivery : 0);
+    pricing.base +
+    (musicOption === "custom" ? pricing.customSong : 0) +
+    (deliveryMethod === "express" ? pricing.expressDelivery : 0);
 
   const formatLocal = useMemo(() => {
     return (priceUsd: number) => {
@@ -542,7 +581,7 @@ export default function OrderFormSection() {
                     </p>
                   </div>
                   <span className="font-semibold text-primary">
-                    +{formatLocal(PRICES.customSong)}
+                    +{formatLocal(pricing.customSong)}
                   </span>
                 </label>
               </div>
@@ -620,7 +659,7 @@ export default function OrderFormSection() {
                   <p className="font-medium text-white">{t("delivery.express.title")}</p>
                   <p className="text-sm text-white/50">{t("delivery.express.time")}</p>
                   <p className="text-primary font-semibold mt-1">
-                    +{formatLocal(PRICES.expressDelivery)}
+                    +{formatLocal(pricing.expressDelivery)}
                   </p>
                   {deliveryMethod === "express" && (
                     <Check size={20} className="text-primary mt-2" />
@@ -708,18 +747,18 @@ export default function OrderFormSection() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>{t("summary.items.base")}</span>
-                  <span>{formatLocal(PRICES.base)}</span>
+                  <span>{formatLocal(pricing.base)}</span>
                 </div>
                 {musicOption === "custom" && (
                   <div className="flex justify-between">
                     <span>{t("summary.items.customSong")}</span>
-                    <span>+{formatLocal(PRICES.customSong)}</span>
+                    <span>+{formatLocal(pricing.customSong)}</span>
                   </div>
                 )}
                 {deliveryMethod === "express" && (
                   <div className="flex justify-between">
                     <span>{t("summary.items.express")}</span>
-                    <span>+{formatLocal(PRICES.expressDelivery)}</span>
+                    <span>+{formatLocal(pricing.expressDelivery)}</span>
                   </div>
                 )}
                 <div className="border-t border-white/20 pt-2 mt-2">

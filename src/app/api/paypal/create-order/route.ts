@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { attachPayPalOrderToOrder, createOrder, ensureOrdersTable } from "@/lib/db";
-import { sendDiscordWebhook } from "@/lib/discordWebhook";
+import {
+  attachPayPalOrderToOrder,
+  createOrder,
+  ensureOrdersTable,
+  getPricingSettings,
+} from "@/lib/db";
 import { createPayPalOrder } from "@/lib/paypal";
 
 export const runtime = "nodejs";
@@ -40,17 +44,25 @@ export async function POST(request: NextRequest) {
 
     await ensureOrdersTable();
 
+    const pricing = await getPricingSettings();
+    const resolvedMusicOption = musicOption ?? (hasCustomSong ? "custom" : "default");
+    const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
+    const computedTotalUsd =
+      pricing.base +
+      (resolvedMusicOption === "custom" ? pricing.customSong : 0) +
+      (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0);
+
     await createOrder({
       id: orderId,
       email,
       message,
       giftNote,
-      musicOption: musicOption ?? (hasCustomSong ? "custom" : "default"),
+      musicOption: resolvedMusicOption,
       musicLink,
       musicFileUrl,
-      deliveryMethod: deliveryMethod ?? (isExpress ? "express" : "standard"),
+      deliveryMethod: resolvedDeliveryMethod,
       photoUrl,
-      totalUsd: totalPrice,
+      totalUsd: computedTotalUsd,
     });
 
     const returnUrl = `${origin}/paypal/success?orderId=${encodeURIComponent(orderId)}`;
@@ -58,37 +70,12 @@ export async function POST(request: NextRequest) {
 
     const { paypalOrderId, approveUrl } = await createPayPalOrder({
       orderId,
-      amountUsd: Number(totalPrice),
+      amountUsd: computedTotalUsd,
       returnUrl,
       cancelUrl,
     });
 
     await attachPayPalOrderToOrder(orderId, paypalOrderId);
-
-    await sendDiscordWebhook({
-      username: "AfroBirthday",
-      embeds: [
-        {
-          title: "New order created (PayPal)",
-          color: 0xf59e0b,
-          timestamp: new Date().toISOString(),
-          fields: [
-            { name: "Order ID", value: String(orderId), inline: true },
-            { name: "Email", value: String(email ?? ""), inline: true },
-            { name: "Total (USD)", value: String(totalPrice), inline: true },
-            {
-              name: "Delivery",
-              value: String(deliveryMethod ?? (isExpress ? "express" : "standard")),
-              inline: true,
-            },
-            { name: "Custom song", value: hasCustomSong ? "yes" : "no", inline: true },
-            { name: "Gift note", value: String(giftNote || "-") },
-            { name: "Message", value: String(message || "-") },
-            { name: "PayPal order", value: String(paypalOrderId), inline: false },
-          ],
-        },
-      ],
-    });
 
     return NextResponse.json({ url: approveUrl, orderId, paypalOrderId });
   } catch (error) {
