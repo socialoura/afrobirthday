@@ -63,15 +63,22 @@ export async function POST(request: NextRequest) {
     // Send confirmation email
     if (order?.email) {
       try {
-        await sendEmailWithResend({
+        console.log("[confirm-payment] Attempting to send email to:", order.email);
+        console.log("[confirm-payment] RESEND_API_KEY configured:", !!process.env.RESEND_API_KEY);
+        console.log("[confirm-payment] RESEND_FROM_EMAIL configured:", !!process.env.RESEND_FROM_EMAIL);
+        
+        const emailResult = await sendEmailWithResend({
           to: order.email,
           subject: `AfroBirthday order confirmation (${order.id})`,
           html: renderOrderConfirmationEmailHtml(order),
           text: renderOrderConfirmationEmailText(order),
         });
+        console.log("[confirm-payment] Email sent successfully:", emailResult);
       } catch (emailErr) {
-        console.error("Failed to send order confirmation email:", emailErr);
+        console.error("[confirm-payment] Failed to send order confirmation email:", emailErr);
       }
+    } else {
+      console.log("[confirm-payment] No email to send - order.email is missing");
     }
 
     // Send Discord notification
