@@ -30,7 +30,11 @@ export default function PayPalSuccessClient() {
           throw new Error(data?.error ?? "PayPal capture failed");
         }
 
-        router.replace("/success");
+        const qs = new URLSearchParams();
+        qs.set("orderId", orderId);
+        qs.set("value", "1.0");
+        qs.set("currency", "USD");
+        router.replace(`/success?${qs.toString()}`);
       } catch (e) {
         setError(e instanceof Error ? e.message : "PayPal capture failed");
       }

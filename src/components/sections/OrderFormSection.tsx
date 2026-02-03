@@ -862,7 +862,14 @@ export default function OrderFormSection() {
           productName={t("productName")}
           orderId={currentOrderId}
           onSuccess={() => {
-            window.location.href = "/success";
+            const orderId = currentOrderId;
+            const value = totalPrice;
+            const currency = localCurrency;
+            const qs = new URLSearchParams();
+            if (orderId) qs.set("orderId", orderId);
+            if (Number.isFinite(value)) qs.set("value", String(value));
+            if (currency) qs.set("currency", currency);
+            window.location.href = `/success?${qs.toString()}`;
           }}
         />
       )}

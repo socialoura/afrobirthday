@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckCircle, Mail, Clock, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
+import GoogleAdsPurchaseConversion from "./GoogleAdsPurchaseConversion";
 
 export const metadata: Metadata = {
   title: "Payment Successful",
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
 export default function SuccessPage() {
   return (
     <main className="pt-24 pb-20 min-h-screen bg-dark relative overflow-hidden">
+      <GoogleAdsPurchaseConversion />
       {/* Background elements */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
