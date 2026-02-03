@@ -37,12 +37,37 @@ export default function HeroSection() {
 
   const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
   const [browserLocale, setBrowserLocale] = useState("en-US");
+  const [basePriceUsd, setBasePriceUsd] = useState<number>(PRICES.base);
   const { rates } = useExchangeRates();
 
   useEffect(() => {
     const nextLocale = navigator.language || "en-US";
     setBrowserLocale(nextLocale);
     setLocalCurrency(currencyFromLocale(nextLocale));
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPricing = async () => {
+      try {
+        const res = await fetch("/api/pricing", { method: "GET" });
+        if (!res.ok) return;
+        const data = (await res.json()) as Partial<{ base: number }>;
+        if (!isMounted) return;
+        if (typeof data.base === "number" && Number.isFinite(data.base)) {
+          setBasePriceUsd(data.base);
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    loadPricing();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const formatLocal = useMemo(() => {
@@ -56,7 +81,7 @@ export default function HeroSection() {
     };
   }, [browserLocale, localCurrency, rates]);
 
-  const displayPrice = useMemo(() => formatLocal(PRICES.base), [formatLocal]);
+  const displayPrice = useMemo(() => formatLocal(basePriceUsd), [basePriceUsd, formatLocal]);
   const displayOriginalPrice = useMemo(() => formatLocal(39.99), [formatLocal]);
 
   return (
