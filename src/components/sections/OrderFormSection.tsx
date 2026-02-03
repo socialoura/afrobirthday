@@ -152,6 +152,7 @@ export default function OrderFormSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
   const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
   const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
   const [browserLocale, setBrowserLocale] = useState("en-US");
   const [pricing, setPricing] = useState<{ base: number; customSong: number; expressDelivery: number }>(() => ({
@@ -290,6 +291,7 @@ export default function OrderFormSection() {
     
     try {
       const orderId = crypto.randomUUID();
+      setCurrentOrderId(orderId);
 
       const photoForm = new FormData();
       photoForm.append("file", photo);
@@ -853,10 +855,12 @@ export default function OrderFormSection() {
           onClose={() => {
             setIsStripeModalOpen(false);
             setStripeClientSecret(null);
+            setCurrentOrderId(null);
           }}
           clientSecret={stripeClientSecret}
           amount={formatLocal(totalPrice)}
           productName={t("productName")}
+          orderId={currentOrderId}
           onSuccess={() => {
             window.location.href = "/success";
           }}

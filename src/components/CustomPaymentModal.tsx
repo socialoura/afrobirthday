@@ -24,6 +24,7 @@ interface CustomPaymentModalProps {
   clientSecret: string;
   amount: string;
   productName: string;
+  orderId: string | null;
   onSuccess: () => void;
 }
 
@@ -82,12 +83,14 @@ function PaymentForm({
   clientSecret,
   amount,
   productName,
+  orderId,
   onSuccess,
   onClose,
 }: {
   clientSecret: string;
   amount: string;
   productName: string;
+  orderId: string | null;
   onSuccess: () => void;
   onClose: () => void;
 }) {
@@ -136,6 +139,21 @@ function PaymentForm({
     }
 
     if (paymentIntent?.status === "succeeded") {
+      // Confirm payment server-side (send email, Discord, mark as paid)
+      if (orderId && paymentIntent.id) {
+        try {
+          await fetch("/api/confirm-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              paymentIntentId: paymentIntent.id,
+              orderId,
+            }),
+          });
+        } catch (confirmErr) {
+          console.error("Failed to confirm payment:", confirmErr);
+        }
+      }
       onSuccess();
     }
   };
@@ -260,6 +278,7 @@ export default function CustomPaymentModal({
   clientSecret,
   amount,
   productName,
+  orderId,
   onSuccess,
 }: CustomPaymentModalProps) {
   const t = useTranslations("PaymentModal");
@@ -309,6 +328,7 @@ export default function CustomPaymentModal({
             clientSecret={clientSecret}
             amount={amount}
             productName={productName}
+            orderId={orderId}
             onSuccess={onSuccess}
             onClose={onClose}
           />
