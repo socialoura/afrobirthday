@@ -43,6 +43,11 @@ export async function ensureOrdersTable() {
     ADD COLUMN IF NOT EXISTS paypal_order_id text,
     ADD COLUMN IF NOT EXISTS paypal_capture_id text
   `;
+
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS country text
+  `;
 }
 
 export async function ensureSettingsTable() {
@@ -66,6 +71,7 @@ export type OrderCreateInput = {
   deliveryMethod: string;
   photoUrl: string;
   totalUsd: number;
+  country?: string;
 };
 
 export async function createOrder(input: OrderCreateInput) {
@@ -82,7 +88,8 @@ export async function createOrder(input: OrderCreateInput) {
       music_file_url,
       delivery_method,
       photo_url,
-      total_usd
+      total_usd,
+      country
     ) VALUES (
       ${input.id}::uuid,
       ${input.email},
@@ -93,7 +100,8 @@ export async function createOrder(input: OrderCreateInput) {
       ${input.musicFileUrl ?? null},
       ${input.deliveryMethod},
       ${input.photoUrl},
-      ${input.totalUsd}
+      ${input.totalUsd},
+      ${input.country ?? null}
     )
     ON CONFLICT (id) DO NOTHING
   `;
@@ -213,6 +221,11 @@ export async function initAdminTables() {
     ADD COLUMN IF NOT EXISTS paypal_order_id text,
     ADD COLUMN IF NOT EXISTS paypal_capture_id text
   `;
+
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS country text
+  `;
 }
 
 // ============================================
@@ -242,6 +255,7 @@ export type Order = {
   cost: number;
   promo_code: string | null;
   discount_amount: number;
+  country: string | null;
 };
 
 export async function getOrderById(orderId: string): Promise<Order | null> {

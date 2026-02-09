@@ -34,7 +34,18 @@ type Order = {
   total_usd: number;
   notes: string | null;
   cost: number;
+  country: string | null;
 };
+
+function countryCodeToFlag(code: string): string {
+  const upper = code.toUpperCase();
+  if (upper.length !== 2) return code;
+  const offset = 0x1f1e6;
+  return String.fromCodePoint(
+    upper.charCodeAt(0) - 65 + offset,
+    upper.charCodeAt(1) - 65 + offset
+  );
+}
 
 type PromoCode = {
   id: string;
@@ -522,6 +533,7 @@ export default function AdminDashboardPage() {
                     <tr className="border-b border-white/10">
                       <th className="text-left p-4 text-white/60 font-medium">ID</th>
                       <th className="text-left p-4 text-white/60 font-medium">Email</th>
+                      <th className="text-left p-4 text-white/60 font-medium">Country</th>
                       <th className="text-left p-4 text-white/60 font-medium">Price</th>
                       <th className="text-left p-4 text-white/60 font-medium">Cost</th>
                       <th className="text-left p-4 text-white/60 font-medium">Status</th>
@@ -537,6 +549,9 @@ export default function AdminDashboardPage() {
                           {order.id.slice(0, 8)}...
                         </td>
                         <td className="p-4 text-white">{order.email}</td>
+                        <td className="p-4 text-white/70 text-sm">
+                          {order.country ? `${countryCodeToFlag(order.country)} ${order.country}` : "—"}
+                        </td>
                         <td className="p-4 text-green-400 font-medium">
                           ${Number(order.total_usd).toFixed(2)}
                         </td>

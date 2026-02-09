@@ -48,6 +48,8 @@ export async function POST(request: NextRequest) {
       (resolvedMusicOption === "custom" ? pricing.customSong : 0) +
       (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0);
 
+    const country = request.headers.get("x-vercel-ip-country") ?? undefined;
+
     await createOrder({
       id: orderId,
       email,
@@ -59,6 +61,7 @@ export async function POST(request: NextRequest) {
       deliveryMethod: resolvedDeliveryMethod,
       photoUrl,
       totalUsd: computedTotalUsd,
+      country,
     });
 
     const paymentIntent = await stripe.paymentIntents.create({
