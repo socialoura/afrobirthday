@@ -15,7 +15,12 @@ import {
   X,
   Eye,
   ExternalLink,
+  Upload,
+  Send,
+  Video,
+  CheckCircle2,
 } from "lucide-react";
+import { upload } from "@vercel/blob/client";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 
 type Order = {
@@ -35,6 +40,8 @@ type Order = {
   notes: string | null;
   cost: number;
   country: string | null;
+  final_video_url: string | null;
+  final_video_sent_at: string | null;
 };
 
 function countryCodeToFlag(code: string): string {
@@ -80,6 +87,10 @@ export default function AdminDashboardPage() {
   const [editingNotes, setEditingNotes] = useState<Record<string, string>>({});
   const [editingCost, setEditingCost] = useState<Record<string, string>>({});
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [uploadingFinal, setUploadingFinal] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [sendingFinal, setSendingFinal] = useState(false);
+  const [finalActionMessage, setFinalActionMessage] = useState<string | null>(null);
 
   // Promo state
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
@@ -303,6 +314,82 @@ export default function AdminDashboardPage() {
       headers: authHeaders(),
     });
     fetchOrders();
+  };
+
+  const uploadFinalVideo = async (orderId: string, file: File) => {
+    if (!token) return;
+    setUploadingFinal(true);
+    setUploadProgress(0);
+    setFinalActionMessage(null);
+    try {
+      const blob = await upload(`final-videos/${orderId}/${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/orders/upload-video",
+        clientPayload: token,
+        contentType: file.type || undefined,
+        onUploadProgress: (e) => {
+          setUploadProgress(Math.round(e.percentage));
+        },
+      });
+
+      const res = await fetch("/api/admin/orders/update", {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ orderId, finalVideoUrl: blob.url }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || "Failed to save video URL");
+      }
+
+      setSelectedOrder((prev) =>
+        prev && prev.id === orderId
+          ? { ...prev, final_video_url: blob.url }
+          : prev
+      );
+      setFinalActionMessage("Video uploaded.");
+      fetchOrders();
+    } catch (error) {
+      console.error("Upload final video error:", error);
+      setFinalActionMessage(
+        error instanceof Error ? error.message : "Upload failed"
+      );
+    } finally {
+      setUploadingFinal(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const sendFinalEmail = async (orderId: string, videoUrl?: string | null) => {
+    if (!token) return;
+    setSendingFinal(true);
+    setFinalActionMessage(null);
+    try {
+      const res = await fetch("/api/admin/orders/send-final-email", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ orderId, videoUrl: videoUrl ?? undefined }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(body?.error || "Failed to send email");
+      }
+      const sentAt = new Date().toISOString();
+      setSelectedOrder((prev) =>
+        prev && prev.id === orderId
+          ? { ...prev, final_video_sent_at: sentAt, order_status: "completed" }
+          : prev
+      );
+      setFinalActionMessage("Final video email sent.");
+      fetchOrders();
+    } catch (error) {
+      console.error("Send final email error:", error);
+      setFinalActionMessage(
+        error instanceof Error ? error.message : "Failed to send email"
+      );
+    } finally {
+      setSendingFinal(false);
+    }
   };
 
   // Promo actions
@@ -1171,6 +1258,103 @@ export default function AdminDashboardPage() {
                   </a>
                 </div>
               )}
+
+              {/* Final video delivery */}
+              <div className="border-t border-white/10 pt-4 mt-2">
+                <div className="flex items-center gap-2 mb-3">
+                  <Video className="w-5 h-5 text-orange-400" />
+                  <h3 className="text-white font-semibold">Final video</h3>
+                </div>
+
+                {selectedOrder.final_video_url ? (
+                  <div className="space-y-2 mb-3">
+                    <a
+                      href={selectedOrder.final_video_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 text-sm break-all"
+                    >
+                      {selectedOrder.final_video_url}
+                      <ExternalLink className="w-4 h-4 shrink-0" />
+                    </a>
+                    {selectedOrder.final_video_sent_at && (
+                      <p className="flex items-center gap-2 text-green-400 text-sm">
+                        <CheckCircle2 className="w-4 h-4" />
+                        Sent on{" "}
+                        {new Date(selectedOrder.final_video_sent_at).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-white/60 text-sm mb-3">
+                    No final video uploaded yet.
+                  </p>
+                )}
+
+                <div className="flex flex-wrap gap-3 items-center">
+                  <label
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-colors ${
+                      uploadingFinal
+                        ? "bg-white/5 text-white/40 cursor-not-allowed"
+                        : "bg-white/10 hover:bg-white/20 text-white"
+                    }`}
+                  >
+                    <Upload className="w-4 h-4" />
+                    {uploadingFinal
+                      ? `Uploading… ${uploadProgress}%`
+                      : selectedOrder.final_video_url
+                      ? "Replace video"
+                      : "Upload video"}
+                    <input
+                      type="file"
+                      accept="video/*"
+                      className="hidden"
+                      disabled={uploadingFinal}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          uploadFinalVideo(selectedOrder.id, file);
+                        }
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      sendFinalEmail(
+                        selectedOrder.id,
+                        selectedOrder.final_video_url
+                      )
+                    }
+                    disabled={
+                      sendingFinal ||
+                      uploadingFinal ||
+                      !selectedOrder.final_video_url
+                    }
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-purple-600 text-white font-medium hover:from-orange-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    title={
+                      !selectedOrder.final_video_url
+                        ? "Upload a video first"
+                        : "Send the final video email to the customer"
+                    }
+                  >
+                    <Send className="w-4 h-4" />
+                    {sendingFinal
+                      ? "Sending…"
+                      : selectedOrder.final_video_sent_at
+                      ? "Resend final email"
+                      : "Send final email"}
+                  </button>
+                </div>
+
+                {finalActionMessage && (
+                  <p className="text-sm text-white/70 mt-3">
+                    {finalActionMessage}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>

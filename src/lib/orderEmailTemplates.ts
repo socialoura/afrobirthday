@@ -33,6 +33,47 @@ export function renderOrderConfirmationEmailHtml(order: Order) {
   `;
 }
 
+export function renderFinalVideoEmailHtml(order: Order, videoUrl: string) {
+  return `
+    <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height: 1.6; color: #111;">
+      <h2 style="margin:0 0 12px;">Your AfroBirthday video is ready! 🎉🎂</h2>
+      <p style="margin:0 0 16px;">
+        Thank you again for your order. Your personalized birthday video is ready —
+        click the button below to watch and download it.
+      </p>
+
+      <p style="margin: 24px 0;">
+        <a href="${escapeHtml(videoUrl)}"
+           style="display:inline-block; padding:14px 24px; background:linear-gradient(90deg,#f97316,#9333ea); color:#fff; text-decoration:none; border-radius:9999px; font-weight:600;">
+          Watch your video
+        </a>
+      </p>
+
+      <p style="margin:0 0 16px; font-size: 14px; color:#444;">
+        Direct link: <a href="${escapeHtml(videoUrl)}">${escapeHtml(videoUrl)}</a>
+      </p>
+
+      <div style="border-top:1px solid #eee; margin-top:24px; padding-top:16px; font-size:12px; color:#666;">
+        <p style="margin:0 0 6px;"><strong>Order ID:</strong> ${order.id}</p>
+        <p style="margin:0;">Need help or want to share feedback? Just reply to this email.</p>
+      </div>
+    </div>
+  `;
+}
+
+export function renderFinalVideoEmailText(order: Order, videoUrl: string) {
+  return [
+    "Your AfroBirthday video is ready!",
+    "",
+    "Watch and download here:",
+    videoUrl,
+    "",
+    `Order ID: ${order.id}`,
+    "",
+    "Need help? Just reply to this email.",
+  ].join("\n");
+}
+
 export function renderOrderConfirmationEmailText(order: Order) {
   const delivery = order.delivery_method === "express" ? "Express (12-24 hours)" : "Standard (24-48 hours)";
   const music = order.music_option === "custom" ? "Custom song" : "We choose music";

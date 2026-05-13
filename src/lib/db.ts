@@ -226,6 +226,12 @@ export async function initAdminTables() {
     ALTER TABLE orders
     ADD COLUMN IF NOT EXISTS country text
   `;
+
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS final_video_url text,
+    ADD COLUMN IF NOT EXISTS final_video_sent_at timestamptz
+  `;
 }
 
 // ============================================
@@ -256,6 +262,8 @@ export type Order = {
   promo_code: string | null;
   discount_amount: number;
   country: string | null;
+  final_video_url: string | null;
+  final_video_sent_at: string | null;
 };
 
 export async function getOrderById(orderId: string): Promise<Order | null> {
@@ -290,6 +298,23 @@ export async function updateOrderCost(orderId: string, cost: number) {
   const sql = getSql();
   await sql`
     UPDATE orders SET cost = ${cost} WHERE id = ${orderId}::uuid
+  `;
+}
+
+export async function updateOrderFinalVideoUrl(orderId: string, url: string | null) {
+  const sql = getSql();
+  await sql`
+    UPDATE orders SET final_video_url = ${url} WHERE id = ${orderId}::uuid
+  `;
+}
+
+export async function markFinalVideoSent(orderId: string) {
+  const sql = getSql();
+  await sql`
+    UPDATE orders
+    SET final_video_sent_at = now(),
+        order_status = 'completed'
+    WHERE id = ${orderId}::uuid
   `;
 }
 

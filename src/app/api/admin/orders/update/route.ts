@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { verifyAdminRequest } from "@/lib/auth";
-import { updateOrderStatus, updateOrderNotes, updateOrderCost } from "@/lib/db";
+import {
+  updateOrderStatus,
+  updateOrderNotes,
+  updateOrderCost,
+  updateOrderFinalVideoUrl,
+} from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -13,7 +18,7 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const { orderId, orderStatus, notes, cost } = await request.json();
+    const { orderId, orderStatus, notes, cost, finalVideoUrl } = await request.json();
 
     if (!orderId) {
       return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
@@ -35,6 +40,13 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: "Invalid cost value" }, { status: 400 });
       }
       await updateOrderCost(orderId, cost);
+    }
+
+    if (finalVideoUrl !== undefined) {
+      if (finalVideoUrl !== null && typeof finalVideoUrl !== 'string') {
+        return NextResponse.json({ error: "Invalid finalVideoUrl" }, { status: 400 });
+      }
+      await updateOrderFinalVideoUrl(orderId, finalVideoUrl);
     }
 
     return NextResponse.json({ success: true });
