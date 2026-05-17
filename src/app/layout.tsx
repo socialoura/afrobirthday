@@ -89,6 +89,16 @@ window.gtag = window.gtag || gtag;
 gtag('js', new Date());
 gtag('config', 'AW-17929280297');`}
         </Script>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-8HTHEF5B04"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-8HTHEF5B04');`}
+        </Script>
         {children}
         <Analytics />
         <SpeedInsights />
