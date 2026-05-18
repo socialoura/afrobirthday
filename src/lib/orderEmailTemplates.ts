@@ -34,43 +34,62 @@ export function renderOrderConfirmationEmailHtml(order: Order) {
 }
 
 export function renderFinalVideoEmailHtml(order: Order, videoUrl: string) {
+  const safeUrl = escapeHtml(videoUrl);
   return `
-    <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height: 1.6; color: #111;">
-      <h2 style="margin:0 0 12px;">Your AfroBirthday video is ready! 🎉🎂</h2>
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 560px; margin: 0 auto; padding: 16px;">
+      <p style="margin:0 0 16px;">Hi,</p>
+
       <p style="margin:0 0 16px;">
-        Thank you again for your order. Your personalized birthday video is ready —
-        click the button below to watch and download it.
+        Your personalized birthday video is ready. You can view and download it from the link below.
       </p>
 
-      <p style="margin: 24px 0;">
-        <a href="${escapeHtml(videoUrl)}"
-           style="display:inline-block; padding:14px 24px; background:linear-gradient(90deg,#f97316,#9333ea); color:#fff; text-decoration:none; border-radius:9999px; font-weight:600;">
-          Watch your video
+      <p style="margin: 0 0 16px;">
+        <a href="${safeUrl}" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
+          View your video
         </a>
       </p>
 
-      <p style="margin:0 0 16px; font-size: 14px; color:#444;">
-        Direct link: <a href="${escapeHtml(videoUrl)}">${escapeHtml(videoUrl)}</a>
+      <p style="margin:0 0 16px; font-size: 14px; color:#555;">
+        If the link above doesn't open, copy and paste this URL into your browser:<br/>
+        <span style="word-break: break-all;">${safeUrl}</span>
       </p>
 
-      <div style="border-top:1px solid #eee; margin-top:24px; padding-top:16px; font-size:12px; color:#666;">
-        <p style="margin:0 0 6px;"><strong>Order ID:</strong> ${order.id}</p>
-        <p style="margin:0;">Need help or want to share feedback? Just reply to this email.</p>
-      </div>
+      <p style="margin:0 0 16px;">
+        Your order reference is <strong>${order.id}</strong>. We'd love to hear what you think — just reply to this email if you have any feedback or questions.
+      </p>
+
+      <p style="margin:0 0 16px;">
+        Thanks for choosing AfroBirthday,<br/>
+        The AfroBirthday team
+      </p>
+
+      <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
+
+      <p style="margin:0; font-size: 12px; color: #888;">
+        AfroBirthday — Personalized birthday videos<br/>
+        Support: <a href="mailto:support@afrobirthday.com" style="color: #888;">support@afrobirthday.com</a><br/>
+        You're receiving this email because you placed an order on afrobirthday.com.
+      </p>
     </div>
   `;
 }
 
 export function renderFinalVideoEmailText(order: Order, videoUrl: string) {
   return [
-    "Your AfroBirthday video is ready!",
+    "Hi,",
     "",
-    "Watch and download here:",
+    "Your personalized birthday video is ready. You can view and download it from the link below:",
     videoUrl,
     "",
-    `Order ID: ${order.id}`,
+    `Your order reference is ${order.id}. We'd love to hear what you think — just reply to this email if you have any feedback or questions.`,
     "",
-    "Need help? Just reply to this email.",
+    "Thanks for choosing AfroBirthday,",
+    "The AfroBirthday team",
+    "",
+    "—",
+    "AfroBirthday — Personalized birthday videos",
+    "Support: support@afrobirthday.com",
+    "You're receiving this email because you placed an order on afrobirthday.com.",
   ].join("\n");
 }
 

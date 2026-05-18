@@ -3,6 +3,8 @@ type ResendSendEmailInput = {
   subject: string;
   html: string;
   text?: string;
+  replyTo?: string;
+  headers?: Record<string, string>;
 };
 
 export async function sendEmailWithResend(input: ResendSendEmailInput) {
@@ -25,6 +27,8 @@ export async function sendEmailWithResend(input: ResendSendEmailInput) {
       subject: input.subject,
       html: input.html,
       text: input.text,
+      reply_to: input.replyTo,
+      headers: input.headers,
     }),
   });
 

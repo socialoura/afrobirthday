@@ -49,11 +49,21 @@ export async function POST(request: Request) {
       await updateOrderFinalVideoUrl(orderId, finalUrl);
     }
 
+    const shortRef = order.id.slice(0, 8);
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://afrobirthday.com";
+    const emailVideoUrl = `${siteUrl.replace(/\/$/, "")}/v/${order.id}`;
+
     await sendEmailWithResend({
       to: order.email,
-      subject: "Your AfroBirthday video is ready 🎉",
-      html: renderFinalVideoEmailHtml(order, finalUrl),
-      text: renderFinalVideoEmailText(order, finalUrl),
+      subject: `Your AfroBirthday video is ready — order ${shortRef}`,
+      html: renderFinalVideoEmailHtml(order, emailVideoUrl),
+      text: renderFinalVideoEmailText(order, emailVideoUrl),
+      replyTo: "support@afrobirthday.com",
+      headers: {
+        "List-Unsubscribe": "<mailto:support@afrobirthday.com?subject=unsubscribe>",
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        "X-Entity-Ref-ID": order.id,
+      },
     });
 
     await markFinalVideoSent(orderId);
