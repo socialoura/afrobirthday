@@ -40,7 +40,7 @@ export default function HowItWorksSection() {
             {t("badge")}
           </span>
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4">{t("title")}</h2>
-          <p className="text-white/50 max-w-xl mx-auto text-sm md:text-base">
+          <p className="text-white/80 max-w-xl mx-auto text-sm md:text-base">
             {t("subtitle")}
           </p>
         </div>
@@ -68,7 +68,7 @@ export default function HowItWorksSection() {
                 </div>
 
                 <h3 className="text-lg md:text-xl font-bold text-white mb-2 md:mb-3">{step.title}</h3>
-                <p className="text-white/60 leading-relaxed text-sm md:text-base">{step.description}</p>
+                <p className="text-white/80 leading-relaxed text-sm md:text-base">{step.description}</p>
               </div>
             </div>
           ))}
@@ -83,7 +83,7 @@ export default function HowItWorksSection() {
             {t("cta")}
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </Link>
-          <p className="text-white/40 text-xs md:text-sm mt-4">{t("note")}</p>
+          <p className="text-white/70 text-xs md:text-sm mt-4">{t("note")}</p>
         </div>
       </div>
     </section>

@@ -8,18 +8,26 @@
     "cta": "Consigue tu vídeo"
   },
   "Hero": {
-    "badge": "Con la confianza de más de 500 clientes felices",
-    "title1": "El regalo de cumpleaños que",
-    "title2": "se vuelve viral",
+    "badge": "Más de 500 cumpleaños inolvidables",
+    "title1": "El regalo de cumpleaños",
+    "title2": "que nunca olvidarán",
     "subtitle1": "Mensajes de vídeo personalizados de verdaderos bailarines africanos.",
-    "subtitle2": "Energía auténtica. Alegría pura. Entregado en 24 horas.",
+    "subtitle2": "Energía auténtica, alegría pura — entregado en 24 horas.",
     "localCurrencyNote": "Mostrado en tu moneda local • Cobrado en USD",
     "ctaOrder": "Pedir mi vídeo",
     "ctaWatch": "Ver ejemplos",
+    "ordersThisYear": "Más de 500 pedidos este año",
+    "liveTag": "Vídeo real",
+    "videoCaption": "Reacción cliente · 1,2M vistas",
     "trust": {
       "delivery": "Entrega 24h",
       "guarantee": "Garantía de reembolso",
-      "rating": "Valoración 4,9/5"
+      "rating": "4,9/5",
+      "payment": "Pago seguro"
+    },
+    "miniReview": {
+      "text": "¡El mejor regalo — lloró!",
+      "name": "María L. · Madrid"
     }
   },
   "Footer": {
@@ -478,6 +486,27 @@
       "secure": "Transacción Segura",
       "ssl": "Cifrado SSL",
       "guaranteed": "Servicio Garantizado"
+    }
+  },
+  "Success": {
+    "title": "¡Pago Exitoso!",
+    "intro": "¡Gracias por tu pedido! Ya estamos trabajando en crear tu video de cumpleaños personalizado.",
+    "nextTitle": "¿Y ahora qué?",
+    "questions": "¿Preguntas?",
+    "backHome": "Volver al inicio",
+    "steps": {
+      "email": {
+        "title": "Revisa tu correo",
+        "desc": "Recibirás un correo de confirmación con los detalles de tu pedido en breve."
+      },
+      "create": {
+        "title": "Creación del video",
+        "desc": "Nuestro equipo creará tu video personalizado en 24-48 horas (o 12-24 horas para pedidos Exprés)."
+      },
+      "receive": {
+        "title": "Recibe tu video",
+        "desc": "Recibirás un correo con tu enlace de descarga en cuanto esté listo."
+      }
     }
   }
 }

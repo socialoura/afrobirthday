@@ -8,18 +8,26 @@
     "cta": "获取你的视频"
   },
   "Hero": {
-    "badge": "500+ 位满意客户的信赖之选",
-    "title1": "让生日礼物",
-    "title2": "刷爆朋友圈",
+    "badge": "已为 500+ 位寿星送上难忘惊喜",
+    "title1": "让人永远难忘的",
+    "title2": "生日礼物",
     "subtitle1": "来自真实非洲舞者的专属定制祝福视频。",
-    "subtitle2": "真实能量。纯粹快乐。24 小时内送达。",
+    "subtitle2": "真实能量、纯粹快乐 — 24 小时内送达。",
     "localCurrencyNote": "以你的本地货币显示 • 以 USD 结算",
     "ctaOrder": "立即下单",
     "ctaWatch": "观看示例",
+    "ordersThisYear": "今年 500+ 订单",
+    "liveTag": "真实视频",
+    "videoCaption": "客户反应 · 120 万次观看",
     "trust": {
       "delivery": "24 小时送达",
       "guarantee": "退款保证",
-      "rating": "评分 4.9/5"
+      "rating": "4.9/5",
+      "payment": "安全支付"
+    },
+    "miniReview": {
+      "text": "最棒的礼物 — 她哭了！",
+      "name": "李女士 · 上海"
     }
   },
   "Footer": {
@@ -478,6 +486,27 @@
       "secure": "安全交易",
       "ssl": "SSL 加密",
       "guaranteed": "服务保障"
+    }
+  },
+  "Success": {
+    "title": "支付成功！",
+    "intro": "感谢您的订单！我们已经开始制作您的个性化生日视频。",
+    "nextTitle": "接下来会发生什么？",
+    "questions": "有问题吗？",
+    "backHome": "返回首页",
+    "steps": {
+      "email": {
+        "title": "查看您的邮箱",
+        "desc": "您很快会收到一封包含订单详情的确认邮件。"
+      },
+      "create": {
+        "title": "视频制作",
+        "desc": "我们的团队将在 24-48 小时内完成您的个性化视频（加急订单为 12-24 小时）。"
+      },
+      "receive": {
+        "title": "接收您的视频",
+        "desc": "视频准备好后，您会立即收到包含下载链接的邮件！"
+      }
     }
   }
 }

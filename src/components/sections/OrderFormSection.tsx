@@ -5,37 +5,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard, Wallet } from "lucide-react";
-import { cn, formatPrice, type CurrencyCode, PRICES } from "@/lib/utils";
+import { cn, currencyFromLocale, formatPrice, type CurrencyCode, PRICES } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import dynamic from "next/dynamic";
 
 const CustomPaymentModal = dynamic(() => import("@/components/CustomPaymentModal"), { ssr: false });
-
-function currencyFromLocale(locale: string): CurrencyCode {
-  const region = locale.split("-")[1]?.toUpperCase();
-  if (region === "GB") return "GBP";
-  if (region === "CA") return "CAD";
-  if (region === "AU") return "AUD";
-  if (
-    region === "FR" ||
-    region === "DE" ||
-    region === "ES" ||
-    region === "IT" ||
-    region === "NL" ||
-    region === "BE" ||
-    region === "PT" ||
-    region === "IE" ||
-    region === "AT" ||
-    region === "FI" ||
-    region === "GR" ||
-    region === "LU"
-  ) {
-    return "EUR";
-  }
-  return "USD";
-}
 
 const createOrderSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
@@ -144,6 +120,7 @@ function CardLogos() {
 
 export default function OrderFormSection() {
   const t = useTranslations("OrderForm");
+  const activeLocale = useLocale();
   const orderSchema = useMemo(() => createOrderSchema(t), [t]);
 
   const [photo, setPhoto] = useState<File | null>(null);
@@ -418,11 +395,11 @@ export default function OrderFormSection() {
                     <label className="block font-semibold text-white">
                       {t("photo.label")} <span className="text-error">*</span>
                     </label>
-                    <p className="text-white/40 text-sm mt-1">
+                    <p className="text-white/70 text-sm mt-1">
                       {t("photo.help")}
                     </p>
                   </div>
-                  <div className="hidden sm:flex items-center gap-2 text-white/40 text-sm">
+                  <div className="hidden sm:flex items-center gap-2 text-white/70 text-sm">
                     <ShieldCheck size={16} className="text-accent" />
                     {t("photo.private")}
                   </div>
@@ -462,10 +439,10 @@ export default function OrderFormSection() {
                         <Upload size={26} className="text-white/60" />
                       </div>
                       <p className="text-white/80 font-medium">{t("photo.dropHere")}</p>
-                      <p className="text-white/40 text-sm mt-1">
+                      <p className="text-white/70 text-sm mt-1">
                         {t("photo.or")} <span className="text-primary font-semibold">{t("photo.browse")}</span>
                       </p>
-                      <p className="text-xs text-white/30 mt-3">
+                      <p className="text-xs text-white/60 mt-3">
                         {t("photo.formats")}
                       </p>
                       <input
@@ -489,11 +466,11 @@ export default function OrderFormSection() {
                     <label className="block font-semibold text-white">
                       {t("message.label")} <span className="text-error">*</span>
                     </label>
-                    <p className="text-white/40 text-sm mt-1">
+                    <p className="text-white/70 text-sm mt-1">
                       {t("message.help")}
                     </p>
                   </div>
-                  <div className={cn("text-sm", message.length > 90 ? "text-error" : "text-white/40")}>
+                  <div className={cn("text-sm", message.length > 90 ? "text-error" : "text-white/70")}>
                     {message.length}/100
                   </div>
                 </div>
@@ -504,7 +481,7 @@ export default function OrderFormSection() {
                   maxLength={100}
                   rows={3}
                   className={cn(
-                    "w-full px-4 py-3 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30 text-base min-h-[100px]",
+                    "w-full px-4 py-3 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base min-h-[100px]",
                     errors.message ? "border-error" : "border-white/20"
                   )}
                 />
@@ -518,7 +495,7 @@ export default function OrderFormSection() {
                 <label className="block font-semibold mb-2 text-white">
                   {t("email.label")} <span className="text-error">*</span>
                 </label>
-                <p className="text-white/40 text-sm mb-4">
+                <p className="text-white/70 text-sm mb-4">
                   {t("email.help")}
                 </p>
                 <input
@@ -526,7 +503,7 @@ export default function OrderFormSection() {
                   {...register("email")}
                   placeholder={t("email.placeholder")}
                   className={cn(
-                    "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30 text-base h-12",
+                    "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base h-12",
                     errors.email ? "border-error" : "border-white/20"
                   )}
                 />
@@ -555,7 +532,7 @@ export default function OrderFormSection() {
                   />
                   <div className="flex-1">
                     <p className="font-medium text-white">🎵 {t("music.default.title")}</p>
-                    <p className="text-sm text-white/50">
+                    <p className="text-sm text-white/80">
                       {t("music.default.subtitle")}
                     </p>
                   </div>
@@ -578,7 +555,7 @@ export default function OrderFormSection() {
                   />
                   <div className="flex-1">
                     <p className="font-medium text-white">🎶 {t("music.custom.title")}</p>
-                    <p className="text-sm text-white/50">
+                    <p className="text-sm text-white/80">
                       {t("music.custom.subtitle")}
                     </p>
                   </div>
@@ -594,12 +571,12 @@ export default function OrderFormSection() {
                     type="text"
                     {...register("musicLink")}
                     placeholder={t("music.linkPlaceholder")}
-                    className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30 text-base h-12"
+                    className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base h-12"
                   />
-                  <div className="text-center text-white/40 text-sm">{t("music.or")}</div>
+                  <div className="text-center text-white/70 text-sm">{t("music.or")}</div>
                   <div className="border border-white/20 rounded-xl p-4 bg-white/5">
                     <label className="cursor-pointer flex items-center justify-center gap-2">
-                      <Upload size={20} className="text-white/40" />
+                      <Upload size={20} className="text-white/70" />
                       <span className="text-white/60">
                         {musicFile ? musicFile.name : t("music.filePlaceholder")}
                       </span>
@@ -637,7 +614,7 @@ export default function OrderFormSection() {
                     className="sr-only"
                   />
                   <p className="font-medium text-white">{t("delivery.standard.title")}</p>
-                  <p className="text-sm text-white/50">{t("delivery.standard.time")}</p>
+                  <p className="text-sm text-white/80">{t("delivery.standard.time")}</p>
                   <p className="text-primary font-semibold mt-1">{t("delivery.standard.price")}</p>
                   {deliveryMethod === "standard" && (
                     <Check size={20} className="text-primary mt-2" />
@@ -659,7 +636,7 @@ export default function OrderFormSection() {
                     className="sr-only"
                   />
                   <p className="font-medium text-white">{t("delivery.express.title")}</p>
-                  <p className="text-sm text-white/50">{t("delivery.express.time")}</p>
+                  <p className="text-sm text-white/80">{t("delivery.express.time")}</p>
                   <p className="text-primary font-semibold mt-1">
                     +{formatLocal(pricing.expressDelivery)}
                   </p>
@@ -675,7 +652,7 @@ export default function OrderFormSection() {
                 <label className="block font-semibold mb-2 text-white">
                   {t("gift.label")}
                 </label>
-                <p className="text-white/40 text-sm mb-4">
+                <p className="text-white/70 text-sm mb-4">
                   {t("gift.help")}
                 </p>
                 <textarea
@@ -683,7 +660,7 @@ export default function OrderFormSection() {
                   placeholder={t("gift.placeholder")}
                   maxLength={200}
                   rows={2}
-                  className="w-full px-4 py-3 border border-white/20 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/30 text-base min-h-[80px]"
+                  className="w-full px-4 py-3 border border-white/20 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base min-h-[80px]"
                 />
               </div>
 
@@ -713,7 +690,7 @@ export default function OrderFormSection() {
                   <CardLogos />
                   <div>
                     <p className="font-medium text-white">{t("payment.card.title")}</p>
-                    <p className="text-xs text-white/50">{t("payment.card.subtitle")}</p>
+                    <p className="text-xs text-white/80">{t("payment.card.subtitle")}</p>
                   </div>
                 </label>
 
@@ -734,7 +711,7 @@ export default function OrderFormSection() {
                   <PayPalLogo />
                   <div>
                     <p className="font-medium text-white">PayPal</p>
-                    <p className="text-xs text-white/50">{t("payment.paypal.subtitle")}</p>
+                    <p className="text-xs text-white/80">{t("payment.paypal.subtitle")}</p>
                   </div>
                 </label>
               </div>
@@ -768,14 +745,14 @@ export default function OrderFormSection() {
                     <span>{t("summary.total")}</span>
                     <span className="text-secondary">{formatLocal(totalPrice)}</span>
                   </div>
-                  <p className="text-white/50 text-xs mt-2">{t("summary.chargedUsd")}</p>
+                  <p className="text-white/80 text-xs mt-2">{t("summary.chargedUsd")}</p>
                   {localCurrency !== "USD" && (
-                    <p className="text-white/40 text-xs mt-1">
+                    <p className="text-white/70 text-xs mt-1">
                       {t("summary.estimate")}
                     </p>
                   )}
                   {ratesNote && (
-                    <p className="text-white/30 text-xs mt-1">{ratesNote}</p>
+                    <p className="text-white/60 text-xs mt-1">{ratesNote}</p>
                   )}
                 </div>
               </div>
@@ -828,7 +805,7 @@ export default function OrderFormSection() {
               )}
             </button>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-white/50">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-white/80">
               <div className="flex items-center gap-2 glass-card px-3 py-2">
                 <Lock size={14} className="text-accent" />
                 {t("trust.secure")}
@@ -869,7 +846,7 @@ export default function OrderFormSection() {
             if (orderId) qs.set("orderId", orderId);
             if (Number.isFinite(value)) qs.set("value", String(value));
             if (currency) qs.set("currency", currency);
-            window.location.href = `/success?${qs.toString()}`;
+            window.location.href = `/${activeLocale}/success?${qs.toString()}`;
           }}
         />
       )}

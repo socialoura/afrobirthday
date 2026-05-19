@@ -49,7 +49,8 @@ export default function OptimizedVideo({
     }
   }, [isVisible, autoPlay]);
 
-  const baseName = src.replace(/\.(mp4|mov|MOV|webm)$/i, "");
+  const isMov = /\.mov$/i.test(src);
+  const mimeType = isMov ? "video/quicktime" : "video/mp4";
 
   return (
     <div className={cn("relative", className)}>
@@ -68,19 +69,14 @@ export default function OptimizedVideo({
         loop={loop}
         playsInline
         poster={poster}
-        preload={isHero ? "auto" : "none"}
+        preload={isHero ? "metadata" : "none"}
         onLoadedData={() => setIsLoaded(true)}
         className={cn(
           "w-full h-full object-cover transition-opacity duration-500",
           isLoaded ? "opacity-100" : "opacity-0"
         )}
       >
-        {isVisible && (
-          <>
-            <source src={`${baseName}.webm`} type="video/webm" />
-            <source src={src} type="video/mp4" />
-          </>
-        )}
+        {isVisible && <source src={src} type={mimeType} />}
       </video>
     </div>
   );

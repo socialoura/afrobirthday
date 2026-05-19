@@ -54,8 +54,8 @@ const config: Config = {
         success: "#22C55E",
       },
       fontFamily: {
-        display: ["Space Grotesk", "sans-serif"],
-        body: ["DM Sans", "sans-serif"],
+        display: ["var(--font-display)", "Space Grotesk", "sans-serif"],
+        body: ["var(--font-body)", "DM Sans", "sans-serif"],
       },
     },
   },

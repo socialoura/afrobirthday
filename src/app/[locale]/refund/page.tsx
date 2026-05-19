@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Link } from "@/i18n/navigation";
+import { buildAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -13,21 +14,19 @@ export async function generateMetadata({
     title: "Refund Policy",
     description:
       "AfroBirthday refund policy and money-back guarantee. Learn eligibility, how to request a refund, and expected processing times.",
-    alternates: {
-      canonical: `/${locale}/refund`,
-    },
+    alternates: buildAlternates(locale, "/refund"),
     openGraph: {
       title: "Refund Policy",
       description:
         "AfroBirthday refund policy and money-back guarantee. Learn eligibility, how to request a refund, and expected processing times.",
       url: `/${locale}/refund`,
-      images: [{ url: "/logo.png" }],
+      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     },
     twitter: {
       title: "Refund Policy",
       description:
         "AfroBirthday refund policy and money-back guarantee. Learn eligibility, how to request a refund, and expected processing times.",
-      images: ["/logo.png"],
+      images: ["/og-image.png"],
     },
   };
 }

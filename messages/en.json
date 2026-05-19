@@ -8,18 +8,26 @@
     "cta": "Get Your Video"
   },
   "Hero": {
-    "badge": "Trusted by 500+ happy customers",
-    "title1": "The Birthday Gift That",
-    "title2": "Goes Viral",
+    "badge": "500+ birthdays made unforgettable",
+    "title1": "The birthday gift",
+    "title2": "they'll never forget",
     "subtitle1": "Personalized video messages from real African dancers.",
-    "subtitle2": "Authentic energy. Pure joy. Delivered in 24 hours.",
+    "subtitle2": "Authentic energy, pure joy — delivered in 24 hours.",
     "localCurrencyNote": "Displayed in your local currency • Charged in USD",
-    "ctaOrder": "Order My Video",
-    "ctaWatch": "Watch Examples",
+    "ctaOrder": "Order my video",
+    "ctaWatch": "Watch examples",
+    "ordersThisYear": "500+ orders this year",
+    "liveTag": "Real video",
+    "videoCaption": "Customer reaction · 1.2M views",
     "trust": {
-      "delivery": "24h Delivery",
-      "guarantee": "Money-back Guarantee",
-      "rating": "4.9/5 Rating"
+      "delivery": "24h delivery",
+      "guarantee": "Money-back guarantee",
+      "rating": "4.9/5",
+      "payment": "Secure payment"
+    },
+    "miniReview": {
+      "text": "Best gift ever — she cried!",
+      "name": "Marie L. · Brussels"
     }
   },
   "Footer": {
@@ -478,6 +486,37 @@
       "secure": "Secure Transaction",
       "ssl": "SSL Encrypted",
       "guaranteed": "Guaranteed Service"
+    }
+  },
+  "Chat": {
+    "open": "Open chat",
+    "close": "Close chat",
+    "title": "AfroBirthday Support",
+    "subtitle": "We usually reply within a few hours",
+    "body": "Have a question about an order, delivery, or refund? Reach out and our team will get back to you shortly.",
+    "emailCta": "Email us",
+    "whatsappCta": "Chat on WhatsApp",
+    "hours": "Average reply time: under 4 hours"
+  },
+  "Success": {
+    "title": "Payment Successful!",
+    "intro": "Thank you for your order! We're already working on creating your personalized birthday video.",
+    "nextTitle": "What happens next?",
+    "questions": "Questions?",
+    "backHome": "Back to Home",
+    "steps": {
+      "email": {
+        "title": "Check your email",
+        "desc": "You'll receive a confirmation email with your order details shortly."
+      },
+      "create": {
+        "title": "Video creation",
+        "desc": "Our team will create your personalized video within 24-48 hours (or 12-24 hours for Express orders)."
+      },
+      "receive": {
+        "title": "Receive your video",
+        "desc": "You'll get an email with your download link as soon as it's ready!"
+      }
     }
   }
 }

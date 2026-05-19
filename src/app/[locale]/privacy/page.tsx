@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -11,21 +12,19 @@ export async function generateMetadata({
     title: "Privacy Policy",
     description:
       "Read AfroBirthday's privacy policy to understand what data we collect, how we use it, and how we protect your photos and personal information.",
-    alternates: {
-      canonical: `/${locale}/privacy`,
-    },
+    alternates: buildAlternates(locale, "/privacy"),
     openGraph: {
       title: "Privacy Policy",
       description:
         "Read AfroBirthday's privacy policy to understand what data we collect, how we use it, and how we protect your photos and personal information.",
       url: `/${locale}/privacy`,
-      images: [{ url: "/logo.png" }],
+      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     },
     twitter: {
       title: "Privacy Policy",
       description:
         "Read AfroBirthday's privacy policy to understand what data we collect, how we use it, and how we protect your photos and personal information.",
-      images: ["/logo.png"],
+      images: ["/og-image.png"],
     },
   };
 }

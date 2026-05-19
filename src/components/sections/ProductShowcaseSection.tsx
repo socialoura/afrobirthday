@@ -20,12 +20,14 @@ const videos = [
   },
   {
     src: "/blessing_video3.MOV",
+    type: "video/quicktime",
     poster: "/showcase_3.jpg",
     titleKey: "videos.2.title",
     viewsKey: "videos.2.views",
   },
   {
     src: "/blessing_video4.MOV",
+    type: "video/quicktime",
     poster: "/showcase_1.jpg",
     titleKey: "videos.3.title",
     viewsKey: "videos.3.views",
@@ -49,7 +51,7 @@ export default function ProductShowcaseSection() {
             {t("badge")}
           </span>
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4">{t("title")}</h2>
-          <p className="text-white/60 max-w-2xl mx-auto text-sm md:text-base">
+          <p className="text-white/80 max-w-2xl mx-auto text-sm md:text-base">
             {t("subtitle")}
           </p>
         </div>
@@ -59,14 +61,19 @@ export default function ProductShowcaseSection() {
           <div className="relative aspect-video rounded-2xl md:rounded-3xl overflow-hidden glass-card glow-primary">
             {activeVideo !== null ? (
               <video
-                src={videos[activeVideo].src}
+                key={videos[activeVideo].src}
                 poster={videos[activeVideo].poster}
                 controls
                 autoPlay
                 playsInline
                 preload="metadata"
                 className="w-full h-full object-cover"
-              />
+              >
+                <source
+                  src={videos[activeVideo].src}
+                  type={videos[activeVideo].type ?? "video/mp4"}
+                />
+              </video>
             ) : (
               <>
                 <Image
@@ -89,7 +96,7 @@ export default function ProductShowcaseSection() {
                 </button>
                 <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
                   <p className="text-white font-semibold text-base md:text-lg mb-1">{t("hero.title")}</p>
-                  <p className="text-white/60 text-xs md:text-sm">{t("hero.subtitle")}</p>
+                  <p className="text-white/80 text-xs md:text-sm">{t("hero.subtitle")}</p>
                 </div>
               </>
             )}
@@ -129,7 +136,7 @@ export default function ProductShowcaseSection() {
               </div>
               <div className="absolute bottom-2 left-2 right-2 md:bottom-3 md:left-3 md:right-3">
                 <p className="text-white text-xs md:text-sm font-medium truncate">{t(video.titleKey as never)}</p>
-                <p className="text-white/50 text-[10px] md:text-xs">{t(video.viewsKey as never)}</p>
+                <p className="text-white/70 text-[10px] md:text-xs">{t(video.viewsKey as never)}</p>
               </div>
             </button>
           ))}

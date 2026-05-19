@@ -34,7 +34,7 @@ export default function TestimonialsSection() {
       <div className="section-container">
         <div className="text-center mb-8 md:mb-12 px-4">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-white">{t("title")}</h2>
-          <p className="text-white/60 text-sm md:text-base">{t("subtitle")}</p>
+          <p className="text-white/80 text-sm md:text-base">{t("subtitle")}</p>
         </div>
 
         {/* Desktop Grid */}
@@ -54,7 +54,7 @@ export default function TestimonialsSection() {
                 />
                 <div>
                   <p className="font-semibold text-white">{testimonial.name}</p>
-                  <p className="text-sm text-white/50">{testimonial.location}</p>
+                  <p className="text-sm text-white/70">{testimonial.location}</p>
                 </div>
               </div>
               <div className="flex mb-3">
@@ -90,7 +90,7 @@ export default function TestimonialsSection() {
                       />
                       <div>
                         <p className="font-semibold text-white">{testimonial.name}</p>
-                        <p className="text-sm text-white/50">{testimonial.location}</p>
+                        <p className="text-sm text-white/70">{testimonial.location}</p>
                       </div>
                     </div>
                     <div className="flex mb-3">

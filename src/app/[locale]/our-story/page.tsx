@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
+import { buildAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -16,19 +17,17 @@ export async function generateMetadata({
   return {
     title: t("title"),
     description: t("description"),
-    alternates: {
-      canonical: `/${locale}/our-story`,
-    },
+    alternates: buildAlternates(locale, "/our-story"),
     openGraph: {
       title: t("title"),
       description: t("description"),
       url: `/${locale}/our-story`,
-      images: [{ url: "/logo.png" }],
+      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     },
     twitter: {
       title: t("title"),
       description: t("description"),
-      images: ["/logo.png"],
+      images: ["/og-image.png"],
     },
   };
 }

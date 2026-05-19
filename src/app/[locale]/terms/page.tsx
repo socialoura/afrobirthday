@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -11,21 +12,19 @@ export async function generateMetadata({
     title: "Terms of Service",
     description:
       "Read AfroBirthday terms of service including ordering, payment, delivery timelines, refunds, and content guidelines.",
-    alternates: {
-      canonical: `/${locale}/terms`,
-    },
+    alternates: buildAlternates(locale, "/terms"),
     openGraph: {
       title: "Terms of Service",
       description:
         "Read AfroBirthday terms of service including ordering, payment, delivery timelines, refunds, and content guidelines.",
       url: `/${locale}/terms`,
-      images: [{ url: "/logo.png" }],
+      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     },
     twitter: {
       title: "Terms of Service",
       description:
         "Read AfroBirthday terms of service including ordering, payment, delivery timelines, refunds, and content guidelines.",
-      images: ["/logo.png"],
+      images: ["/og-image.png"],
     },
   };
 }

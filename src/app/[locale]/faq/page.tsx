@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import FAQPageClient from "@/app/faq/FAQPageClient";
+import StructuredData from "@/components/StructuredData";
+import { buildAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -13,25 +15,33 @@ export async function generateMetadata({
     title: "FAQ",
     description:
       "Find answers about delivery times, pricing, photos, refunds, and how AfroBirthday personalized birthday videos work.",
-    alternates: {
-      canonical: `/${locale}/faq`,
-    },
+    alternates: buildAlternates(locale, "/faq"),
     openGraph: {
       title: "FAQ",
       description:
         "Find answers about delivery times, pricing, photos, refunds, and how AfroBirthday personalized birthday videos work.",
       url: `/${locale}/faq`,
-      images: [{ url: "/logo.png" }],
+      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     },
     twitter: {
       title: "FAQ",
       description:
         "Find answers about delivery times, pricing, photos, refunds, and how AfroBirthday personalized birthday videos work.",
-      images: ["/logo.png"],
+      images: ["/og-image.png"],
     },
   };
 }
 
-export default function FAQPage() {
-  return <FAQPageClient />;
+export default async function FAQPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  return (
+    <>
+      <StructuredData type="faq" locale={locale} />
+      <FAQPageClient />
+    </>
+  );
 }

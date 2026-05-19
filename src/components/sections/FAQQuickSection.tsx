@@ -34,7 +34,7 @@ export default function FAQQuickSection() {
               className="glass-card p-6 rounded-2xl"
             >
               <h3 className="font-semibold text-lg mb-2 text-white">{faq.question}</h3>
-              <p className="text-white/60">{faq.answer}</p>
+              <p className="text-white/80">{faq.answer}</p>
             </div>
           ))}
         </div>

@@ -8,18 +8,26 @@
     "cta": "Hol dir dein Video"
   },
   "Hero": {
-    "badge": "Vertraut von über 500 glücklichen Kunden",
-    "title1": "Das Geburtstagsgeschenk, das",
-    "title2": "viral geht",
+    "badge": "Über 500 unvergessliche Geburtstage",
+    "title1": "Das Geburtstagsgeschenk",
+    "title2": "das sie nie vergessen werden",
     "subtitle1": "Personalisierte Videobotschaften von echten afrikanischen Tänzern.",
-    "subtitle2": "Authentische Energie. Pure Freude. Lieferung in 24 Stunden.",
+    "subtitle2": "Authentische Energie, pure Freude — Lieferung in 24 Stunden.",
     "localCurrencyNote": "In deiner lokalen Währung angezeigt • Abrechnung in USD",
     "ctaOrder": "Mein Video bestellen",
     "ctaWatch": "Beispiele ansehen",
+    "ordersThisYear": "Über 500 Bestellungen dieses Jahr",
+    "liveTag": "Echtes Video",
+    "videoCaption": "Kundenreaktion · 1,2 Mio. Aufrufe",
     "trust": {
       "delivery": "Lieferung in 24h",
       "guarantee": "Geld-zurück-Garantie",
-      "rating": "Bewertung 4,9/5"
+      "rating": "4,9/5",
+      "payment": "Sichere Zahlung"
+    },
+    "miniReview": {
+      "text": "Bestes Geschenk — sie hat geweint!",
+      "name": "Maria L. · Berlin"
     }
   },
   "Footer": {
@@ -478,6 +486,27 @@
       "secure": "Sichere Transaktion",
       "ssl": "SSL-Verschlüsselt",
       "guaranteed": "Garantierter Service"
+    }
+  },
+  "Success": {
+    "title": "Zahlung erfolgreich!",
+    "intro": "Vielen Dank für Ihre Bestellung! Wir beginnen bereits mit der Erstellung Ihres personalisierten Geburtstagsvideos.",
+    "nextTitle": "Wie geht es weiter?",
+    "questions": "Fragen?",
+    "backHome": "Zurück zur Startseite",
+    "steps": {
+      "email": {
+        "title": "E-Mail prüfen",
+        "desc": "Sie erhalten in Kürze eine Bestätigungsmail mit den Details Ihrer Bestellung."
+      },
+      "create": {
+        "title": "Videoerstellung",
+        "desc": "Unser Team erstellt Ihr personalisiertes Video innerhalb von 24-48 Stunden (oder 12-24 Stunden für Express-Bestellungen)."
+      },
+      "receive": {
+        "title": "Video erhalten",
+        "desc": "Sobald Ihr Video fertig ist, erhalten Sie eine E-Mail mit dem Download-Link."
+      }
     }
   }
 }
