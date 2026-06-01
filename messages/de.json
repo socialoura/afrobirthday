@@ -265,13 +265,9 @@
         "time": "12–24 Stunden"
       }
     },
-    "gift": {
-      "label": "Geschenknachricht (optional)",
-      "help": "Optionaler Text, den wir in die Liefernachricht aufnehmen können.",
-      "placeholder": "Z.B.: 'Du verdienst all die Freude der Welt!'"
-    },
     "payment": {
       "label": "Zahlungsmethode",
+      "help": "Wählen Sie Ihre Zahlungsart – jede Transaktion ist verschlüsselt und sicher.",
       "card": {
         "title": "Karte",
         "subtitle": "Visa, Mastercard, Amex"

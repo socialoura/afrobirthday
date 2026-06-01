@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ensureOrdersTable, getOrderById, markOrderPaidPayPal } from "@/lib/db";
-import { sendDiscordWebhook } from "@/lib/discordWebhook";
+import { sendOrderPaidDiscord } from "@/lib/discordWebhook";
 import { capturePayPalOrder } from "@/lib/paypal";
 import { sendEmailWithResend } from "@/lib/resend";
 import {
@@ -58,23 +58,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    await sendDiscordWebhook({
-      username: "AfroBirthday",
-      embeds: [
-        {
-          title: "Payment confirmed (PayPal)",
-          color: 0x22c55e,
-          timestamp: new Date().toISOString(),
-          fields: [
-            { name: "Order ID", value: String(orderId), inline: true },
-            { name: "Email", value: String(order?.email ?? "-"), inline: true },
-            { name: "Total (USD)", value: String(order?.total_usd ?? "-"), inline: true },
-            { name: "PayPal order", value: String(paypalOrderId), inline: false },
-            { name: "PayPal capture", value: String(capture.captureId ?? "-"), inline: false },
-          ],
-        },
-      ],
-    });
+    if (order) {
+      await sendOrderPaidDiscord({
+        order,
+        provider: "PayPal",
+        amountLabel: `$${Number(order.total_usd).toFixed(2)} USD`,
+        paymentRef: capture.captureId ?? paypalOrderId,
+      });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

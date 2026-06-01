@@ -6,6 +6,7 @@ import {
   getPricingSettings,
 } from "@/lib/db";
 import { createPayPalOrder } from "@/lib/paypal";
+import { deviceTypeFromUserAgent } from "@/lib/device";
 
 export const runtime = "nodejs";
 
@@ -27,7 +28,6 @@ export async function POST(request: NextRequest) {
       totalPrice,
       hasCustomSong,
       isExpress,
-      giftNote,
       musicOption,
       musicLink,
       musicFileUrl,
@@ -53,12 +53,12 @@ export async function POST(request: NextRequest) {
       (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0);
 
     const country = request.headers.get("x-vercel-ip-country") ?? undefined;
+    const device = deviceTypeFromUserAgent(request.headers.get("user-agent"));
 
     await createOrder({
       id: orderId,
       email,
       message,
-      giftNote,
       musicOption: resolvedMusicOption,
       musicLink,
       musicFileUrl,
@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
       photoUrl,
       totalUsd: computedTotalUsd,
       country,
+      device,
     });
 
     const returnUrl = `${origin}/paypal/success?orderId=${encodeURIComponent(orderId)}`;

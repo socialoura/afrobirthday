@@ -265,13 +265,9 @@
         "time": "12–24 horas"
       }
     },
-    "gift": {
-      "label": "Nota de regalo (opcional)",
-      "help": "Texto opcional que podemos incluir en el mensaje de entrega.",
-      "placeholder": "Ej.: '¡Te mereces toda la alegría del mundo!'"
-    },
     "payment": {
       "label": "Método de pago",
+      "help": "Elige cómo quieres pagar: cada transacción está cifrada y es segura.",
       "card": {
         "title": "Tarjeta",
         "subtitle": "Visa, Mastercard, Amex"

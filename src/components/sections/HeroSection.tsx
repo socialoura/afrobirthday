@@ -31,6 +31,7 @@ export default function HeroSection() {
   const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
   const [browserLocale, setBrowserLocale] = useState("en-US");
   const [basePriceUsd, setBasePriceUsd] = useState<number>(PRICES.base);
+  const [baseOverrides, setBaseOverrides] = useState<Partial<Record<CurrencyCode, number>>>({});
   const { rates } = useExchangeRates();
 
   useEffect(() => {
@@ -46,10 +47,22 @@ export default function HeroSection() {
       try {
         const res = await fetch("/api/pricing", { method: "GET" });
         if (!res.ok) return;
-        const data = (await res.json()) as Partial<{ base: number }>;
+        const data = (await res.json()) as Partial<{
+          base: number;
+          overrides: Partial<Record<CurrencyCode, Partial<{ base: number }>>>;
+        }>;
         if (!isMounted) return;
         if (typeof data.base === "number" && Number.isFinite(data.base)) {
           setBasePriceUsd(data.base);
+        }
+        if (data.overrides && typeof data.overrides === "object") {
+          const bases: Partial<Record<CurrencyCode, number>> = {};
+          for (const [code, value] of Object.entries(data.overrides)) {
+            if (typeof value?.base === "number" && Number.isFinite(value.base)) {
+              bases[code as CurrencyCode] = value.base;
+            }
+          }
+          setBaseOverrides(bases);
         }
       } catch {
         // ignore
@@ -75,10 +88,17 @@ export default function HeroSection() {
     };
   }, [browserLocale, localCurrency, rates]);
 
-  const displayPrice = useMemo(
-    () => formatLocal(basePriceUsd),
-    [basePriceUsd, formatLocal]
-  );
+  const displayPrice = useMemo(() => {
+    const override = baseOverrides[localCurrency];
+    if (localCurrency !== "USD" && typeof override === "number") {
+      return new Intl.NumberFormat(browserLocale, {
+        style: "currency",
+        currency: localCurrency,
+        maximumFractionDigits: 2,
+      }).format(override);
+    }
+    return formatLocal(basePriceUsd);
+  }, [baseOverrides, localCurrency, browserLocale, basePriceUsd, formatLocal]);
   const displayOriginalPrice = useMemo(() => formatLocal(39.99), [formatLocal]);
 
   return (

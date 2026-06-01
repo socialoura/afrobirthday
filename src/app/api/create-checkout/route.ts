@@ -4,8 +4,15 @@ import {
   attachStripeSessionToOrder,
   createOrder,
   ensureOrdersTable,
+  getPricingOverrides,
   getPricingSettings,
 } from "@/lib/db";
+import {
+  getServerExchangeRates,
+  isSupportedCurrency,
+  resolveLocalCharge,
+} from "@/lib/currency";
+import { deviceTypeFromUserAgent } from "@/lib/device";
 
 export const runtime = "nodejs";
 
@@ -31,12 +38,12 @@ export async function POST(request: NextRequest) {
       totalPrice,
       hasCustomSong,
       isExpress,
-      giftNote,
       musicOption,
       musicLink,
       musicFileUrl,
       deliveryMethod,
       photoUrl,
+      currency: requestedCurrency,
     } = body;
 
     if (!orderId || typeof orderId !== "string") {
@@ -57,12 +64,28 @@ export async function POST(request: NextRequest) {
       (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0);
 
     const country = request.headers.get("x-vercel-ip-country") ?? undefined;
+    const device = deviceTypeFromUserAgent(request.headers.get("user-agent"));
+
+    // Charge the customer in their local currency (USD total converted with
+    // live server-side rates). Stripe settles to the merchant account.
+    const currency = isSupportedCurrency(requestedCurrency)
+      ? requestedCurrency
+      : "USD";
+    const rates = await getServerExchangeRates();
+    const overrides = await getPricingOverrides();
+    const charge = resolveLocalCharge({
+      usdPricing: pricing,
+      hasCustomSong: resolvedMusicOption === "custom",
+      isExpress: resolvedDeliveryMethod === "express",
+      currency,
+      rates,
+      override: overrides[currency],
+    });
 
     await createOrder({
       id: orderId,
       email,
       message,
-      giftNote,
       musicOption: resolvedMusicOption,
       musicLink,
       musicFileUrl,
@@ -70,6 +93,10 @@ export async function POST(request: NextRequest) {
       photoUrl,
       totalUsd: computedTotalUsd,
       country,
+      device,
+      currency: charge.currency,
+      totalLocal: charge.localAmount,
+      exchangeRate: charge.rate,
     });
 
     const session = await stripe.checkout.sessions.create({
@@ -79,13 +106,13 @@ export async function POST(request: NextRequest) {
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency: charge.currency.toLowerCase(),
             product_data: {
               name: "Personalized Birthday Video",
               description: `Custom message: "${message}"${hasCustomSong ? " + Custom song" : ""}${isExpress ? " + Express delivery" : ""}`,
               images: [`${origin}/logo.png`],
             },
-            unit_amount: Math.round(computedTotalUsd * 100),
+            unit_amount: charge.stripeAmount,
           },
           quantity: 1,
         },
@@ -98,7 +125,9 @@ export async function POST(request: NextRequest) {
         message,
         hasCustomSong: resolvedMusicOption === "custom" ? "true" : "false",
         isExpress: resolvedDeliveryMethod === "express" ? "true" : "false",
-        giftNote: giftNote || "",
+        currency: charge.currency,
+        totalUsd: computedTotalUsd.toFixed(2),
+        exchangeRate: String(charge.rate),
       },
     });
 

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { ensureOrdersTable, getOrderById, markOrderPaid } from "@/lib/db";
-import { sendDiscordWebhook } from "@/lib/discordWebhook";
+import { sendOrderPaidDiscord } from "@/lib/discordWebhook";
 import { sendEmailWithResend } from "@/lib/resend";
 import {
   renderOrderConfirmationEmailHtml,
   renderOrderConfirmationEmailText,
 } from "@/lib/orderEmailTemplates";
+import { formatStripeAmount } from "@/lib/currency";
 
 export const runtime = "nodejs";
 
@@ -81,24 +82,17 @@ export async function POST(request: NextRequest) {
       console.log("[confirm-payment] No email to send - order.email is missing");
     }
 
-    // Send Discord notification
-    await sendDiscordWebhook({
-      username: "AfroBirthday",
-      embeds: [
-        {
-          title: "💳 Payment confirmed (Stripe)",
-          color: 0x22c55e,
-          timestamp: new Date().toISOString(),
-          fields: [
-            { name: "Order ID", value: String(orderId), inline: true },
-            { name: "Email", value: String(order?.email ?? paymentIntent.receipt_email ?? "-"), inline: true },
-            { name: "Amount", value: `$${(paymentIntent.amount / 100).toFixed(2)}`, inline: true },
-            { name: "Currency", value: String(paymentIntent.currency?.toUpperCase() ?? "USD"), inline: true },
-            { name: "Payment Intent", value: String(paymentIntentId), inline: false },
-          ],
-        },
-      ],
-    });
+    // Send Discord notification with the customer's order details
+    if (order) {
+      const usd = paymentIntent.metadata?.totalUsd;
+      const amountLabel = `${formatStripeAmount(paymentIntent.amount, paymentIntent.currency ?? "usd")}${usd ? ` (≈ $${usd})` : ""}`;
+      await sendOrderPaidDiscord({
+        order,
+        provider: "Stripe",
+        amountLabel,
+        paymentRef: paymentIntentId,
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

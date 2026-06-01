@@ -257,13 +257,9 @@
         "time": "12–24 uur"
       }
     },
-    "gift": {
-      "label": "Cadeaunotitie (optioneel)",
-      "help": "Optionele tekst die we kunnen toevoegen aan het afleverbericht.",
-      "placeholder": "Bijv.: 'Je verdient alle vreugde van de wereld!'"
-    },
     "payment": {
       "label": "Betaalmethode",
+      "help": "Kies hoe je wilt betalen — elke transactie is versleuteld en veilig.",
       "card": {
         "title": "Kaart",
         "subtitle": "Visa, Mastercard, Amex"

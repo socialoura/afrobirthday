@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { ensureOrdersTable, getOrderById, markOrderPaid, markOrderCanceled } from "@/lib/db";
-import { sendDiscordWebhook } from "@/lib/discordWebhook";
+import { sendDiscordWebhook, sendOrderPaidDiscord } from "@/lib/discordWebhook";
 import { sendEmailWithResend } from "@/lib/resend";
 import {
   renderOrderConfirmationEmailHtml,
   renderOrderConfirmationEmailText,
 } from "@/lib/orderEmailTemplates";
+import { formatStripeAmount } from "@/lib/currency";
 
 export const runtime = "nodejs";
 
@@ -62,23 +63,14 @@ export async function POST(request: Request) {
           }
         }
 
-        await sendDiscordWebhook({
-          username: "AfroBirthday",
-          embeds: [
-            {
-              title: "Payment confirmed",
-              color: 0x22c55e,
-              timestamp: new Date().toISOString(),
-              fields: [
-                { name: "Order ID", value: String(orderId ?? "-"), inline: true },
-                { name: "Email", value: String(order?.email ?? paymentIntent.receipt_email ?? "-"), inline: true },
-                { name: "Amount", value: paymentIntent.amount != null ? String(paymentIntent.amount / 100) : "-", inline: true },
-                { name: "Currency", value: String(paymentIntent.currency ?? "-"), inline: true },
-                { name: "Payment intent", value: String(paymentIntent.id ?? "-"), inline: false },
-              ],
-            },
-          ],
-        });
+        if (order) {
+          await sendOrderPaidDiscord({
+            order,
+            provider: "Stripe",
+            amountLabel: formatStripeAmount(paymentIntent.amount, paymentIntent.currency ?? "usd"),
+            paymentRef: paymentIntent.id,
+          });
+        }
       }
     }
 
@@ -137,24 +129,17 @@ export async function POST(request: Request) {
           }
         }
 
-        await sendDiscordWebhook({
-          username: "AfroBirthday",
-          embeds: [
-            {
-              title: "Payment confirmed",
-              color: 0x22c55e,
-              timestamp: new Date().toISOString(),
-              fields: [
-                { name: "Order ID", value: String(orderId ?? "-"), inline: true },
-                { name: "Email", value: String(session.customer_email ?? session.metadata?.email ?? "-"), inline: true },
-                { name: "Amount total", value: session.amount_total != null ? String(session.amount_total / 100) : "-", inline: true },
-                { name: "Currency", value: String(session.currency ?? "-"), inline: true },
-                { name: "Payment intent", value: String((session.payment_intent as string | null) ?? "-"), inline: false },
-                { name: "Stripe session", value: String(session.id), inline: false },
-              ],
-            },
-          ],
-        });
+        if (order) {
+          await sendOrderPaidDiscord({
+            order,
+            provider: "Stripe",
+            amountLabel:
+              session.amount_total != null
+                ? formatStripeAmount(session.amount_total, session.currency ?? "usd")
+                : "-",
+            paymentRef: (session.payment_intent as string | null) ?? session.id,
+          });
+        }
       }
     }
 

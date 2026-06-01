@@ -265,13 +265,9 @@
         "time": "12-24 hours"
       }
     },
-    "gift": {
-      "label": "Gift Note (Optional)",
-      "help": "Optional text we can add to the video delivery message.",
-      "placeholder": "E.g., 'You deserve all the joy!'"
-    },
     "payment": {
       "label": "Payment method",
+      "help": "Choose how you'd like to pay — every transaction is encrypted and secure.",
       "card": {
         "title": "Credit card",
         "subtitle": "Visa, Mastercard, Amex"

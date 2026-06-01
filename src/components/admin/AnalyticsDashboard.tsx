@@ -16,7 +16,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { TrendingUp, DollarSign, ShoppingCart, Percent } from "lucide-react";
+import { TrendingUp, DollarSign, ShoppingCart, Percent, Receipt } from "lucide-react";
 
 type Order = {
   id: string;
@@ -41,6 +41,9 @@ type Props = {
 };
 
 const COLORS = ["#f97316", "#8b5cf6", "#10b981", "#3b82f6", "#ec4899"];
+
+// Fixed fee paid on every order (same for English and non-English orders).
+const PER_ORDER_FIXED_COST = 7;
 
 export default function AnalyticsDashboard({
   orders,
@@ -72,8 +75,11 @@ export default function AnalyticsDashboard({
       0
     );
 
+    const totalFixedCost = paidOrders.length * PER_ORDER_FIXED_COST;
+
     const totalProfit = paidOrders.reduce(
-      (sum, o) => sum + Number(o.total_usd) - Number(o.cost || 0),
+      (sum, o) =>
+        sum + Number(o.total_usd) - Number(o.cost || 0) - PER_ORDER_FIXED_COST,
       0
     );
 
@@ -88,6 +94,7 @@ export default function AnalyticsDashboard({
       monthRevenue,
       totalRevenue,
       totalProfit,
+      totalFixedCost,
       totalOrders: paidOrders.length,
       avgCart,
       conversionRate,
@@ -131,7 +138,8 @@ export default function AnalyticsDashboard({
         0
       );
       const profit = dayOrders.reduce(
-        (sum, o) => sum + Number(o.total_usd) - Number(o.cost || 0),
+        (sum, o) =>
+          sum + Number(o.total_usd) - Number(o.cost || 0) - PER_ORDER_FIXED_COST,
         0
       );
       data.push({
@@ -154,7 +162,7 @@ export default function AnalyticsDashboard({
           monthlyData[month] = { revenue: 0, cost: 0 };
         }
         monthlyData[month].revenue += Number(order.total_usd);
-        monthlyData[month].cost += Number(order.cost || 0);
+        monthlyData[month].cost += Number(order.cost || 0) + PER_ORDER_FIXED_COST;
       });
 
     const adsMap = new Map(googleAdsExpenses.map((e) => [e.month, Number(e.amount)]));
@@ -254,6 +262,30 @@ export default function AnalyticsDashboard({
             <p className="text-white/60 text-sm">Conversion</p>
             <p className="text-xl font-bold text-white">
               {stats.conversionRate.toFixed(1)}%
+            </p>
+          </div>
+        </div>
+        <div className="glass-card p-4 rounded-xl flex items-center gap-3">
+          <div className="p-3 rounded-lg bg-emerald-500/20">
+            <TrendingUp className="w-6 h-6 text-emerald-400" />
+          </div>
+          <div>
+            <p className="text-white/60 text-sm">Total Profit</p>
+            <p className="text-xl font-bold text-white">
+              ${stats.totalProfit.toFixed(2)}
+            </p>
+          </div>
+        </div>
+        <div className="glass-card p-4 rounded-xl flex items-center gap-3">
+          <div className="p-3 rounded-lg bg-red-500/20">
+            <Receipt className="w-6 h-6 text-red-400" />
+          </div>
+          <div>
+            <p className="text-white/60 text-sm">
+              Fixed Cost (${PER_ORDER_FIXED_COST}/order)
+            </p>
+            <p className="text-xl font-bold text-white">
+              ${stats.totalFixedCost.toFixed(2)}
             </p>
           </div>
         </div>

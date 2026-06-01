@@ -4,8 +4,15 @@ import {
   attachStripePaymentIntentToOrder,
   createOrder,
   ensureOrdersTable,
+  getPricingOverrides,
   getPricingSettings,
 } from "@/lib/db";
+import {
+  getServerExchangeRates,
+  isSupportedCurrency,
+  resolveLocalCharge,
+} from "@/lib/currency";
+import { deviceTypeFromUserAgent } from "@/lib/device";
 
 export const runtime = "nodejs";
 
@@ -23,12 +30,12 @@ export async function POST(request: NextRequest) {
       totalPrice,
       hasCustomSong,
       isExpress,
-      giftNote,
       musicOption,
       musicLink,
       musicFileUrl,
       deliveryMethod,
       photoUrl,
+      currency: requestedCurrency,
     } = body;
 
     if (!orderId || typeof orderId !== "string") {
@@ -49,12 +56,29 @@ export async function POST(request: NextRequest) {
       (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0);
 
     const country = request.headers.get("x-vercel-ip-country") ?? undefined;
+    const device = deviceTypeFromUserAgent(request.headers.get("user-agent"));
+
+    // Charge the customer in their local currency. The USD total is computed
+    // from admin pricing (never trusted from the client), then converted with
+    // live server-side rates. Stripe settles to the merchant account.
+    const currency = isSupportedCurrency(requestedCurrency)
+      ? requestedCurrency
+      : "USD";
+    const rates = await getServerExchangeRates();
+    const overrides = await getPricingOverrides();
+    const charge = resolveLocalCharge({
+      usdPricing: pricing,
+      hasCustomSong: resolvedMusicOption === "custom",
+      isExpress: resolvedDeliveryMethod === "express",
+      currency,
+      rates,
+      override: overrides[currency],
+    });
 
     await createOrder({
       id: orderId,
       email,
       message,
-      giftNote,
       musicOption: resolvedMusicOption,
       musicLink,
       musicFileUrl,
@@ -62,11 +86,15 @@ export async function POST(request: NextRequest) {
       photoUrl,
       totalUsd: computedTotalUsd,
       country,
+      device,
+      currency: charge.currency,
+      totalLocal: charge.localAmount,
+      exchangeRate: charge.rate,
     });
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(computedTotalUsd * 100),
-      currency: "usd",
+      amount: charge.stripeAmount,
+      currency: charge.currency.toLowerCase(),
       receipt_email: email,
       metadata: {
         orderId,
@@ -74,7 +102,9 @@ export async function POST(request: NextRequest) {
         message,
         hasCustomSong: hasCustomSong ? "true" : "false",
         isExpress: isExpress ? "true" : "false",
-        giftNote: giftNote || "",
+        currency: charge.currency,
+        totalUsd: computedTotalUsd.toFixed(2),
+        exchangeRate: String(charge.rate),
       },
       automatic_payment_methods: {
         enabled: true,

@@ -20,7 +20,6 @@ export async function ensureOrdersTable() {
 
       email text NOT NULL,
       message text NOT NULL,
-      gift_note text,
 
       music_option text NOT NULL,
       music_link text,
@@ -48,6 +47,18 @@ export async function ensureOrdersTable() {
     ALTER TABLE orders
     ADD COLUMN IF NOT EXISTS country text
   `;
+
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS currency text NOT NULL DEFAULT 'USD',
+    ADD COLUMN IF NOT EXISTS total_local numeric(12,2),
+    ADD COLUMN IF NOT EXISTS exchange_rate numeric(14,6)
+  `;
+
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS device text
+  `;
 }
 
 export async function ensureSettingsTable() {
@@ -64,7 +75,6 @@ export type OrderCreateInput = {
   id: string;
   email: string;
   message: string;
-  giftNote?: string;
   musicOption: string;
   musicLink?: string;
   musicFileUrl?: string;
@@ -72,6 +82,14 @@ export type OrderCreateInput = {
   photoUrl: string;
   totalUsd: number;
   country?: string;
+  /** Currency actually charged to the customer (defaults to USD). */
+  currency?: string;
+  /** Amount charged in the local currency (defaults to totalUsd). */
+  totalLocal?: number;
+  /** USD -> currency rate used at checkout time. */
+  exchangeRate?: number;
+  /** Device the order was placed from: mobile | tablet | desktop. */
+  device?: string;
 };
 
 export async function createOrder(input: OrderCreateInput) {
@@ -82,26 +100,32 @@ export async function createOrder(input: OrderCreateInput) {
       id,
       email,
       message,
-      gift_note,
       music_option,
       music_link,
       music_file_url,
       delivery_method,
       photo_url,
       total_usd,
-      country
+      country,
+      currency,
+      total_local,
+      exchange_rate,
+      device
     ) VALUES (
       ${input.id}::uuid,
       ${input.email},
       ${input.message},
-      ${input.giftNote ?? null},
       ${input.musicOption},
       ${input.musicLink ?? null},
       ${input.musicFileUrl ?? null},
       ${input.deliveryMethod},
       ${input.photoUrl},
       ${input.totalUsd},
-      ${input.country ?? null}
+      ${input.country ?? null},
+      ${input.currency ?? "USD"},
+      ${input.totalLocal ?? input.totalUsd},
+      ${input.exchangeRate ?? 1},
+      ${input.device ?? null}
     )
     ON CONFLICT (id) DO NOTHING
   `;
@@ -245,13 +269,16 @@ export type Order = {
   order_status: string;
   email: string;
   message: string;
-  gift_note: string | null;
   music_option: string;
   music_link: string | null;
   music_file_url: string | null;
   delivery_method: string;
   photo_url: string;
   total_usd: number;
+  currency: string;
+  total_local: number | null;
+  exchange_rate: number | null;
+  device: string | null;
   stripe_session_id: string | null;
   stripe_payment_intent_id: string | null;
   payment_provider: string | null;
@@ -395,6 +422,29 @@ export async function updatePricingSettings(input: Partial<PricingSettings>) {
   await setSetting('price_base', String(next.base));
   await setSetting('price_custom_song', String(next.customSong));
   await setSetting('price_express_delivery', String(next.expressDelivery));
+}
+
+/**
+ * Manual per-currency price overrides. When a currency (and component) has a
+ * value here, it is charged as-is instead of converting the USD price with live
+ * rates. Keyed by ISO currency code; each field is optional.
+ */
+export type CurrencyPriceOverride = Partial<PricingSettings>;
+export type PricingOverrides = Record<string, CurrencyPriceOverride>;
+
+export async function getPricingOverrides(): Promise<PricingOverrides> {
+  const raw = await getSetting('price_overrides');
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return parsed && typeof parsed === 'object' ? (parsed as PricingOverrides) : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function updatePricingOverrides(overrides: PricingOverrides) {
+  await setSetting('price_overrides', JSON.stringify(overrides));
 }
 
 // ============================================

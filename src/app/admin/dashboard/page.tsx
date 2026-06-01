@@ -22,6 +22,12 @@ import {
 } from "lucide-react";
 import { upload } from "@vercel/blob/client";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
+import { SUPPORTED_CURRENCIES, CURRENCY_SYMBOLS } from "@/lib/utils";
+
+type OverrideForm = Record<
+  string,
+  { base: string; customSong: string; expressDelivery: string }
+>;
 
 type Order = {
   id: string;
@@ -30,7 +36,6 @@ type Order = {
   order_status: string;
   email: string;
   message: string;
-  gift_note: string | null;
   music_option: string;
   music_link: string | null;
   music_file_url: string | null;
@@ -115,6 +120,8 @@ export default function AdminDashboardPage() {
     customSong: 9.99,
     expressDelivery: 7.99,
   });
+  const [priceOverrides, setPriceOverrides] = useState<OverrideForm>({});
+  const [newOverrideCurrency, setNewOverrideCurrency] = useState("");
 
   // Google Ads state
   const [googleAdsExpenses, setGoogleAdsExpenses] = useState<GoogleAdsExpense[]>([]);
@@ -216,6 +223,20 @@ export default function AdminDashboardPage() {
           customSong: typeof data.customSong === "number" ? data.customSong : 9.99,
           expressDelivery: typeof data.expressDelivery === "number" ? data.expressDelivery : 7.99,
         });
+
+        const rawOverrides = (data.overrides ?? {}) as Record<
+          string,
+          Partial<{ base: number; customSong: number; expressDelivery: number }>
+        >;
+        const form: OverrideForm = {};
+        for (const [code, value] of Object.entries(rawOverrides)) {
+          form[code] = {
+            base: value?.base != null ? String(value.base) : "",
+            customSong: value?.customSong != null ? String(value.customSong) : "",
+            expressDelivery: value?.expressDelivery != null ? String(value.expressDelivery) : "",
+          };
+        }
+        setPriceOverrides(form);
       }
     } catch (error) {
       console.error("Fetch pricing settings error:", error);
@@ -454,12 +475,61 @@ export default function AdminDashboardPage() {
   };
 
   const savePricingSettings = async () => {
-    await fetch("/api/admin/pricing", {
+    const overrides: Record<string, Record<string, number>> = {};
+    for (const [code, value] of Object.entries(priceOverrides)) {
+      const entry: Record<string, number> = {};
+      (["base", "customSong", "expressDelivery"] as const).forEach((key) => {
+        const raw = value[key];
+        if (raw === "" || raw == null) return;
+        const num = Number.parseFloat(raw);
+        if (!Number.isNaN(num) && Number.isFinite(num) && num >= 0) {
+          entry[key] = num;
+        }
+      });
+      if (Object.keys(entry).length > 0) overrides[code] = entry;
+    }
+
+    const res = await fetch("/api/admin/pricing", {
       method: "PUT",
       headers: authHeaders(),
-      body: JSON.stringify(pricingSettings),
+      body: JSON.stringify({ ...pricingSettings, overrides }),
     });
-    alert("Pricing saved");
+    if (res.ok) {
+      alert("Pricing saved");
+      fetchPricingSettings();
+    } else {
+      const err = (await res.json().catch(() => null)) as { error?: string } | null;
+      alert(err?.error ?? "Failed to save pricing");
+    }
+  };
+
+  const addOverrideCurrency = () => {
+    const code = newOverrideCurrency;
+    if (!code || priceOverrides[code]) return;
+    setPriceOverrides((prev) => ({
+      ...prev,
+      [code]: { base: "", customSong: "", expressDelivery: "" },
+    }));
+    setNewOverrideCurrency("");
+  };
+
+  const removeOverrideCurrency = (code: string) => {
+    setPriceOverrides((prev) => {
+      const next = { ...prev };
+      delete next[code];
+      return next;
+    });
+  };
+
+  const setOverrideValue = (
+    code: string,
+    key: "base" | "customSong" | "expressDelivery",
+    value: string
+  ) => {
+    setPriceOverrides((prev) => ({
+      ...prev,
+      [code]: { ...prev[code], [key]: value },
+    }));
   };
 
   // Google Ads actions
@@ -1135,6 +1205,94 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
 
+                {/* Per-currency price overrides */}
+                <div className="border-t border-white/10 pt-4 mt-2">
+                  <h4 className="text-base font-semibold text-white mb-1">
+                    Per-currency prices
+                  </h4>
+                  <p className="text-white/60 text-sm mb-4">
+                    Set a fixed price for specific currencies. Leave a field empty to
+                    auto-convert that line from the USD price using live rates.
+                  </p>
+
+                  <div className="space-y-3">
+                    {Object.keys(priceOverrides).length === 0 && (
+                      <p className="text-white/40 text-sm">
+                        No currency overrides yet — all currencies use automatic conversion.
+                      </p>
+                    )}
+
+                    {Object.entries(priceOverrides).map(([code, value]) => (
+                      <div
+                        key={code}
+                        className="flex flex-wrap items-end gap-3 bg-white/5 border border-white/10 rounded-lg p-3"
+                      >
+                        <div className="w-16 shrink-0">
+                          <span className="block text-sm font-semibold text-white">
+                            {code}
+                          </span>
+                          <span className="text-white/40 text-xs">
+                            {CURRENCY_SYMBOLS[code as keyof typeof CURRENCY_SYMBOLS]}
+                          </span>
+                        </div>
+                        {(["base", "customSong", "expressDelivery"] as const).map((key) => (
+                          <div key={key} className="flex-1 min-w-[110px]">
+                            <label className="block text-xs text-white/50 mb-1">
+                              {key === "base"
+                                ? "Base"
+                                : key === "customSong"
+                                ? "Custom song"
+                                : "Express"}
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              placeholder="auto"
+                              value={value[key]}
+                              onChange={(e) => setOverrideValue(code, key, e.target.value)}
+                              className="w-full px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                            />
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => removeOverrideCurrency(code)}
+                          className="p-2 text-white/50 hover:text-red-400 transition-colors"
+                          aria-label={`Remove ${code} override`}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-4">
+                    <select
+                      value={newOverrideCurrency}
+                      onChange={(e) => setNewOverrideCurrency(e.target.value)}
+                      className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                    >
+                      <option value="">Add currency…</option>
+                      {SUPPORTED_CURRENCIES.filter(
+                        (c) => c !== "USD" && !priceOverrides[c]
+                      ).map((c) => (
+                        <option key={c} value={c}>
+                          {c} ({CURRENCY_SYMBOLS[c]})
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={addOverrideCurrency}
+                      disabled={!newOverrideCurrency}
+                      className="inline-flex items-center gap-1 px-3 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-sm"
+                    >
+                      <Plus size={16} /> Add
+                    </button>
+                  </div>
+                </div>
+
                 <button
                   onClick={savePricingSettings}
                   className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
@@ -1213,14 +1371,6 @@ export default function AdminDashboardPage() {
                   {selectedOrder.message}
                 </p>
               </div>
-              {selectedOrder.gift_note && (
-                <div>
-                  <p className="text-white/60 text-sm">Gift Note</p>
-                  <p className="text-white bg-white/5 p-3 rounded-lg mt-1">
-                    {selectedOrder.gift_note}
-                  </p>
-                </div>
-              )}
               <div>
                 <p className="text-white/60 text-sm">Photo</p>
                 <a

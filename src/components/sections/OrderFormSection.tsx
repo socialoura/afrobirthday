@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard, Wallet } from "lucide-react";
-import { cn, currencyFromLocale, formatPrice, type CurrencyCode, PRICES } from "@/lib/utils";
+import { cn, currencyFromLocale, type CurrencyCode, PRICES } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -24,7 +24,6 @@ const createOrderSchema = (t: ReturnType<typeof useTranslations>) =>
     musicOption: z.enum(["default", "custom"]),
     musicLink: z.string().url().optional().or(z.literal("")),
     deliveryMethod: z.enum(["standard", "express"]),
-    giftNote: z.string().max(200).optional(),
     termsAccepted: z.literal(true, {
       errorMap: () => ({ message: t("errors.termsRequired") }),
     }),
@@ -39,8 +38,7 @@ function VisaLogo() {
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
       aria-label="Visa"
-      className="h-4 w-6 shrink-0"
-      style={{ color: "#1434CB" }}
+      className="h-5 w-8 shrink-0 text-white/85"
     >
       <title>Visa</title>
       <path
@@ -58,8 +56,7 @@ function MastercardLogo() {
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
       aria-label="Mastercard"
-      className="h-4 w-6 shrink-0"
-      style={{ color: "#EB001B" }}
+      className="h-5 w-8 shrink-0 text-white/85"
     >
       <title>Mastercard</title>
       <path
@@ -77,8 +74,7 @@ function AmexLogo() {
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
       aria-label="American Express"
-      className="h-4 w-6 shrink-0"
-      style={{ color: "#2E77BC" }}
+      className="h-5 w-8 shrink-0 text-white/85"
     >
       <title>American Express</title>
       <path
@@ -96,8 +92,7 @@ function PayPalLogo() {
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
       aria-label="PayPal"
-      className="h-4 w-6 shrink-0"
-      style={{ color: "#00457C" }}
+      className="h-5 w-8 shrink-0 text-white/85"
     >
       <title>PayPal</title>
       <path
@@ -137,6 +132,9 @@ export default function OrderFormSection() {
     customSong: PRICES.customSong,
     expressDelivery: PRICES.expressDelivery,
   }));
+  const [priceOverrides, setPriceOverrides] = useState<
+    Partial<Record<CurrencyCode, Partial<{ base: number; customSong: number; expressDelivery: number }>>>
+  >({});
   const { rates, fetchedAt, loading: ratesLoading } = useExchangeRates();
 
   useEffect(() => {
@@ -152,7 +150,12 @@ export default function OrderFormSection() {
       try {
         const res = await fetch("/api/pricing", { method: "GET" });
         if (!res.ok) return;
-        const data = (await res.json()) as Partial<{ base: number; customSong: number; expressDelivery: number }>;
+        const data = (await res.json()) as Partial<{
+          base: number;
+          customSong: number;
+          expressDelivery: number;
+          overrides: Partial<Record<CurrencyCode, Partial<{ base: number; customSong: number; expressDelivery: number }>>>;
+        }>;
 
         if (!isMounted) return;
 
@@ -167,6 +170,10 @@ export default function OrderFormSection() {
               ? data.expressDelivery
               : prev.expressDelivery,
         }));
+
+        if (data.overrides && typeof data.overrides === "object") {
+          setPriceOverrides(data.overrides);
+        }
       } catch {
         // ignore
       }
@@ -213,17 +220,45 @@ export default function OrderFormSection() {
     (musicOption === "custom" ? pricing.customSong : 0) +
     (deliveryMethod === "express" ? pricing.expressDelivery : 0);
 
-  const formatLocal = useMemo(() => {
-    return (priceUsd: number) => {
-      if (localCurrency === "USD") return formatPrice(priceUsd, "USD");
-      const converted = priceUsd * rates[localCurrency];
-      return new Intl.NumberFormat(browserLocale, {
+  // Resolves a price component in the active local currency: a manual admin
+  // override for that currency wins, otherwise the USD price is converted with
+  // the live rate. Mirrors the server-side resolveLocalCharge logic.
+  const localComponent = useMemo(() => {
+    const override = priceOverrides[localCurrency];
+    const rate = localCurrency === "USD" ? 1 : rates[localCurrency] ?? 1;
+    return (key: "base" | "customSong" | "expressDelivery") => {
+      const ov = override?.[key];
+      if (typeof ov === "number" && Number.isFinite(ov) && ov >= 0) return ov;
+      return pricing[key] * rate;
+    };
+  }, [priceOverrides, localCurrency, rates, pricing]);
+
+  const localTotal =
+    localComponent("base") +
+    (musicOption === "custom" ? localComponent("customSong") : 0) +
+    (deliveryMethod === "express" ? localComponent("expressDelivery") : 0);
+
+  // True when at least one component of the displayed total is auto-converted
+  // (no manual override) — i.e. the live exchange rate actually applies.
+  const usesLiveRate = useMemo(() => {
+    if (localCurrency === "USD") return false;
+    const override = priceOverrides[localCurrency];
+    const overridden = (key: "base" | "customSong" | "expressDelivery") =>
+      typeof override?.[key] === "number";
+    if (!overridden("base")) return true;
+    if (musicOption === "custom" && !overridden("customSong")) return true;
+    if (deliveryMethod === "express" && !overridden("expressDelivery")) return true;
+    return false;
+  }, [priceOverrides, localCurrency, musicOption, deliveryMethod]);
+
+  const formatMoney = useMemo(() => {
+    return (value: number) =>
+      new Intl.NumberFormat(localCurrency === "USD" ? "en-US" : browserLocale, {
         style: "currency",
         currency: localCurrency,
         maximumFractionDigits: 2,
-      }).format(converted);
-    };
-  }, [browserLocale, localCurrency, rates]);
+      }).format(value);
+  }, [browserLocale, localCurrency]);
 
   const ratesNote = useMemo(() => {
     if (localCurrency === "USD") return null;
@@ -343,6 +378,7 @@ export default function OrderFormSection() {
           photoUrl,
           musicFileUrl,
           totalPrice,
+          currency: localCurrency,
           hasCustomSong: musicOption === "custom",
           isExpress: deliveryMethod === "express",
         }),
@@ -560,7 +596,7 @@ export default function OrderFormSection() {
                     </p>
                   </div>
                   <span className="font-semibold text-primary">
-                    +{formatLocal(pricing.customSong)}
+                    +{formatMoney(localComponent("customSong"))}
                   </span>
                 </label>
               </div>
@@ -638,30 +674,13 @@ export default function OrderFormSection() {
                   <p className="font-medium text-white">{t("delivery.express.title")}</p>
                   <p className="text-sm text-white/80">{t("delivery.express.time")}</p>
                   <p className="text-primary font-semibold mt-1">
-                    +{formatLocal(pricing.expressDelivery)}
+                    +{formatMoney(localComponent("expressDelivery"))}
                   </p>
                   {deliveryMethod === "express" && (
                     <Check size={20} className="text-primary mt-2" />
                   )}
                 </label>
               </div>
-              </div>
-
-              {/* Gift Note */}
-              <div className="glass-card p-6">
-                <label className="block font-semibold mb-2 text-white">
-                  {t("gift.label")}
-                </label>
-                <p className="text-white/70 text-sm mb-4">
-                  {t("gift.help")}
-                </p>
-                <textarea
-                  {...register("giftNote")}
-                  placeholder={t("gift.placeholder")}
-                  maxLength={200}
-                  rows={2}
-                  className="w-full px-4 py-3 border border-white/20 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base min-h-[80px]"
-                />
               </div>
 
             </div>
@@ -671,14 +690,16 @@ export default function OrderFormSection() {
 
             {/* Payment Method */}
             <div className="glass-card p-5">
-              <label className="block font-semibold mb-3 text-white">{t("payment.label")}</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="block font-semibold text-white">{t("payment.label")}</label>
+              <p className="text-white/60 text-xs mt-1 mb-4">{t("payment.help")}</p>
+              <div className="space-y-3">
+                {/* Credit card */}
                 <label
                   className={cn(
-                    "flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all",
+                    "relative flex items-center gap-3 p-4 border rounded-2xl cursor-pointer transition-all",
                     paymentMethod === "card"
-                      ? "border-primary bg-primary/10"
-                      : "border-white/20 hover:border-primary/50 bg-white/5"
+                      ? "border-primary bg-primary/10 ring-2 ring-primary/40"
+                      : "border-white/20 hover:border-primary/50 hover:bg-white/[0.07] bg-white/5"
                   )}
                 >
                   <input
@@ -687,19 +708,30 @@ export default function OrderFormSection() {
                     value="card"
                     className="sr-only"
                   />
-                  <CardLogos />
-                  <div>
+                  <span
+                    className={cn(
+                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all",
+                      paymentMethod === "card" ? "border-primary bg-primary" : "border-white/30"
+                    )}
+                  >
+                    {paymentMethod === "card" && (
+                      <Check size={12} strokeWidth={3} className="text-white" />
+                    )}
+                  </span>
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium text-white">{t("payment.card.title")}</p>
-                    <p className="text-xs text-white/80">{t("payment.card.subtitle")}</p>
+                    <p className="text-xs text-white/70">{t("payment.card.subtitle")}</p>
                   </div>
+                  <CardLogos />
                 </label>
 
+                {/* PayPal */}
                 <label
                   className={cn(
-                    "flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all",
+                    "relative flex items-center gap-3 p-4 border rounded-2xl cursor-pointer transition-all",
                     paymentMethod === "paypal"
-                      ? "border-primary bg-primary/10"
-                      : "border-white/20 hover:border-primary/50 bg-white/5"
+                      ? "border-primary bg-primary/10 ring-2 ring-primary/40"
+                      : "border-white/20 hover:border-primary/50 hover:bg-white/[0.07] bg-white/5"
                   )}
                 >
                   <input
@@ -708,11 +740,21 @@ export default function OrderFormSection() {
                     value="paypal"
                     className="sr-only"
                   />
-                  <PayPalLogo />
-                  <div>
+                  <span
+                    className={cn(
+                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all",
+                      paymentMethod === "paypal" ? "border-primary bg-primary" : "border-white/30"
+                    )}
+                  >
+                    {paymentMethod === "paypal" && (
+                      <Check size={12} strokeWidth={3} className="text-white" />
+                    )}
+                  </span>
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium text-white">PayPal</p>
-                    <p className="text-xs text-white/80">{t("payment.paypal.subtitle")}</p>
+                    <p className="text-xs text-white/70">{t("payment.paypal.subtitle")}</p>
                   </div>
+                  <PayPalLogo />
                 </label>
               </div>
             </div>
@@ -726,33 +768,27 @@ export default function OrderFormSection() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>{t("summary.items.base")}</span>
-                  <span>{formatLocal(pricing.base)}</span>
+                  <span>{formatMoney(localComponent("base"))}</span>
                 </div>
                 {musicOption === "custom" && (
                   <div className="flex justify-between">
                     <span>{t("summary.items.customSong")}</span>
-                    <span>+{formatLocal(pricing.customSong)}</span>
+                    <span>+{formatMoney(localComponent("customSong"))}</span>
                   </div>
                 )}
                 {deliveryMethod === "express" && (
                   <div className="flex justify-between">
                     <span>{t("summary.items.express")}</span>
-                    <span>+{formatLocal(pricing.expressDelivery)}</span>
+                    <span>+{formatMoney(localComponent("expressDelivery"))}</span>
                   </div>
                 )}
                 <div className="border-t border-white/20 pt-2 mt-2">
                   <div className="flex justify-between text-lg font-bold">
                     <span>{t("summary.total")}</span>
-                    <span className="text-secondary">{formatLocal(totalPrice)}</span>
+                    <span className="text-secondary">{formatMoney(localTotal)}</span>
                   </div>
-                  <p className="text-white/80 text-xs mt-2">{t("summary.chargedUsd")}</p>
-                  {localCurrency !== "USD" && (
-                    <p className="text-white/70 text-xs mt-1">
-                      {t("summary.estimate")}
-                    </p>
-                  )}
-                  {ratesNote && (
-                    <p className="text-white/60 text-xs mt-1">{ratesNote}</p>
+                  {usesLiveRate && ratesNote && (
+                    <p className="text-white/60 text-xs mt-2">{ratesNote}</p>
                   )}
                 </div>
               </div>
@@ -800,7 +836,7 @@ export default function OrderFormSection() {
                   {paymentMethod === "paypal" ? <Wallet size={18} /> : <CreditCard size={18} />}
                   {paymentMethod === "paypal"
                     ? t("submit.paypal")
-                    : t("submit.pay", { amount: formatLocal(totalPrice) })}
+                    : t("submit.pay", { amount: formatMoney(localTotal) })}
                 </>
               )}
             </button>
@@ -835,12 +871,12 @@ export default function OrderFormSection() {
             setCurrentOrderId(null);
           }}
           clientSecret={stripeClientSecret}
-          amount={formatLocal(totalPrice)}
+          amount={formatMoney(localTotal)}
           productName={t("productName")}
           orderId={currentOrderId}
           onSuccess={() => {
             const orderId = currentOrderId;
-            const value = totalPrice;
+            const value = localTotal;
             const currency = localCurrency;
             const qs = new URLSearchParams();
             if (orderId) qs.set("orderId", orderId);

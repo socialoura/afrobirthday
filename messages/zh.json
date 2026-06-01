@@ -265,13 +265,9 @@
         "time": "12–24 小时"
       }
     },
-    "gift": {
-      "label": "礼物留言（可选）",
-      "help": "可选文本，我们可以把它加入交付邮件内容中。",
-      "placeholder": "例如：‘祝你拥有世界上所有的快乐！’"
-    },
     "payment": {
       "label": "支付方式",
+      "help": "选择您偏好的支付方式——每一笔交易都经过加密，安全可靠。",
       "card": {
         "title": "银行卡",
         "subtitle": "Visa, Mastercard, Amex"

@@ -14,11 +14,10 @@ export function renderOrderConfirmationEmailHtml(order: Order) {
         <h3 style="margin:0 0 12px;">Order details</h3>
         <p style="margin:0 0 6px;"><strong>Order ID:</strong> ${order.id}</p>
         ${createdAt ? `<p style="margin:0 0 6px;"><strong>Date:</strong> ${createdAt}</p>` : ""}
-        <p style="margin:0 0 6px;"><strong>Total:</strong> $${Number(order.total_usd).toFixed(2)} USD</p>
+        <p style="margin:0 0 6px;"><strong>Total:</strong> ${formatOrderTotal(order)}</p>
         <p style="margin:0 0 6px;"><strong>Delivery:</strong> ${delivery}</p>
         <p style="margin:0 0 6px;"><strong>Music:</strong> ${music}</p>
         ${order.music_link ? `<p style="margin:0 0 6px;"><strong>Music link:</strong> ${escapeHtml(order.music_link)}</p>` : ""}
-        ${order.gift_note ? `<p style="margin:0 0 6px;"><strong>Gift note:</strong> ${escapeHtml(order.gift_note)}</p>` : ""}
         <p style="margin:12px 0 0;"><strong>Message:</strong><br/>${escapeHtml(order.message)}</p>
       </div>
 
@@ -101,11 +100,10 @@ export function renderOrderConfirmationEmailText(order: Order) {
     "Thanks for your order!",
     "",
     `Order ID: ${order.id}`,
-    `Total: $${Number(order.total_usd).toFixed(2)} USD`,
+    `Total: ${formatOrderTotal(order)}`,
     `Delivery: ${delivery}`,
     `Music: ${music}`,
     order.music_link ? `Music link: ${order.music_link}` : "",
-    order.gift_note ? `Gift note: ${order.gift_note}` : "",
     "",
     "Message:",
     order.message,
@@ -114,6 +112,33 @@ export function renderOrderConfirmationEmailText(order: Order) {
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+/**
+ * Shows the amount the customer was actually charged. When the order was paid
+ * in a non-USD currency, the USD equivalent is appended for reference.
+ */
+function formatOrderTotal(order: Order) {
+  const currency = (order.currency || "USD").toUpperCase();
+  const usd = `$${Number(order.total_usd).toFixed(2)} USD`;
+
+  if (currency === "USD" || order.total_local == null) {
+    return usd;
+  }
+
+  const localValue = Number(order.total_local);
+  let local: string;
+  try {
+    local = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 2,
+    }).format(localValue);
+  } catch {
+    local = `${localValue.toFixed(2)} ${currency}`;
+  }
+
+  return `${local} (≈ ${usd})`;
 }
 
 function escapeHtml(input: string) {
