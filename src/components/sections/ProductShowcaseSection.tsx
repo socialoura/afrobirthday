@@ -19,15 +19,13 @@ const videos = [
     viewsKey: "videos.1.views",
   },
   {
-    src: "/blessing_video3.MOV",
-    type: "video/quicktime",
+    src: "/blessing_video3.mp4",
     poster: "/showcase_3.jpg",
     titleKey: "videos.2.title",
     viewsKey: "videos.2.views",
   },
   {
-    src: "/blessing_video4.MOV",
-    type: "video/quicktime",
+    src: "/blessing_video4.mp4",
     poster: "/showcase_1.jpg",
     titleKey: "videos.3.title",
     viewsKey: "videos.3.views",
@@ -69,9 +67,15 @@ export default function ProductShowcaseSection() {
                 preload="metadata"
                 className="w-full h-full object-cover"
               >
+                {/* WebM for better compression */}
+                <source
+                  src={videos[activeVideo].src.replace(/\.mp4$/i, ".webm")}
+                  type="video/webm"
+                />
+                {/* MP4 fallback */}
                 <source
                   src={videos[activeVideo].src}
-                  type={videos[activeVideo].type ?? "video/mp4"}
+                  type="video/mp4"
                 />
               </video>
             ) : (

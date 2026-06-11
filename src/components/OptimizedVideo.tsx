@@ -11,8 +11,16 @@ interface OptimizedVideoProps {
   autoPlay?: boolean;
   muted?: boolean;
   loop?: boolean;
+  controls?: boolean;
 }
 
+/**
+ * Optimized video component with:
+ * - Lazy loading (Intersection Observer)
+ * - Multi-format support (WebM + MP4 fallback)
+ * - Poster image preload
+ * - Smooth fade-in transition
+ */
 export default function OptimizedVideo({
   src,
   poster,
@@ -21,11 +29,13 @@ export default function OptimizedVideo({
   autoPlay = true,
   muted = true,
   loop = true,
+  controls = false,
 }: OptimizedVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isVisible, setIsVisible] = useState(isHero);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // Lazy loading via Intersection Observer
   useEffect(() => {
     if (isHero || !videoRef.current) return;
 
@@ -43,17 +53,23 @@ export default function OptimizedVideo({
     return () => observer.disconnect();
   }, [isHero]);
 
+  // Auto-play when visible
   useEffect(() => {
     if (isVisible && videoRef.current && autoPlay) {
-      videoRef.current.play().catch(() => {});
+      videoRef.current.play().catch(() => {
+        // Auto-play may be blocked by browser policy
+      });
     }
   }, [isVisible, autoPlay]);
 
-  const isMov = /\.mov$/i.test(src);
-  const mimeType = isMov ? "video/quicktime" : "video/mp4";
+  // Generate WebM and MP4 sources from the original src
+  const baseSrc = src.replace(/\.(MOV|mov|mp4|MP4)$/i, "");
+  const webmSrc = `${baseSrc}.webm`;
+  const mp4Src = `${baseSrc}.mp4`;
 
   return (
     <div className={cn("relative", className)}>
+      {/* Poster image shown until video loads */}
       {poster && !isLoaded && (
         <img
           src={poster}
@@ -68,6 +84,7 @@ export default function OptimizedVideo({
         muted={muted}
         loop={loop}
         playsInline
+        controls={controls}
         poster={poster}
         preload={isHero ? "metadata" : "none"}
         onLoadedData={() => setIsLoaded(true)}
@@ -76,7 +93,15 @@ export default function OptimizedVideo({
           isLoaded ? "opacity-100" : "opacity-0"
         )}
       >
-        {isVisible && <source src={src} type={mimeType} />}
+        {/* Only load sources when video is visible (lazy loading) */}
+        {isVisible && (
+          <>
+            {/* WebM first (better compression, smaller files) */}
+            <source src={webmSrc} type="video/webm" />
+            {/* MP4 fallback (universal compatibility) */}
+            <source src={mp4Src} type="video/mp4" />
+          </>
+        )}
       </video>
     </div>
   );

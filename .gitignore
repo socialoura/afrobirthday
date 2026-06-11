@@ -33,3 +33,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Original video backups (after optimization)
+/public/original-videos/
+
+# Large source files (keep optimized versions only)
+/public/*.MOV
+/public/*.mov

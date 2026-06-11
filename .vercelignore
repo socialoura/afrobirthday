@@ -1,0 +1,4 @@
+# Don't upload original/unoptimized videos to Vercel
+public/original-videos/
+public/*.MOV
+public/*.mov
