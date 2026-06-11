@@ -8,6 +8,7 @@ import {
   renderOrderConfirmationEmailText,
 } from "@/lib/orderEmailTemplates";
 import { formatStripeAmount } from "@/lib/currency";
+import { downloadMusicFromLink } from "@/lib/musicDownloader";
 
 export const runtime = "nodejs";
 
@@ -64,11 +65,27 @@ export async function POST(request: Request) {
         }
 
         if (order) {
+          // Download music from link if provided
+          let downloadedMusicUrl: string | null = null;
+          if (order.music_link && order.music_option === "custom") {
+            try {
+              const result = await downloadMusicFromLink(order.music_link, order.id);
+              if (result.success && result.mp3Url) {
+                downloadedMusicUrl = result.mp3Url;
+                console.log(`Music downloaded for order ${order.id}:`, downloadedMusicUrl);
+              }
+            } catch (err) {
+              console.error("Failed to download music:", err);
+              // Continue anyway - will still show the link
+            }
+          }
+
           await sendOrderPaidDiscord({
             order,
             provider: "Stripe",
             amountLabel: formatStripeAmount(paymentIntent.amount, paymentIntent.currency ?? "usd"),
             paymentRef: paymentIntent.id,
+            downloadedMusicUrl,
           });
         }
       }
@@ -130,6 +147,20 @@ export async function POST(request: Request) {
         }
 
         if (order) {
+          // Download music from link if provided
+          let downloadedMusicUrl: string | null = null;
+          if (order.music_link && order.music_option === "custom") {
+            try {
+              const result = await downloadMusicFromLink(order.music_link, order.id);
+              if (result.success && result.mp3Url) {
+                downloadedMusicUrl = result.mp3Url;
+                console.log(`Music downloaded for order ${order.id}:`, downloadedMusicUrl);
+              }
+            } catch (err) {
+              console.error("Failed to download music:", err);
+            }
+          }
+
           await sendOrderPaidDiscord({
             order,
             provider: "Stripe",
@@ -138,6 +169,7 @@ export async function POST(request: Request) {
                 ? formatStripeAmount(session.amount_total, session.currency ?? "usd")
                 : "-",
             paymentRef: (session.payment_intent as string | null) ?? session.id,
+            downloadedMusicUrl,
           });
         }
       }

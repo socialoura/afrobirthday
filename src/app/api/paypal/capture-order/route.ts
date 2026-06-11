@@ -59,11 +59,27 @@ export async function POST(request: NextRequest) {
     }
 
     if (order) {
+      // Download music from link if provided
+      let downloadedMusicUrl: string | null = null;
+      if (order.music_link && order.music_option === "custom") {
+        try {
+          const { downloadMusicFromLink } = await import("@/lib/musicDownloader");
+          const result = await downloadMusicFromLink(order.music_link, order.id);
+          if (result.success && result.mp3Url) {
+            downloadedMusicUrl = result.mp3Url;
+            console.log(`Music downloaded for order ${order.id}:`, downloadedMusicUrl);
+          }
+        } catch (err) {
+          console.error("Failed to download music:", err);
+        }
+      }
+
       await sendOrderPaidDiscord({
         order,
         provider: "PayPal",
         amountLabel: `$${Number(order.total_usd).toFixed(2)} USD`,
         paymentRef: capture.captureId ?? paypalOrderId,
+        downloadedMusicUrl,
       });
     }
 
