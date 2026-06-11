@@ -173,10 +173,11 @@ export async function sendOrderPaidDiscord(params: {
   }
 
   // Add copyable message text before the embed (mobile-friendly)
+  // The label is OUTSIDE the code block so it's not copied
   const contentLines: string[] = [];
 
   if (order.message) {
-    contentLines.push("**📝 MESSAGE À COPIER (pour la vidéo) :**");
+    contentLines.push("📝 **MESSAGE À COPIER (pour la vidéo) :**");
     contentLines.push("```");
     contentLines.push(order.message);
     contentLines.push("```");
