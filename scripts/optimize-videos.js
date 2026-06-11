@@ -18,6 +18,7 @@ const execAsync = promisify(exec);
 
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const BACKUP_DIR = path.join(PUBLIC_DIR, 'original-videos');
+const PORTABLE_FFMPEG = path.join(__dirname, '..', 'ffmpeg', 'bin', 'ffmpeg.exe');
 
 // Video optimization settings
 const SETTINGS = {
@@ -33,19 +34,40 @@ const SETTINGS = {
   },
 };
 
-async function checkFFmpeg() {
+async function getFFmpegCommand() {
+  // Check for portable FFmpeg first
+  try {
+    await fs.access(PORTABLE_FFMPEG);
+    console.log('✅ Using portable FFmpeg\n');
+    return `"${PORTABLE_FFMPEG}"`;
+  } catch {}
+
+  // Check system FFmpeg
   try {
     await execAsync('ffmpeg -version');
-    console.log('✅ FFmpeg detected\n');
-    return true;
-  } catch (error) {
-    console.error('❌ FFmpeg not found. Please install it first:');
+    console.log('✅ Using system FFmpeg\n');
+    return 'ffmpeg';
+  } catch {}
+
+  return null;
+}
+
+async function checkFFmpeg() {
+  const ffmpegCmd = await getFFmpegCommand();
+
+  if (!ffmpegCmd) {
+    console.error('❌ FFmpeg not found. Please install it first:\n');
+    console.error('   Option 1: Run portable download');
+    console.error('   powershell -ExecutionPolicy Bypass -File scripts/download-ffmpeg.ps1\n');
+    console.error('   Option 2: Install system-wide');
     console.error('   - Windows: choco install ffmpeg');
     console.error('   - Mac: brew install ffmpeg');
-    console.error('   - Linux: sudo apt install ffmpeg');
-    console.error('\nDownload: https://ffmpeg.org/download.html\n');
+    console.error('   - Linux: sudo apt install ffmpeg\n');
+    console.error('   Option 3: Manual conversion (see scripts/convert-manual.md)\n');
     return false;
   }
+
+  return true;
 }
 
 async function getVideoFiles() {
@@ -97,7 +119,8 @@ async function convertVideo(inputFile, format) {
 
   console.log(`   🔄 Converting to ${format.toUpperCase()}...`);
 
-  const command = `ffmpeg -i "${inputPath}" ${SETTINGS[format].command} "${outputPath}"`;
+  const ffmpegCmd = await getFFmpegCommand();
+  const command = `${ffmpegCmd} -i "${inputPath}" ${SETTINGS[format].command} "${outputPath}"`;
 
   try {
     await execAsync(command);
