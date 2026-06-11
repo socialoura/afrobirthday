@@ -172,8 +172,20 @@ export async function sendOrderPaidDiscord(params: {
     fields.push({ name: "Payment ref", value: String(paymentRef), inline: false });
   }
 
+  // Add copyable message text before the embed (mobile-friendly)
+  const contentLines: string[] = [];
+
+  if (order.message) {
+    contentLines.push("**📝 MESSAGE À COPIER (pour la vidéo) :**");
+    contentLines.push("```");
+    contentLines.push(order.message);
+    contentLines.push("```");
+    contentLines.push(""); // Empty line for spacing
+  }
+
   const payload = {
     username: "AfroBirthday",
+    content: contentLines.length > 0 ? contentLines.join("\n") : undefined,
     embeds: [
       {
         title: "🎉 New paid order",
