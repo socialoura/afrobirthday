@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 
-const POSTGRES_URL = process.env.POSTGRES_URL;
+const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
 export function getSql() {
   if (!POSTGRES_URL) {

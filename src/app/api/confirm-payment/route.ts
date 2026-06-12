@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { ensureOrdersTable, getOrderById, markOrderPaid } from "@/lib/db";
-import { sendOrderPaidDiscord } from "@/lib/discordWebhook";
+import { notifyOrderPaid } from "@/lib/discordWebhook";
 import { sendEmailWithResend } from "@/lib/resend";
 import {
   renderOrderConfirmationEmailHtml,
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     if (order) {
       const usd = paymentIntent.metadata?.totalUsd;
       const amountLabel = `${formatStripeAmount(paymentIntent.amount, paymentIntent.currency ?? "usd")}${usd ? ` (≈ $${usd})` : ""}`;
-      await sendOrderPaidDiscord({
+      await notifyOrderPaid({
         order,
         provider: "Stripe",
         amountLabel,

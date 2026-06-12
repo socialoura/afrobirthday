@@ -34,7 +34,7 @@ export async function downloadMusicFromLink(
     }
 
     // Use external API to download (yt-dlp as a service)
-    const mp3Buffer = await downloadFromApi(musicLink, platform);
+    const mp3Buffer = await downloadAudio(musicLink, platform);
 
     if (!mp3Buffer) {
       return { success: false, error: "Download failed" };
@@ -71,6 +71,24 @@ function detectPlatform(url: string): "youtube" | "spotify" | "soundcloud" | nul
     return "soundcloud";
   }
   return null;
+}
+
+/**
+ * Picks the best available download backend. For YouTube we prefer the
+ * RapidAPI youtube-mp36 service when a key is configured (the legacy public
+ * Cobalt instance at co.wuk.sh is dead), and fall back to the Cobalt-style API
+ * otherwise / for non-YouTube platforms.
+ */
+async function downloadAudio(
+  url: string,
+  platform: "youtube" | "spotify" | "soundcloud"
+): Promise<Buffer | null> {
+  if (platform === "youtube" && process.env.RAPIDAPI_KEY) {
+    const viaRapid = await downloadWithRapidapi(url);
+    if (viaRapid) return viaRapid;
+    console.warn("Rapidapi download failed, falling back to Cobalt API");
+  }
+  return downloadFromApi(url, platform);
 }
 
 /**
@@ -147,30 +165,73 @@ async function downloadWithRapidapi(url: string): Promise<Buffer | null> {
     return null;
   }
 
-  try {
-    const response = await fetch(
-      "https://youtube-mp36.p.rapidapi.com/dl?id=" + extractYoutubeId(url),
-      {
-        method: "GET",
-        headers: {
-          "X-RapidAPI-Key": apiKey,
-          "X-RapidAPI-Host": "youtube-mp36.p.rapidapi.com",
-        },
-      }
-    );
+  const videoId = extractYoutubeId(url);
+  if (!videoId) {
+    console.error("Rapidapi: could not extract YouTube video id from", url);
+    return null;
+  }
 
-    if (!response.ok) {
+  const endpoint = `https://youtube-mp36.p.rapidapi.com/dl?id=${videoId}`;
+  const headers = {
+    "X-RapidAPI-Key": apiKey,
+    "X-RapidAPI-Host": "youtube-mp36.p.rapidapi.com",
+  };
+
+  // youtube-mp36 transcodes asynchronously: the first call usually returns
+  // status "processing" / "in process", so poll a few times until the MP3 link
+  // is ready (kept within the route's 60s maxDuration).
+  const MAX_ATTEMPTS = 6;
+  const POLL_DELAY_MS = 4000;
+
+  try {
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      const response = await fetch(endpoint, { method: "GET", headers });
+
+      if (!response.ok) {
+        console.error(
+          "Rapidapi HTTP error:",
+          response.status,
+          await response.text().catch(() => "")
+        );
+        return null;
+      }
+
+      const data = (await response.json()) as {
+        status?: string;
+        link?: string;
+        msg?: string;
+      };
+
+      if (data.status === "ok" && data.link) {
+        // The mirror hosts (e.g. 123tokyo.xyz) return 404 unless the request
+        // carries a Referer pointing back at the API host — hotlink protection.
+        const audioResponse = await fetch(data.link, {
+          headers: {
+            Referer: "https://youtube-mp36.p.rapidapi.com/",
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          },
+        });
+        if (!audioResponse.ok) {
+          console.error("Rapidapi audio download error:", audioResponse.status);
+          return null;
+        }
+        const arrayBuffer = await audioResponse.arrayBuffer();
+        return Buffer.from(arrayBuffer);
+      }
+
+      // Still transcoding — wait and retry.
+      if (data.status === "processing" || data.status === "in process") {
+        await new Promise((r) => setTimeout(r, POLL_DELAY_MS));
+        continue;
+      }
+
+      // "fail" or any unexpected status: stop and fall back.
+      console.error("Rapidapi status:", data.status, data.msg ?? "");
       return null;
     }
 
-    const data = await response.json();
-
-    if (data.status === "ok" && data.link) {
-      const audioResponse = await fetch(data.link);
-      const arrayBuffer = await audioResponse.arrayBuffer();
-      return Buffer.from(arrayBuffer);
-    }
-
+    console.error("Rapidapi: still processing after max attempts");
     return null;
   } catch (error) {
     console.error("Rapidapi error:", error);

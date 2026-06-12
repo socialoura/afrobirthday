@@ -1,5 +1,6 @@
 import type { Order } from "@/lib/db";
 import { deviceLabel } from "@/lib/device";
+import { createUploadToken } from "@/lib/auth";
 
 type DiscordEmbedField = {
   name: string;
@@ -101,6 +102,22 @@ function truncate(value: string, max: number): string {
   return value.length > max ? `${value.slice(0, max - 1)}…` : value;
 }
 
+// Resolves the public base URL for building customer/admin links. Prefers an
+// explicit NEXT_PUBLIC_SITE_URL (but ignores localhost, which is useless in a
+// Discord notification opened on a phone), then falls back to the Vercel-
+// provided production domain, then a sane default.
+function resolveSiteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (explicit && !/localhost|127\.0\.0\.1/.test(explicit)) {
+    return explicit.replace(/\/$/, "");
+  }
+  const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (vercelProd) return `https://${vercelProd}`;
+  const vercel = process.env.VERCEL_URL;
+  if (vercel) return `https://${vercel}`;
+  return "https://afrobirthday.com";
+}
+
 /**
  * Sends a rich "paid order" notification to Discord including the customer's
  * birthday message, the uploaded photo (shown inline), and the music link/file.
@@ -172,6 +189,21 @@ export async function sendOrderPaidDiscord(params: {
     fields.push({ name: "Payment ref", value: String(paymentRef), inline: false });
   }
 
+  // One-tap magic link to the mobile page where the final video is uploaded and
+  // delivered for this exact order — no admin login or order search needed.
+  try {
+    const siteUrl = resolveSiteUrl();
+    const uploadToken = createUploadToken(String(order.id));
+    fields.push({
+      name: "🎬 Uploader la vidéo finale",
+      value: `${siteUrl}/admin/upload/${order.id}?t=${uploadToken}`,
+      inline: false,
+    });
+  } catch (err) {
+    // Missing ADMIN_TOKEN_SECRET shouldn't block the order notification.
+    console.error("Failed to build upload magic link:", err);
+  }
+
   // Add copyable message text before the embed (mobile-friendly)
   // The label is OUTSIDE the code block so it's not copied
   const contentLines: string[] = [];
@@ -208,4 +240,37 @@ export async function sendOrderPaidDiscord(params: {
   } else {
     await sendDiscordWebhook(payload);
   }
+}
+
+/**
+ * Single entry point for the "paid order" Discord notification: downloads the
+ * custom song MP3 from its link (best-effort) and then sends the rich embed,
+ * attaching the MP3 when available. Shared by every payment-confirmation path
+ * (Stripe client confirm, Stripe webhook, PayPal capture) so the MP3 is always
+ * attached regardless of which path wins the paid-dedup race.
+ */
+export async function notifyOrderPaid(params: {
+  order: Order;
+  provider: "Stripe" | "PayPal";
+  amountLabel: string;
+  paymentRef?: string | null;
+}) {
+  const { order } = params;
+
+  let downloadedMusicUrl: string | null = null;
+  if (order.music_link && order.music_option === "custom") {
+    try {
+      const { downloadMusicFromLink } = await import("@/lib/musicDownloader");
+      const result = await downloadMusicFromLink(order.music_link, order.id);
+      if (result.success && result.mp3Url) {
+        downloadedMusicUrl = result.mp3Url;
+        console.log(`Music downloaded for order ${order.id}:`, downloadedMusicUrl);
+      }
+    } catch (err) {
+      console.error("Failed to download music:", err);
+      // Continue anyway — the notification still includes the link.
+    }
+  }
+
+  await sendOrderPaidDiscord({ ...params, downloadedMusicUrl });
 }

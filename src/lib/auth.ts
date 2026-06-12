@@ -84,6 +84,55 @@ export function verifyAdminRequest(request: Request): AdminToken | null {
   return verifyAdminToken(token);
 }
 
+// --- Order-scoped upload token ---------------------------------------------
+// A magic-link token that grants the ability to upload (and deliver) the final
+// video for ONE specific order, nothing else. Used by the mobile upload page
+// reachable from the Discord new-order notification. Signed with the same HMAC
+// secret as the admin session token but with a longer TTL and a narrow scope,
+// so a leaked link can't compromise the full admin dashboard.
+
+export type UploadToken = {
+  orderId: string;
+  scope: "upload";
+  exp: number;
+};
+
+const UPLOAD_TOKEN_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+
+export function createUploadToken(orderId: string): string {
+  const payload: UploadToken = {
+    orderId,
+    scope: "upload",
+    exp: Date.now() + UPLOAD_TOKEN_TTL_MS,
+  };
+  const body = base64UrlEncode(Buffer.from(JSON.stringify(payload), "utf-8"));
+  const sig = sign(body);
+  return `${body}.${sig}`;
+}
+
+export function verifyUploadToken(token: string): UploadToken | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 2) return null;
+    const [body, sig] = parts;
+
+    const expected = sign(body);
+    const a = Buffer.from(sig);
+    const b = Buffer.from(expected);
+    if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+
+    const decoded = JSON.parse(
+      base64UrlDecode(body).toString("utf-8")
+    ) as UploadToken;
+    if (decoded.scope !== "upload") return null;
+    if (typeof decoded.orderId !== "string" || !decoded.orderId) return null;
+    if (typeof decoded.exp !== "number" || decoded.exp < Date.now()) return null;
+    return decoded;
+  } catch {
+    return null;
+  }
+}
+
 export function compareStringsConstantTime(a: string, b: string): boolean {
   const aBuf = Buffer.from(a, "utf-8");
   const bBuf = Buffer.from(b, "utf-8");
