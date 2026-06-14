@@ -93,6 +93,12 @@ export async function generateVoiceover(
 
   const model = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
   const voice = process.env.OPENAI_TTS_VOICE || "nova";
+  // Playback speed (0.25–4.0). Default to a slightly slow, easy-to-follow pace.
+  const parsedSpeed = Number(process.env.OPENAI_TTS_SPEED);
+  const speed =
+    Number.isFinite(parsedSpeed) && parsedSpeed >= 0.25 && parsedSpeed <= 4
+      ? parsedSpeed
+      : 0.75;
 
   try {
     const response = await fetch(OPENAI_TTS_ENDPOINT, {
@@ -106,6 +112,7 @@ export async function generateVoiceover(
         voice,
         input,
         response_format: "mp3",
+        speed,
       }),
     });
 
