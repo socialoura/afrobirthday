@@ -130,8 +130,10 @@ export async function sendOrderPaidDiscord(params: {
   amountLabel: string;
   paymentRef?: string | null;
   downloadedMusicUrl?: string | null;
+  voiceoverUrl?: string | null;
 }) {
-  const { order, provider, amountLabel, paymentRef, downloadedMusicUrl } = params;
+  const { order, provider, amountLabel, paymentRef, downloadedMusicUrl, voiceoverUrl } =
+    params;
 
   const fields: DiscordEmbedField[] = [
     { name: "Order ID", value: String(order.id), inline: true },
@@ -170,7 +172,18 @@ export async function sendOrderPaidDiscord(params: {
       value: "Downloaded and attached below",
       inline: false,
     });
-  } else if (order.music_file_url) {
+  }
+
+  // Voiceover of a non-English message — sent as a separate message below.
+  if (voiceoverUrl) {
+    fields.push({
+      name: "🗣️ Voix (message non-anglais)",
+      value: "Lecture audio du message attachée ci-dessous",
+      inline: false,
+    });
+  }
+
+  if (!downloadedMusicUrl && order.music_file_url) {
     fields.push({
       name: "🎵 Music file",
       value: truncate(order.music_file_url, 1000),
@@ -240,6 +253,20 @@ export async function sendOrderPaidDiscord(params: {
   } else {
     await sendDiscordWebhook(payload);
   }
+
+  // The webhook file slot is taken by the music MP3, so the voiceover (when the
+  // message isn't English) goes out as its own follow-up message with the MP3
+  // attached.
+  if (voiceoverUrl) {
+    await sendDiscordWebhookWithFile(
+      {
+        username: "AfroBirthday",
+        content: "🗣️ **Lecture audio du message (langue du client) :**",
+      },
+      voiceoverUrl,
+      `${order.id}-voiceover.mp3`
+    );
+  }
 }
 
 /**
@@ -257,20 +284,37 @@ export async function notifyOrderPaid(params: {
 }) {
   const { order } = params;
 
-  let downloadedMusicUrl: string | null = null;
-  if (order.music_link && order.music_option === "custom") {
-    try {
-      const { downloadMusicFromLink } = await import("@/lib/musicDownloader");
-      const result = await downloadMusicFromLink(order.music_link, order.id);
-      if (result.success && result.mp3Url) {
-        downloadedMusicUrl = result.mp3Url;
-        console.log(`Music downloaded for order ${order.id}:`, downloadedMusicUrl);
+  // Download the custom song and generate a voiceover of a non-English message
+  // in parallel — both are best-effort and must not block the notification.
+  const [downloadedMusicUrl, voiceoverUrl] = await Promise.all([
+    (async (): Promise<string | null> => {
+      if (!(order.music_link && order.music_option === "custom")) return null;
+      try {
+        const { downloadMusicFromLink } = await import("@/lib/musicDownloader");
+        const result = await downloadMusicFromLink(order.music_link, order.id);
+        if (result.success && result.mp3Url) {
+          console.log(`Music downloaded for order ${order.id}:`, result.mp3Url);
+          return result.mp3Url;
+        }
+      } catch (err) {
+        console.error("Failed to download music:", err);
+        // Continue anyway — the notification still includes the link.
       }
-    } catch (err) {
-      console.error("Failed to download music:", err);
-      // Continue anyway — the notification still includes the link.
-    }
-  }
+      return null;
+    })(),
+    (async (): Promise<string | null> => {
+      if (!order.message) return null;
+      try {
+        const { generateVoiceoverIfNonEnglish } = await import("@/lib/voiceover");
+        const url = await generateVoiceoverIfNonEnglish(order.message, order.id);
+        if (url) console.log(`Voiceover generated for order ${order.id}:`, url);
+        return url;
+      } catch (err) {
+        console.error("Failed to generate voiceover:", err);
+        return null;
+      }
+    })(),
+  ]);
 
-  await sendOrderPaidDiscord({ ...params, downloadedMusicUrl });
+  await sendOrderPaidDiscord({ ...params, downloadedMusicUrl, voiceoverUrl });
 }
