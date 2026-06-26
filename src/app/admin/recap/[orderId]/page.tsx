@@ -115,34 +115,51 @@ function RecapInner() {
     }
   }, []);
 
-  // Fetch a media file through our proxy, then open the native share sheet
-  // (WeChat appears as a target). Falls back to a plain download.
+  // Open the native share sheet (WeChat appears as a target). Tries to share the
+  // actual file first; if file sharing is unsupported (common for audio on iOS)
+  // it falls back to sharing the direct link, so WeChat still shows up.
   const shareFile = useCallback(
-    async (kind: "photo" | "music" | "voiceover", url: string, base: string) => {
+    async (
+      kind: "photo" | "music" | "voiceover",
+      proxyUrl: string,
+      publicUrl: string,
+      base: string
+    ) => {
       setSharing(kind);
       try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("fetch failed");
-        const blob = await res.blob();
-        const type = blob.type || "application/octet-stream";
-        const ext = type.includes("png")
-          ? ".png"
-          : type.includes("jpeg") || type.includes("jpg")
-            ? ".jpg"
-            : type.includes("webp")
-              ? ".webp"
-              : type.startsWith("audio")
-                ? ".mp3"
-                : "";
-        const file = new File([blob], `${base}${ext}`, { type });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file] });
-        } else {
-          // File sharing unsupported — fall back to download.
-          window.location.href = url;
+        let sharedFile = false;
+        try {
+          const res = await fetch(proxyUrl);
+          if (res.ok) {
+            const blob = await res.blob();
+            const type = blob.type || "application/octet-stream";
+            const ext = type.includes("png")
+              ? ".png"
+              : type.includes("jpeg") || type.includes("jpg")
+                ? ".jpg"
+                : type.includes("webp")
+                  ? ".webp"
+                  : type.startsWith("audio")
+                    ? ".mp3"
+                    : "";
+            const file = new File([blob], `${base}${ext}`, { type });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({ files: [file] });
+              sharedFile = true;
+            }
+          }
+        } catch (e) {
+          // User dismissed the share sheet — don't fall back to a link.
+          if (e instanceof Error && e.name === "AbortError") return;
         }
-      } catch {
-        // AbortError (user cancelled) or failure — ignore.
+        if (!sharedFile) {
+          // Fallback: share the direct link (e.g. audio on iOS).
+          try {
+            await navigator.share({ url: publicUrl });
+          } catch {
+            window.location.href = proxyUrl;
+          }
+        }
       } finally {
         setSharing(null);
       }
@@ -207,7 +224,7 @@ function RecapInner() {
             {canShare && (
               <button
                 type="button"
-                onClick={() => shareFile("photo", dl("photo"), `commande-${order.id.slice(0, 8)}-photo`)}
+                onClick={() => shareFile("photo", dl("photo"), order.photo_url, `commande-${order.id.slice(0, 8)}-photo`)}
                 disabled={sharing === "photo"}
                 className="w-full btn-primary py-3 flex items-center justify-center gap-2"
               >
@@ -278,7 +295,7 @@ function RecapInner() {
               {canShare && (
                 <button
                   type="button"
-                  onClick={() => shareFile("music", dl("music"), `commande-${order.id.slice(0, 8)}-musique`)}
+                  onClick={() => shareFile("music", dl("music"), musicFile, `commande-${order.id.slice(0, 8)}-musique`)}
                   disabled={sharing === "music"}
                   className="w-full btn-primary py-3 flex items-center justify-center gap-2"
                 >
@@ -327,7 +344,7 @@ function RecapInner() {
             {canShare && (
               <button
                 type="button"
-                onClick={() => shareFile("voiceover", dl("voiceover"), `commande-${order.id.slice(0, 8)}-vocal`)}
+                onClick={() => shareFile("voiceover", dl("voiceover"), order.voiceover_url!, `commande-${order.id.slice(0, 8)}-vocal`)}
                 disabled={sharing === "voiceover"}
                 className="w-full btn-primary py-3 flex items-center justify-center gap-2"
               >
