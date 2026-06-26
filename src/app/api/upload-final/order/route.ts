@@ -36,6 +36,8 @@ export async function GET(request: Request) {
         created_at: order.created_at,
         final_video_url: order.final_video_url,
         final_video_sent_at: order.final_video_sent_at,
+        voiceover_url: order.voiceover_url,
+        downloaded_music_url: order.downloaded_music_url,
       },
     });
   } catch (error) {

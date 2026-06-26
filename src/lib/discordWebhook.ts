@@ -321,6 +321,16 @@ export async function notifyOrderPaid(params: {
     })(),
   ]);
 
+  // Persist generated media so the WeChat recap page can surface them later.
+  if (downloadedMusicUrl || voiceoverUrl) {
+    try {
+      const { setOrderMedia } = await import("@/lib/db");
+      await setOrderMedia(order.id, { voiceoverUrl, downloadedMusicUrl });
+    } catch (err) {
+      console.error("Failed to persist order media:", err);
+    }
+  }
+
   await sendOrderPaidDiscord({ ...params, downloadedMusicUrl, voiceoverUrl });
 
   // Also notify via Telegram bot

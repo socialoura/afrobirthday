@@ -59,6 +59,12 @@ export async function ensureOrdersTable() {
     ALTER TABLE orders
     ADD COLUMN IF NOT EXISTS device text
   `;
+
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS voiceover_url text,
+    ADD COLUMN IF NOT EXISTS downloaded_music_url text
+  `;
 }
 
 export async function ensureSettingsTable() {
@@ -291,7 +297,24 @@ export type Order = {
   country: string | null;
   final_video_url: string | null;
   final_video_sent_at: string | null;
+  voiceover_url: string | null;
+  downloaded_music_url: string | null;
 };
+
+// Persist best-effort media generated at payment time (voiceover MP3, and the
+// MP3 auto-downloaded from a custom music link) so the recap page can show them.
+export async function setOrderMedia(
+  orderId: string,
+  media: { voiceoverUrl?: string | null; downloadedMusicUrl?: string | null }
+): Promise<void> {
+  const sql = getSql();
+  await sql`
+    UPDATE orders
+    SET voiceover_url = COALESCE(${media.voiceoverUrl ?? null}, voiceover_url),
+        downloaded_music_url = COALESCE(${media.downloadedMusicUrl ?? null}, downloaded_music_url)
+    WHERE id = ${orderId}::uuid
+  `;
+}
 
 export async function getOrderById(orderId: string): Promise<Order | null> {
   const sql = getSql();

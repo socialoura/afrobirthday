@@ -118,9 +118,11 @@ export async function sendNewOrderNotification(params: {
 
   const siteUrl = resolveSiteUrl();
   let uploadLink = "";
+  let recapLink = "";
   try {
     const uploadToken = createUploadToken(String(order.id));
     uploadLink = `${siteUrl}/admin/upload/${order.id}?t=${uploadToken}`;
+    recapLink = `${siteUrl}/admin/recap/${order.id}?t=${uploadToken}`;
   } catch {
     // Missing secret shouldn't block notification
   }
@@ -150,6 +152,10 @@ export async function sendNewOrderNotification(params: {
 
   if (voiceoverUrl) {
     message += `🗣️ Voiceover généré\n`;
+  }
+
+  if (recapLink) {
+    message += `\n📦 <b>Tout pour WeChat (récap) :</b>\n${recapLink}\n`;
   }
 
   if (uploadLink) {
