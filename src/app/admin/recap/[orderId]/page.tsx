@@ -12,6 +12,7 @@ import {
   Mic,
   MessageSquare,
   Image as ImageIcon,
+  Share2,
 } from "lucide-react";
 
 type OrderRecap = {
@@ -52,6 +53,16 @@ function RecapInner() {
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<OrderRecap | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [canShare, setCanShare] = useState(false);
+  const [sharing, setSharing] = useState<string | null>(null);
+
+  // Web Share API is only useful on mobile (where WeChat shows up in the share
+  // sheet). Detect after mount to avoid SSR hydration mismatch.
+  useEffect(() => {
+    setCanShare(
+      typeof navigator !== "undefined" && typeof navigator.share === "function"
+    );
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -95,6 +106,49 @@ function RecapInner() {
       // clipboard may be blocked — ignore silently
     }
   }, []);
+
+  const shareText = useCallback(async (text: string) => {
+    try {
+      await navigator.share({ text });
+    } catch {
+      // user cancelled or unsupported — ignore
+    }
+  }, []);
+
+  // Fetch a media file through our proxy, then open the native share sheet
+  // (WeChat appears as a target). Falls back to a plain download.
+  const shareFile = useCallback(
+    async (kind: "photo" | "music" | "voiceover", url: string, base: string) => {
+      setSharing(kind);
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("fetch failed");
+        const blob = await res.blob();
+        const type = blob.type || "application/octet-stream";
+        const ext = type.includes("png")
+          ? ".png"
+          : type.includes("jpeg") || type.includes("jpg")
+            ? ".jpg"
+            : type.includes("webp")
+              ? ".webp"
+              : type.startsWith("audio")
+                ? ".mp3"
+                : "";
+        const file = new File([blob], `${base}${ext}`, { type });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file] });
+        } else {
+          // File sharing unsupported — fall back to download.
+          window.location.href = url;
+        }
+      } catch {
+        // AbortError (user cancelled) or failure — ignore.
+      } finally {
+        setSharing(null);
+      }
+    },
+    []
+  );
 
   if (loading) {
     return (
@@ -150,11 +204,26 @@ function RecapInner() {
               alt="Photo client"
               className="w-full rounded-xl object-cover"
             />
+            {canShare && (
+              <button
+                type="button"
+                onClick={() => shareFile("photo", dl("photo"), `commande-${order.id.slice(0, 8)}-photo`)}
+                disabled={sharing === "photo"}
+                className="w-full btn-primary py-3 flex items-center justify-center gap-2"
+              >
+                {sharing === "photo" ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Share2 size={18} />
+                )}
+                Partager la photo (WeChat…)
+              </button>
+            )}
             <a
               href={dl("photo")}
-              className="w-full btn-primary py-3 flex items-center justify-center gap-2"
+              className="w-full block text-center text-sm text-white/60 underline py-1"
             >
-              <Download size={18} /> Télécharger la photo
+              ou télécharger la photo
             </a>
           </section>
         )}
@@ -168,18 +237,31 @@ function RecapInner() {
             <p className="text-sm text-white/90 whitespace-pre-wrap break-words rounded-xl bg-white/5 border border-white/10 p-3">
               {order.message}
             </p>
+            {canShare && (
+              <button
+                type="button"
+                onClick={() => shareText(order.message)}
+                className="w-full btn-primary py-3 flex items-center justify-center gap-2"
+              >
+                <Share2 size={18} /> Partager le message (WeChat…)
+              </button>
+            )}
             <button
               type="button"
               onClick={() => copy(order.message, "message")}
-              className="w-full btn-primary py-3 flex items-center justify-center gap-2"
+              className={`w-full py-3 flex items-center justify-center gap-2 ${
+                canShare
+                  ? "text-sm text-white/60 underline py-1"
+                  : "btn-primary"
+              }`}
             >
               {copied === "message" ? (
                 <>
-                  <Check size={18} /> Copié
+                  <Check size={16} /> Copié
                 </>
               ) : (
                 <>
-                  <Copy size={18} /> Copier le message
+                  <Copy size={16} /> {canShare ? "ou copier le message" : "Copier le message"}
                 </>
               )}
             </button>
@@ -192,12 +274,29 @@ function RecapInner() {
             <Music size={16} /> Musique
           </div>
           {musicFile ? (
-            <a
-              href={dl("music")}
-              className="w-full btn-primary py-3 flex items-center justify-center gap-2"
-            >
-              <Download size={18} /> Télécharger la musique (MP3)
-            </a>
+            <>
+              {canShare && (
+                <button
+                  type="button"
+                  onClick={() => shareFile("music", dl("music"), `commande-${order.id.slice(0, 8)}-musique`)}
+                  disabled={sharing === "music"}
+                  className="w-full btn-primary py-3 flex items-center justify-center gap-2"
+                >
+                  {sharing === "music" ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <Share2 size={18} />
+                  )}
+                  Partager la musique (WeChat…)
+                </button>
+              )}
+              <a
+                href={dl("music")}
+                className="w-full block text-center text-sm text-white/60 underline py-1"
+              >
+                ou télécharger la musique (MP3)
+              </a>
+            </>
           ) : order.music_link ? (
             <a
               href={order.music_link}
@@ -225,18 +324,34 @@ function RecapInner() {
               <Mic size={16} /> Vocal (lecture du message)
             </div>
             <audio src={order.voiceover_url} controls className="w-full" />
+            {canShare && (
+              <button
+                type="button"
+                onClick={() => shareFile("voiceover", dl("voiceover"), `commande-${order.id.slice(0, 8)}-vocal`)}
+                disabled={sharing === "voiceover"}
+                className="w-full btn-primary py-3 flex items-center justify-center gap-2"
+              >
+                {sharing === "voiceover" ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Share2 size={18} />
+                )}
+                Partager le vocal (WeChat…)
+              </button>
+            )}
             <a
               href={dl("voiceover")}
-              className="w-full btn-primary py-3 flex items-center justify-center gap-2"
+              className="w-full block text-center text-sm text-white/60 underline py-1"
             >
-              <Download size={18} /> Télécharger le vocal (MP3)
+              ou télécharger le vocal (MP3)
             </a>
           </section>
         )}
 
         <p className="text-center text-xs text-white/40 pt-2">
-          Astuce : ouvre chaque fichier puis partage-le dans WeChat, et colle le
-          message copié.
+          {canShare
+            ? "Tape « Partager » → choisis WeChat → choisis ton fournisseur."
+            : "Ouvre cette page sur ton téléphone pour partager directement dans WeChat."}
         </p>
       </div>
     </main>
