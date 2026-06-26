@@ -116,8 +116,14 @@ function RecapInner() {
     );
   }
 
-  const musicUrl =
-    order.downloaded_music_url || order.music_file_url || order.music_link || null;
+  const dl = (kind: "photo" | "music" | "voiceover") =>
+    `/api/recap/download?orderId=${encodeURIComponent(orderId)}&t=${encodeURIComponent(
+      token
+    )}&kind=${kind}`;
+
+  // A downloadable music FILE we host (uploaded by the client or auto-downloaded
+  // from the link). A bare external music_link can't be force-downloaded.
+  const musicFile = order.downloaded_music_url || order.music_file_url || null;
 
   return (
     <main className="min-h-screen bg-dark text-white px-4 py-6">
@@ -145,13 +151,10 @@ function RecapInner() {
               className="w-full rounded-xl object-cover"
             />
             <a
-              href={order.photo_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
+              href={dl("photo")}
               className="w-full btn-primary py-3 flex items-center justify-center gap-2"
             >
-              <Download size={18} /> Ouvrir / télécharger la photo
+              <Download size={18} /> Télécharger la photo
             </a>
           </section>
         )}
@@ -188,18 +191,21 @@ function RecapInner() {
           <div className="flex items-center gap-2 text-white/70 text-sm">
             <Music size={16} /> Musique
           </div>
-          {musicUrl ? (
+          {musicFile ? (
             <a
-              href={musicUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
+              href={dl("music")}
               className="w-full btn-primary py-3 flex items-center justify-center gap-2"
             >
-              <Download size={18} />
-              {order.music_file_url || order.downloaded_music_url
-                ? "Ouvrir / télécharger la musique (MP3)"
-                : "Ouvrir le lien musique"}
+              <Download size={18} /> Télécharger la musique (MP3)
+            </a>
+          ) : order.music_link ? (
+            <a
+              href={order.music_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full btn-primary py-3 flex items-center justify-center gap-2 break-all"
+            >
+              <Download size={18} /> Ouvrir le lien musique
             </a>
           ) : order.music_option === "custom" ? (
             <p className="text-sm text-white/50">
@@ -220,13 +226,10 @@ function RecapInner() {
             </div>
             <audio src={order.voiceover_url} controls className="w-full" />
             <a
-              href={order.voiceover_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
+              href={dl("voiceover")}
               className="w-full btn-primary py-3 flex items-center justify-center gap-2"
             >
-              <Download size={18} /> Ouvrir / télécharger le vocal (MP3)
+              <Download size={18} /> Télécharger le vocal (MP3)
             </a>
           </section>
         )}
