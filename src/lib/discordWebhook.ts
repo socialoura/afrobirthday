@@ -261,7 +261,7 @@ export async function sendOrderPaidDiscord(params: {
     await sendDiscordWebhookWithFile(
       {
         username: "AfroBirthday",
-        content: "🗣️ **Lecture audio du message (langue du client) :**",
+        content: `🗣️ **Lecture audio du message (langue du client) :**\n\n📥 **Lien direct:** ${voiceoverUrl}`,
       },
       voiceoverUrl,
       `${order.id}-voiceover.mp3`
@@ -317,4 +317,18 @@ export async function notifyOrderPaid(params: {
   ]);
 
   await sendOrderPaidDiscord({ ...params, downloadedMusicUrl, voiceoverUrl });
+
+  // Also notify via Telegram bot
+  try {
+    const { sendNewOrderNotification } = await import("@/lib/telegramBot");
+    await sendNewOrderNotification({
+      order,
+      provider: params.provider,
+      amountLabel: params.amountLabel,
+      voiceoverUrl,
+      downloadedMusicUrl,
+    });
+  } catch (err) {
+    console.error("Telegram notification error:", err);
+  }
 }
