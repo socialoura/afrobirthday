@@ -78,6 +78,10 @@ export async function POST(request: Request) {
           `Ajoute cette valeur dans ta variable d'environnement <code>TELEGRAM_CHAT_ID</code>`,
         chatId
       );
+    } else if (!text.startsWith("/")) {
+      const { answerQuestion } = await import("@/lib/telegramAI");
+      const answer = await answerQuestion(text);
+      await sendTelegramMessage(answer, chatId);
     }
 
     return NextResponse.json({ ok: true });
