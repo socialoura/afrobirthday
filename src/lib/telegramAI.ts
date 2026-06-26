@@ -1,8 +1,9 @@
 import { getAllOrders, type Order } from "@/lib/db";
-import { AnthropicBedrockMantle } from "@anthropic-ai/bedrock-sdk";
+import { AnthropicBedrock } from "@anthropic-ai/bedrock-sdk";
 
-// Claude model on Amazon Bedrock (note the "anthropic." prefix Bedrock requires).
-const BEDROCK_MODEL = process.env.BEDROCK_MODEL || "anthropic.claude-sonnet-4-5";
+// Claude model on Amazon Bedrock (cross-region inference profile ID).
+const BEDROCK_MODEL =
+  process.env.BEDROCK_MODEL || "us.anthropic.claude-sonnet-4-5-20250929-v1:0";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -206,17 +207,17 @@ function runTool(name: string, args: OrderFilters & { sort?: string; limit?: num
 // Main entry
 // ============================================
 
-let bedrockClient: AnthropicBedrockMantle | null = null;
+let bedrockClient: AnthropicBedrock | null = null;
 
-function getBedrockClient(): AnthropicBedrockMantle | null {
+function getBedrockClient(): AnthropicBedrock | null {
   if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
     return null;
   }
   if (!bedrockClient) {
-    bedrockClient = new AnthropicBedrockMantle({
+    bedrockClient = new AnthropicBedrock({
       awsRegion: process.env.AWS_REGION || "us-east-1",
       awsAccessKey: process.env.AWS_ACCESS_KEY_ID,
-      awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      awsSecretKey: process.env.AWS_SECRET_ACCESS_KEY,
       awsSessionToken: process.env.AWS_SESSION_TOKEN,
     });
   }
