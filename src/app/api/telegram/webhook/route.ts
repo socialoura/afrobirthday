@@ -87,6 +87,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("Telegram webhook error:", err);
+    try {
+      const { sendTelegramMessage: notify } = await import("@/lib/telegramBot");
+      await notify(`❌ Erreur bot: ${err instanceof Error ? err.message : String(err)}`);
+    } catch { /* ignore */ }
     return NextResponse.json({ ok: true });
   }
 }
