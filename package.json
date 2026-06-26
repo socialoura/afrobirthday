@@ -11,6 +11,7 @@
     "check:videos": "node scripts/check-videos.js"
   },
   "dependencies": {
+    "@anthropic-ai/bedrock-sdk": "^0.31.0",
     "@hookform/resolvers": "^3.9.0",
     "@neondatabase/serverless": "^1.0.2",
     "@stripe/react-stripe-js": "^2.7.3",

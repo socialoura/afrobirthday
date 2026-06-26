@@ -162,7 +162,7 @@ export async function sendNewOrderNotification(params: {
   // Send customer message in a separate message
   if (order.message?.trim()) {
     await sendTelegramMessage(
-      `📝 <b>MESSAGE CLIENT (pour la vidéo) :</b>\n\n${escapeHtml(order.message)}`
+      escapeHtml(order.message)
     );
   }
 

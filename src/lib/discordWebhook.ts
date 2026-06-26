@@ -2,6 +2,9 @@ import type { Order } from "@/lib/db";
 import { deviceLabel } from "@/lib/device";
 import { createUploadToken } from "@/lib/auth";
 
+// Discord notifications are disabled — Telegram is used instead.
+const DISCORD_DISABLED = true;
+
 type DiscordEmbedField = {
   name: string;
   value: string;
@@ -26,6 +29,7 @@ type DiscordWebhookPayload = {
 };
 
 export async function sendDiscordWebhook(payload: DiscordWebhookPayload) {
+  if (DISCORD_DISABLED) return;
   const url = process.env.DISCORD_WEBHOOK_URL;
   if (!url) return;
 
@@ -54,6 +58,7 @@ export async function sendDiscordWebhookWithFile(
   fileUrl: string,
   filename: string = "music.mp3"
 ) {
+  if (DISCORD_DISABLED) return;
   const url = process.env.DISCORD_WEBHOOK_URL;
   if (!url) return;
 
