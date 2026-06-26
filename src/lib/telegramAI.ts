@@ -2,6 +2,31 @@ import { getAllOrders, type Order } from "@/lib/db";
 
 const OPENAI_CHAT_ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
+type ChatMessage = { role: "user" | "assistant"; content: string };
+
+const conversationHistory: Map<string, ChatMessage[]> = new Map();
+const HISTORY_MAX = 20;
+const HISTORY_TTL = 30 * 60 * 1000; // 30 minutes
+const lastActivity: Map<string, number> = new Map();
+
+function getHistory(chatId: string): ChatMessage[] {
+  const last = lastActivity.get(chatId) || 0;
+  if (Date.now() - last > HISTORY_TTL) {
+    conversationHistory.delete(chatId);
+  }
+  return conversationHistory.get(chatId) || [];
+}
+
+function addToHistory(chatId: string, message: ChatMessage) {
+  const history = getHistory(chatId);
+  history.push(message);
+  if (history.length > HISTORY_MAX) {
+    history.splice(0, history.length - HISTORY_MAX);
+  }
+  conversationHistory.set(chatId, history);
+  lastActivity.set(chatId, Date.now());
+}
+
 function summarizeOrders(orders: Order[]): string {
   const paid = orders.filter((o) => o.status === "paid");
   const pending = paid.filter(
@@ -95,7 +120,7 @@ function summarizeOrders(orders: Order[]): string {
   return summary;
 }
 
-export async function answerQuestion(question: string): Promise<string> {
+export async function answerQuestion(question: string, chatId: string): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return "❌ OPENAI_API_KEY non configurée.";
 
@@ -114,7 +139,16 @@ Règles:
 - Si tu ne peux pas répondre, dis-le
 - Sois concis (max 500 caractères sauf si on te demande un détail)
 - Formate pour Telegram (texte simple, pas de markdown complexe)
-- Date d'aujourd'hui: ${new Date().toISOString().slice(0, 10)}`;
+- Date d'aujourd'hui: ${new Date().toISOString().slice(0, 10)}
+- Tu as le contexte de la conversation précédente, utilise-le pour comprendre les pronoms et références (ex: "sur celles-ci", "pour combien", "les 10 dernières")`;
+
+  const history = getHistory(chatId);
+
+  const messages: { role: string; content: string }[] = [
+    { role: "system", content: systemPrompt },
+    ...history,
+    { role: "user", content: question },
+  ];
 
   try {
     const response = await fetch(OPENAI_CHAT_ENDPOINT, {
@@ -125,10 +159,7 @@ Règles:
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: question },
-        ],
+        messages,
         max_tokens: 1000,
         temperature: 0.3,
       }),
@@ -141,7 +172,12 @@ Règles:
     }
 
     const data = await response.json();
-    return data.choices?.[0]?.message?.content || "❌ Pas de réponse.";
+    const answer = data.choices?.[0]?.message?.content || "❌ Pas de réponse.";
+
+    addToHistory(chatId, { role: "user", content: question });
+    addToHistory(chatId, { role: "assistant", content: answer });
+
+    return answer;
   } catch (err) {
     console.error("AI chat error:", err);
     return "❌ Erreur interne.";

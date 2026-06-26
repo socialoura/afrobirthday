@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       );
     } else if (!text.startsWith("/")) {
       const { answerQuestion } = await import("@/lib/telegramAI");
-      const answer = await answerQuestion(text);
+      const answer = await answerQuestion(text, chatId);
       await sendTelegramMessage(answer, chatId);
     }
 
