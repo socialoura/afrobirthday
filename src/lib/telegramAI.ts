@@ -70,7 +70,7 @@ function summarizeOrders(orders: Order[]): string {
       (now - new Date(o.created_at).getTime()) / (1000 * 60 * 60)
     );
     const ageLabel = age < 24 ? `${age}h` : `${Math.floor(age / 24)}j`;
-    summary += `- ${o.created_at.slice(0, 10)} | ${o.email} | $${Number(o.total_usd).toFixed(2)} | ${o.delivery_method} | ${o.country || "?"} | status: ${o.order_status} | age: ${ageLabel}`;
+    summary += `- ${String(o.created_at).slice(0, 10)} | ${o.email} | $${Number(o.total_usd).toFixed(2)} | ${o.delivery_method} | ${o.country || "?"} | status: ${o.order_status} | age: ${ageLabel}`;
     if (o.final_video_url) summary += ` | ✅ vidéo livrée`;
     if (o.final_video_sent_at) summary += ` | ✅ email envoyé`;
     summary += `\n`;
