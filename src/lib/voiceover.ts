@@ -38,7 +38,7 @@ export function isLikelyEnglish(text: string): boolean {
   }
 
   // Latin-script accents that don't appear in English.
-  if (/[àâäçéèêëîïôöùûüÿœáíóúñãõ¿¡ß]/i.test(trimmed)) {
+  if (/[àâäçéèêëîïôöùûüÿœáíóúñãõ¿¡ßąćęłńśźżĄĆĘŁŃŚŹŻ]/i.test(trimmed)) {
     return false;
   }
 
@@ -58,6 +58,17 @@ export function isLikelyEnglish(text: string): boolean {
     "feliz", "aniversario", "parabens", "amigo", "querido", "abraco",
     // Dutch
     "fijne", "verjaardag", "gefeliciteerd", "lieve",
+    // Polish
+    "wszystkiego", "najlepszego", "urodziny", "sto", "lat", "zdrowia",
+    "kocham", "serdeczne", "zyczenia", "dupa", "ciebie", "byku",
+    // Turkish
+    "dogum", "gunun", "mutlu", "yillar", "kutlu", "olsun", "seni", "seviyorum",
+    // Czech/Slovak
+    "vsechno", "nejlepsi", "narozeniny", "zdravi", "lasku",
+    // Romanian
+    "multi", "ani", "sanatate", "ziua", "nasterii",
+    // Swedish/Norwegian/Danish
+    "grattis", "fodelsedagen", "tillykke", "fodselsdag", "gratulerer",
   ]);
 
   const words = trimmed

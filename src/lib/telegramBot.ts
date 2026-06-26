@@ -140,9 +140,6 @@ export async function sendNewOrderNotification(params: {
     message += `<b>Pays:</b> ${order.country}\n`;
   }
 
-  message += `\n📝 <b>Message anniversaire :</b>\n`;
-  message += `<blockquote>${escapeHtml(order.message)}</blockquote>\n`;
-
   if (order.music_link) {
     message += `\n🎵 <b>Lien musique :</b>\n${escapeHtml(order.music_link)}\n`;
   }
@@ -161,6 +158,13 @@ export async function sendNewOrderNotification(params: {
 
   // Send main text message
   await sendTelegramMessage(message);
+
+  // Send customer message in a separate message
+  if (order.message?.trim()) {
+    await sendTelegramMessage(
+      `📝 <b>MESSAGE CLIENT (pour la vidéo) :</b>\n\n${escapeHtml(order.message)}`
+    );
+  }
 
   // Send photo if available
   if (order.photo_url) {
