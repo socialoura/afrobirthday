@@ -155,7 +155,7 @@ export default async function Footer() {
 
         <div className="border-t border-white/10 mt-8 md:mt-12 pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
           <p className="text-white/60 text-xs md:text-sm">
-            © {new Date().getFullYear()} AfroBirthday. {tFooter("copyright")}
+            © {new Date().getFullYear()} AfroBirthday · v2.0 🚀
           </p>
           <p className="text-white/60 text-xs md:text-sm flex items-center gap-1">
             {tFooter("madeWith")} <Heart size={14} className="text-primary" aria-hidden="true" /> {tFooter("inAfrica")}
