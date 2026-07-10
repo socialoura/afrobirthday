@@ -27,6 +27,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# secrets / agent prompt with credentials — never commit
+AGENT-PROMPT.md
+
 # vercel
 .vercel
 

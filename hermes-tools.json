@@ -1,0 +1,49 @@
+{
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "query_orders",
+        "description": "Recherche des commandes et renvoie leurs détails complets (email, montant, musique, lien musique, message client, statut, livraison, pays, vidéo livrée, etc.). Utilise ceci pour répondre à TOUTE question sur une ou plusieurs commandes précises.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "email_contains": { "type": "string", "description": "Filtre les commandes dont l'email contient ce texte" },
+            "country": { "type": "string", "description": "Code pays exact (ex: US, FR)" },
+            "delivery_method": { "type": "string", "enum": ["express", "standard"] },
+            "music_option": { "type": "string", "enum": ["custom", "preset"], "description": "custom = client a fourni son lien/fichier musique; preset = nous laisse choisir" },
+            "status": { "type": "string", "description": "Statut paiement (paid, canceled, ...)" },
+            "order_status": { "type": "string", "description": "Statut production (pending, completed, cancelled, ...)" },
+            "created_after": { "type": "string", "description": "Date ISO, commandes après cette date" },
+            "created_before": { "type": "string", "description": "Date ISO, commandes avant cette date" },
+            "message_contains": { "type": "string", "description": "Recherche dans le message du client (ex: un prénom)" },
+            "only_pending": { "type": "boolean", "description": "Seulement les commandes payées en attente de production" },
+            "has_video": { "type": "boolean", "description": "true = vidéo déjà livrée, false = pas encore" },
+            "sort": { "type": "string", "enum": ["newest", "oldest"], "description": "Tri par date (défaut newest)" },
+            "limit": { "type": "number", "description": "Nombre max de commandes renvoyées (défaut 20, max 50)" }
+          }
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_stats",
+        "description": "Renvoie des statistiques agrégées (nombre de commandes, revenu total, moyenne, répartition par pays et par livraison) pour les commandes correspondant aux filtres. Utilise ceci pour les questions de comptage / revenu / tendances.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "country": { "type": "string" },
+            "delivery_method": { "type": "string", "enum": ["express", "standard"] },
+            "music_option": { "type": "string", "enum": ["custom", "preset"] },
+            "status": { "type": "string" },
+            "order_status": { "type": "string" },
+            "created_after": { "type": "string", "description": "Date ISO" },
+            "created_before": { "type": "string", "description": "Date ISO" },
+            "only_pending": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  ]
+}
