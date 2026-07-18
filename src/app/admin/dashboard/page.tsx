@@ -20,7 +20,7 @@ import {
   Video,
   CheckCircle2,
 } from "lucide-react";
-import { upload } from "@vercel/blob/client";
+import { uploadFileWithProgress } from "@/lib/clientUpload";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import { SUPPORTED_CURRENCIES, CURRENCY_SYMBOLS } from "@/lib/utils";
 
@@ -343,20 +343,14 @@ export default function AdminDashboardPage() {
     setUploadProgress(0);
     setFinalActionMessage(null);
     try {
-      const blob = await upload(`final-videos/${orderId}/${file.name}`, file, {
-        access: "public",
-        handleUploadUrl: "/api/admin/orders/upload-video",
-        clientPayload: token,
-        contentType: file.type || undefined,
-        onUploadProgress: (e) => {
-          setUploadProgress(Math.round(e.percentage));
-        },
-      });
+      const videoUrl = await uploadFileWithProgress(orderId, file, token, (pct) =>
+        setUploadProgress(pct)
+      );
 
       const res = await fetch("/api/admin/orders/update", {
         method: "PUT",
         headers: authHeaders(),
-        body: JSON.stringify({ orderId, finalVideoUrl: blob.url }),
+        body: JSON.stringify({ orderId, finalVideoUrl: videoUrl }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -365,7 +359,7 @@ export default function AdminDashboardPage() {
 
       setSelectedOrder((prev) =>
         prev && prev.id === orderId
-          ? { ...prev, final_video_url: blob.url }
+          ? { ...prev, final_video_url: videoUrl }
           : prev
       );
       setFinalActionMessage("Video uploaded.");

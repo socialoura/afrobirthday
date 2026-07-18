@@ -3,7 +3,7 @@
  * Downloads music from YouTube, Spotify, etc. and converts to MP3
  */
 
-import { put } from "@vercel/blob";
+import { getSupabaseAdmin, publicUrlFor, STORAGE_BUCKET } from "@/lib/storage";
 
 type DownloadResult = {
   success: boolean;
@@ -40,14 +40,16 @@ export async function downloadMusicFromLink(
       return { success: false, error: "Download failed" };
     }
 
-    // Upload to Vercel Blob
+    // Upload to Supabase Storage
     const filename = `orders/music/${orderId}-custom.mp3`;
-    const blob = await put(filename, mp3Buffer, {
-      access: "public",
-      contentType: "audio/mpeg",
-    });
+    const { error } = await getSupabaseAdmin()
+      .storage.from(STORAGE_BUCKET)
+      .upload(filename, mp3Buffer, { contentType: "audio/mpeg", upsert: true });
+    if (error) {
+      return { success: false, error: error.message };
+    }
 
-    return { success: true, mp3Url: blob.url };
+    return { success: true, mp3Url: publicUrlFor(filename) };
   } catch (error) {
     console.error("Music download error:", error);
     return {

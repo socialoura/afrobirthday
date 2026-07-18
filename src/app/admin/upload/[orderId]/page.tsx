@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { upload } from "@vercel/blob/client";
+import { uploadFileWithProgress } from "@/lib/clientUpload";
 import {
   Upload,
   Loader2,
@@ -101,29 +101,21 @@ function MobileUploadInner() {
       setProgress(0);
       setActionMsg(null);
       try {
-        const blob = await upload(
-          `final-videos/${orderId}/${file.name}`,
-          file,
-          {
-            access: "public",
-            handleUploadUrl: "/api/admin/orders/upload-video",
-            clientPayload: token,
-            contentType: file.type || undefined,
-            onUploadProgress: (e) => setProgress(Math.round(e.percentage)),
-          }
+        const videoUrl = await uploadFileWithProgress(orderId, file, token, (pct) =>
+          setProgress(pct)
         );
 
         const res = await fetch("/api/upload-final/save", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ orderId, t: token, videoUrl: blob.url }),
+          body: JSON.stringify({ orderId, t: token, videoUrl }),
         });
         if (!res.ok) {
           const b = await res.json().catch(() => ({}));
           throw new Error(b?.error || "Échec de l'enregistrement");
         }
 
-        setVideoUrl(blob.url);
+        setVideoUrl(videoUrl);
         setActionMsg("Vidéo uploadée ✓");
       } catch (err) {
         setActionMsg(

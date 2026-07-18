@@ -1,12 +1,30 @@
-import { neon } from "@neondatabase/serverless";
+import postgres from "postgres";
 
-const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+// Prefer the Supabase-provided connection string (injected by the Supabase
+// Vercel integration) over POSTGRES_URL/DATABASE_URL, which are managed by
+// the project's separate Neon integration and read-only in the dashboard.
+const POSTGRES_URL =
+  process.env.SUPABASE_POSTGRES_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.DATABASE_URL;
+
+let cachedSql: ReturnType<typeof postgres> | null = null;
 
 export function getSql() {
   if (!POSTGRES_URL) {
     throw new Error("Missing POSTGRES_URL");
   }
-  return neon(POSTGRES_URL);
+  if (!cachedSql) {
+    cachedSql = postgres(POSTGRES_URL, {
+      // Required for Supabase's transaction-pooling mode (pgbouncer): pooled
+      // connections can be handed to a different client between statements,
+      // which breaks protocol-level prepared statements.
+      prepare: false,
+      ssl: "require",
+      max: 10,
+    });
+  }
+  return cachedSql;
 }
 
 export async function ensureOrdersTable() {
@@ -319,7 +337,7 @@ export async function setOrderMedia(
 export async function getOrderById(orderId: string): Promise<Order | null> {
   const sql = getSql();
   const rows = await sql`SELECT * FROM orders WHERE id = ${orderId}::uuid LIMIT 1`;
-  return rows.length > 0 ? (rows[0] as Order) : null;
+  return rows.length > 0 ? (rows[0] as unknown as Order) : null;
 }
 
 export async function getAllOrders(): Promise<Order[]> {
@@ -327,7 +345,7 @@ export async function getAllOrders(): Promise<Order[]> {
   const rows = await sql`
     SELECT * FROM orders ORDER BY created_at DESC
   `;
-  return rows as Order[];
+  return rows as unknown as Order[];
 }
 
 export async function updateOrderStatus(orderId: string, orderStatus: string) {
@@ -489,7 +507,7 @@ export type PromoCode = {
 export async function getAllPromoCodes(): Promise<PromoCode[]> {
   const sql = getSql();
   const rows = await sql`SELECT * FROM promo_codes ORDER BY created_at DESC`;
-  return rows as PromoCode[];
+  return rows as unknown as PromoCode[];
 }
 
 export async function createPromoCode(data: {
@@ -521,8 +539,8 @@ export async function updatePromoCode(id: string, data: {
       code = COALESCE(${data.code ?? null}, code),
       discount_type = COALESCE(${data.discountType ?? null}, discount_type),
       discount_value = COALESCE(${data.discountValue ?? null}, discount_value),
-      max_uses = COALESCE(${data.maxUses}, max_uses),
-      expires_at = COALESCE(${data.expiresAt}::timestamptz, expires_at),
+      max_uses = COALESCE(${data.maxUses ?? null}, max_uses),
+      expires_at = COALESCE(${data.expiresAt ?? null}::timestamptz, expires_at),
       is_active = COALESCE(${data.isActive ?? null}, is_active)
     WHERE id = ${id}::uuid
   `;
@@ -542,7 +560,7 @@ export async function validatePromoCode(code: string): Promise<PromoCode | null>
       AND (expires_at IS NULL OR expires_at > now())
       AND (max_uses IS NULL OR current_uses < max_uses)
   `;
-  return rows.length > 0 ? (rows[0] as PromoCode) : null;
+  return rows.length > 0 ? (rows[0] as unknown as PromoCode) : null;
 }
 
 export async function incrementPromoCodeUsage(code: string) {
@@ -562,7 +580,7 @@ export type GoogleAdsExpense = {
 export async function getAllGoogleAdsExpenses(): Promise<GoogleAdsExpense[]> {
   const sql = getSql();
   const rows = await sql`SELECT * FROM google_ads_expenses ORDER BY month DESC`;
-  return rows as GoogleAdsExpense[];
+  return rows as unknown as GoogleAdsExpense[];
 }
 
 export async function setGoogleAdsExpense(month: string, amount: number) {

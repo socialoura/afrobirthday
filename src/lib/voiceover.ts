@@ -8,7 +8,7 @@
  * attached to the Discord order notification (see discordWebhook.ts).
  */
 
-import { put } from "@vercel/blob";
+import { getSupabaseAdmin, publicUrlFor, STORAGE_BUCKET } from "@/lib/storage";
 
 const OPENAI_TTS_ENDPOINT = "https://api.openai.com/v1/audio/speech";
 
@@ -137,12 +137,15 @@ export async function generateVoiceover(
     const buffer = Buffer.from(arrayBuffer);
 
     const filename = `orders/voiceover/${orderId}-voiceover.mp3`;
-    const blob = await put(filename, buffer, {
-      access: "public",
-      contentType: "audio/mpeg",
-    });
+    const { error } = await getSupabaseAdmin()
+      .storage.from(STORAGE_BUCKET)
+      .upload(filename, buffer, { contentType: "audio/mpeg", upsert: true });
+    if (error) {
+      console.error("Voiceover upload error:", error);
+      return null;
+    }
 
-    return blob.url;
+    return publicUrlFor(filename);
   } catch (error) {
     console.error("Voiceover generation error:", error);
     return null;
