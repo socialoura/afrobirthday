@@ -85,12 +85,132 @@ async function downloadAudio(
   url: string,
   platform: "youtube" | "spotify" | "soundcloud"
 ): Promise<Buffer | null> {
-  if (platform === "youtube" && process.env.RAPIDAPI_KEY) {
-    const viaRapid = await downloadWithRapidapi(url);
+  let target = url;
+  let effectivePlatform = platform;
+
+  // Spotify does not allow direct audio downloads, so we resolve the track's
+  // title/artist and grab the matching YouTube video instead, then reuse the
+  // regular YouTube download path.
+  if (platform === "spotify") {
+    const youtubeUrl = await resolveSpotifyToYoutube(url);
+    if (!youtubeUrl) {
+      console.error("Could not resolve Spotify link to a YouTube video:", url);
+      return null;
+    }
+    console.log(`Resolved Spotify link ${url} -> ${youtubeUrl}`);
+    target = youtubeUrl;
+    effectivePlatform = "youtube";
+  }
+
+  if (effectivePlatform === "youtube" && process.env.RAPIDAPI_KEY) {
+    const viaRapid = await downloadWithRapidapi(target);
     if (viaRapid) return viaRapid;
     console.warn("Rapidapi download failed, falling back to Cobalt API");
   }
-  return downloadFromApi(url, platform);
+  return downloadFromApi(target, effectivePlatform);
+}
+
+/**
+ * Resolves a Spotify track link to the closest matching YouTube video URL.
+ * Reads the track's title + artist from Spotify's public metadata, searches
+ * YouTube for it and returns the first result's watch URL (or null).
+ */
+async function resolveSpotifyToYoutube(spotifyUrl: string): Promise<string | null> {
+  const meta = await getSpotifyTrackMeta(spotifyUrl);
+  if (!meta) return null;
+
+  const query = [meta.title, meta.artist, "audio"].filter(Boolean).join(" ");
+  const videoId = await searchYoutubeVideoId(query);
+  if (!videoId) return null;
+
+  return `https://www.youtube.com/watch?v=${videoId}`;
+}
+
+/**
+ * Fetches a Spotify track's title and artist. The public track page is a
+ * client-rendered JS shell with no metadata, so we read the embed page's
+ * `__NEXT_DATA__` payload (title + artists), and fall back to the oEmbed
+ * endpoint for the title only.
+ */
+async function getSpotifyTrackMeta(
+  spotifyUrl: string
+): Promise<{ title: string; artist?: string } | null> {
+  const trackId = extractSpotifyTrackId(spotifyUrl);
+
+  if (trackId) {
+    try {
+      const html = await fetchText(
+        `https://open.spotify.com/embed/track/${trackId}`
+      );
+      const json = html?.match(
+        /<script id="__NEXT_DATA__"[^>]*>([^]*?)<\/script>/
+      )?.[1];
+      if (json) {
+        const data = JSON.parse(json);
+        const entity = data?.props?.pageProps?.state?.data?.entity;
+        const title: string | undefined = entity?.name || entity?.title;
+        const artist: string | undefined = Array.isArray(entity?.artists)
+          ? entity.artists.map((a: { name?: string }) => a?.name).filter(Boolean).join(", ")
+          : undefined;
+        if (title) return { title, artist };
+      }
+    } catch (err) {
+      console.warn("Spotify embed parse failed:", err);
+    }
+  }
+
+  // Fallback: oEmbed gives the track title (no artist), still enough to search.
+  try {
+    const res = await fetch(
+      `https://open.spotify.com/oembed?url=${encodeURIComponent(spotifyUrl)}`
+    );
+    if (res.ok) {
+      const data = (await res.json()) as { title?: string };
+      if (data.title) return { title: data.title };
+    }
+  } catch (err) {
+    console.warn("Spotify oEmbed failed:", err);
+  }
+
+  return null;
+}
+
+/** Extracts the track id from any Spotify track URL (handles /intl-xx/ prefixes). */
+function extractSpotifyTrackId(url: string): string | null {
+  return url.match(/track\/([A-Za-z0-9]+)/)?.[1] ?? null;
+}
+
+/**
+ * Searches YouTube for a query and returns the first video id by scraping the
+ * results page (no API key needed).
+ */
+async function searchYoutubeVideoId(query: string): Promise<string | null> {
+  try {
+    const html = await fetchText(
+      `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`
+    );
+    if (!html) return null;
+    // The results page embeds JSON with many `"videoId":"XXXXXXXXXXX"` entries;
+    // the first one is the top result.
+    const match = html.match(/"videoId":"([\w-]{11})"/);
+    return match ? match[1] : null;
+  } catch (err) {
+    console.error("YouTube search failed:", err);
+    return null;
+  }
+}
+
+/** Fetches a URL as text with a browser-like User-Agent. */
+async function fetchText(url: string): Promise<string | null> {
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+      "Accept-Language": "en-US,en;q=0.9",
+    },
+  });
+  if (!res.ok) return null;
+  return res.text();
 }
 
 /**
@@ -267,6 +387,14 @@ export async function getMusicInfo(url: string): Promise<{
   duration?: number;
 } | null> {
   try {
+    // Spotify pages don't work with the Cobalt endpoint — read the track's
+    // title/artist from Spotify's public metadata instead.
+    if (detectPlatform(url) === "spotify") {
+      const meta = await getSpotifyTrackMeta(url);
+      if (meta) return { title: meta.title, artist: meta.artist };
+      return null;
+    }
+
     const apiUrl = process.env.MUSIC_DOWNLOAD_API_URL || "https://co.wuk.sh/api/json";
 
     const response = await fetch(apiUrl, {
