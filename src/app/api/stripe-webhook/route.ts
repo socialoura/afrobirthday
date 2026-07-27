@@ -10,6 +10,9 @@ import {
 import { formatStripeAmount } from "@/lib/currency";
 
 export const runtime = "nodejs";
+// notifyOrderPaid generates the TTS voiceover and downloads the custom song,
+// which can exceed the default 10s budget. 60s is the Hobby plan ceiling.
+export const maxDuration = 60;
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",

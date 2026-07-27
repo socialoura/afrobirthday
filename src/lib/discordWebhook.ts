@@ -1,4 +1,5 @@
 import type { Order } from "@/lib/db";
+import type { VoiceoverResult } from "@/lib/voiceover";
 import { deviceLabel } from "@/lib/device";
 import { createUploadToken } from "@/lib/auth";
 
@@ -289,48 +290,67 @@ export async function notifyOrderPaid(params: {
 }) {
   const { order } = params;
 
-  // Download the custom song and generate a voiceover of a non-English message
-  // in parallel — both are best-effort and must not block the notification.
-  const [downloadedMusicUrl, voiceoverUrl] = await Promise.all([
-    (async (): Promise<string | null> => {
-      if (!(order.music_link && order.music_option === "custom")) return null;
-      try {
-        const { downloadMusicFromLink } = await import("@/lib/musicDownloader");
-        const result = await downloadMusicFromLink(order.music_link, order.id);
-        if (result.success && result.mp3Url) {
-          console.log(`Music downloaded for order ${order.id}:`, result.mp3Url);
-          return result.mp3Url;
-        }
-      } catch (err) {
-        console.error("Failed to download music:", err);
-        // Continue anyway — the notification still includes the link.
-      }
-      return null;
-    })(),
-    (async (): Promise<string | null> => {
-      if (!order.message) return null;
-      try {
-        const { generateVoiceoverIfNonEnglish } = await import("@/lib/voiceover");
-        const url = await generateVoiceoverIfNonEnglish(order.message, order.id);
-        if (url) console.log(`Voiceover generated for order ${order.id}:`, url);
-        return url;
-      } catch (err) {
-        console.error("Failed to generate voiceover:", err);
-        return null;
-      }
-    })(),
-  ]);
-
-  // Persist generated media so the WeChat recap page can surface them later.
-  if (downloadedMusicUrl || voiceoverUrl) {
+  const persistMedia = async (media: {
+    voiceoverUrl?: string | null;
+    downloadedMusicUrl?: string | null;
+  }) => {
     try {
       const { setOrderMedia } = await import("@/lib/db");
-      await setOrderMedia(order.id, { voiceoverUrl, downloadedMusicUrl });
+      await setOrderMedia(order.id, media);
     } catch (err) {
       console.error("Failed to persist order media:", err);
     }
-  }
+  };
 
+  // Both jobs are best-effort and must not block the notification, so they run
+  // concurrently. They are awaited (and persisted) separately: the music
+  // download can take ~30s on the Spotify path, and it must never be able to
+  // swallow an already-generated voiceover if the function is cut short.
+  const musicPromise = (async (): Promise<string | null> => {
+    if (!(order.music_link && order.music_option === "custom")) return null;
+    try {
+      const { downloadMusicFromLink } = await import("@/lib/musicDownloader");
+      const result = await downloadMusicFromLink(order.music_link, order.id);
+      if (result.success && result.mp3Url) {
+        console.log(`Music downloaded for order ${order.id}:`, result.mp3Url);
+        return result.mp3Url;
+      }
+    } catch (err) {
+      console.error("Failed to download music:", err);
+      // Continue anyway — the notification still includes the link.
+    }
+    return null;
+  })();
+
+  const voicePromise = (async (): Promise<VoiceoverResult> => {
+    if (!order.message) return { ok: false, reason: "empty-message" };
+    try {
+      const { generateVoiceoverIfNonEnglish } = await import("@/lib/voiceover");
+      const result = await generateVoiceoverIfNonEnglish(order.message, order.id);
+      if (result.ok) {
+        console.log(`Voiceover generated for order ${order.id}:`, result.url);
+      } else {
+        console.warn(`No voiceover for order ${order.id}:`, result.reason, result.detail ?? "");
+      }
+      return result;
+    } catch (err) {
+      console.error("Failed to generate voiceover:", err);
+      return {
+        ok: false,
+        reason: "exception",
+        detail: err instanceof Error ? err.message : String(err),
+      };
+    }
+  })();
+
+  // Persist the voiceover the moment it lands, before waiting on the music.
+  const voiceover = await voicePromise;
+  if (voiceover.ok) await persistMedia({ voiceoverUrl: voiceover.url });
+
+  const downloadedMusicUrl = await musicPromise;
+  if (downloadedMusicUrl) await persistMedia({ downloadedMusicUrl });
+
+  const voiceoverUrl = voiceover.ok ? voiceover.url : null;
   await sendOrderPaidDiscord({ ...params, downloadedMusicUrl, voiceoverUrl });
 
   // Also notify via Telegram bot
@@ -340,7 +360,7 @@ export async function notifyOrderPaid(params: {
       order,
       provider: params.provider,
       amountLabel: params.amountLabel,
-      voiceoverUrl,
+      voiceover,
       downloadedMusicUrl,
     });
   } catch (err) {

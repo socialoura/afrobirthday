@@ -10,6 +10,10 @@ import {
 import { formatStripeAmount } from "@/lib/currency";
 
 export const runtime = "nodejs";
+// notifyOrderPaid generates the TTS voiceover and downloads the custom song
+// (the Spotify path alone polls for up to ~24s). The default 10s budget cut the
+// function off before the media was persisted. 60s is the Hobby plan ceiling.
+export const maxDuration = 60;
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",

@@ -1,4 +1,6 @@
 import type { Order } from "@/lib/db";
+import type { VoiceoverResult } from "@/lib/voiceover";
+import { describeVoiceoverFailure } from "@/lib/voiceover";
 import { createUploadToken } from "@/lib/auth";
 
 const TELEGRAM_API = "https://api.telegram.org/bot";
@@ -111,10 +113,11 @@ export async function sendNewOrderNotification(params: {
   order: Order;
   provider: "Stripe" | "PayPal";
   amountLabel: string;
-  voiceoverUrl?: string | null;
+  voiceover: VoiceoverResult;
   downloadedMusicUrl?: string | null;
 }) {
-  const { order, provider, amountLabel, voiceoverUrl, downloadedMusicUrl } = params;
+  const { order, provider, amountLabel, voiceover, downloadedMusicUrl } = params;
+  const voiceoverUrl = voiceover.ok ? voiceover.url : null;
 
   const siteUrl = resolveSiteUrl();
   let uploadLink = "";
@@ -150,8 +153,21 @@ export async function sendNewOrderNotification(params: {
     message += `✅ MP3 téléchargé\n`;
   }
 
-  if (voiceoverUrl) {
+  // Always report the voiceover outcome. A silently missing line used to be the
+  // only symptom when TTS failed, so nobody noticed the vocal was gone.
+  if (voiceover.ok) {
     message += `🗣️ Voiceover généré\n`;
+  } else if (voiceover.reason === "skipped-english") {
+    message += `🇬🇧 Pas de vocal — message jugé anglais\n`;
+  } else if (voiceover.reason === "empty-message") {
+    message += `🗣️ Pas de vocal — aucun message\n`;
+  } else {
+    message += `⚠️ <b>Voiceover ÉCHOUÉ</b> — ${escapeHtml(
+      describeVoiceoverFailure(voiceover.reason)
+    )}\n`;
+    if (voiceover.detail) {
+      message += `<code>${escapeHtml(voiceover.detail.slice(0, 200))}</code>\n`;
+    }
   }
 
   if (recapLink) {

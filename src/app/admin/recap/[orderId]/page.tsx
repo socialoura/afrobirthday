@@ -55,6 +55,8 @@ function RecapInner() {
   const [copied, setCopied] = useState<string | null>(null);
   const [canShare, setCanShare] = useState(false);
   const [sharing, setSharing] = useState<string | null>(null);
+  const [regenerating, setRegenerating] = useState(false);
+  const [regenError, setRegenError] = useState<string | null>(null);
 
   // Web Share API is only useful on mobile (where WeChat shows up in the share
   // sheet). Detect after mount to avoid SSR hydration mismatch.
@@ -114,6 +116,33 @@ function RecapInner() {
       // user cancelled or unsupported — ignore
     }
   }, []);
+
+  // Generate (or replace) the voiceover MP3 on demand. The automatic pass at
+  // payment time skips English-looking messages and can fail silently, so this
+  // is the manual escape hatch — it always generates, whatever the language.
+  const regenerateVoiceover = useCallback(async () => {
+    setRegenerating(true);
+    setRegenError(null);
+    try {
+      const res = await fetch("/api/recap/regenerate-voiceover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, token }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body?.voiceoverUrl) {
+        setRegenError(body?.error || "Génération échouée.");
+        return;
+      }
+      // Cache-bust so the <audio> element reloads a replaced MP3 (same key).
+      const fresh = `${body.voiceoverUrl}?v=${Date.now()}`;
+      setOrder((o) => (o ? { ...o, voiceover_url: fresh } : o));
+    } catch {
+      setRegenError("Erreur réseau.");
+    } finally {
+      setRegenerating(false);
+    }
+  }, [orderId, token]);
 
   // Open the native share sheet (WeChat appears as a target). Tries to share the
   // actual file first; if file sharing is unsupported (common for audio on iOS)
@@ -334,36 +363,69 @@ function RecapInner() {
           )}
         </section>
 
-        {/* VOCAL */}
-        {order.voiceover_url && (
-          <section className="glass-card p-4 space-y-3">
-            <div className="flex items-center gap-2 text-white/70 text-sm">
-              <Mic size={16} /> Vocal (lecture du message)
-            </div>
-            <audio src={order.voiceover_url} controls className="w-full" />
-            {canShare && (
-              <button
-                type="button"
-                onClick={() => shareFile("voiceover", dl("voiceover"), order.voiceover_url!, `commande-${order.id.slice(0, 8)}-vocal`)}
-                disabled={sharing === "voiceover"}
-                className="w-full btn-primary py-3 flex items-center justify-center gap-2"
+        {/* VOCAL — always rendered, so a missing voiceover is visible and
+            fixable here instead of the whole section silently disappearing. */}
+        <section className="glass-card p-4 space-y-3">
+          <div className="flex items-center gap-2 text-white/70 text-sm">
+            <Mic size={16} /> Vocal (lecture du message)
+          </div>
+
+          {order.voiceover_url ? (
+            <>
+              <audio src={order.voiceover_url} controls className="w-full" />
+              {canShare && (
+                <button
+                  type="button"
+                  onClick={() => shareFile("voiceover", dl("voiceover"), order.voiceover_url!, `commande-${order.id.slice(0, 8)}-vocal`)}
+                  disabled={sharing === "voiceover"}
+                  className="w-full btn-primary py-3 flex items-center justify-center gap-2"
+                >
+                  {sharing === "voiceover" ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <Share2 size={18} />
+                  )}
+                  Partager le vocal (WeChat…)
+                </button>
+              )}
+              <a
+                href={dl("voiceover")}
+                className="w-full block text-center text-sm text-white/60 underline py-1"
               >
-                {sharing === "voiceover" ? (
-                  <Loader2 size={18} className="animate-spin" />
-                ) : (
-                  <Share2 size={18} />
-                )}
-                Partager le vocal (WeChat…)
-              </button>
+                ou télécharger le vocal (MP3)
+              </a>
+            </>
+          ) : (
+            <p className="text-sm text-white/50">
+              Aucun vocal pour cette commande.
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={regenerateVoiceover}
+            disabled={regenerating || !order.message?.trim()}
+            className={
+              order.voiceover_url
+                ? "w-full text-center text-sm text-white/60 underline py-1 disabled:opacity-50"
+                : "w-full btn-primary py-3 flex items-center justify-center gap-2 disabled:opacity-50"
+            }
+          >
+            {regenerating ? (
+              <Loader2 size={18} className="animate-spin inline" />
+            ) : order.voiceover_url ? (
+              "Régénérer le vocal"
+            ) : (
+              <>
+                <Mic size={18} /> Générer le vocal
+              </>
             )}
-            <a
-              href={dl("voiceover")}
-              className="w-full block text-center text-sm text-white/60 underline py-1"
-            >
-              ou télécharger le vocal (MP3)
-            </a>
-          </section>
-        )}
+          </button>
+
+          {regenError && (
+            <p className="text-sm text-error text-center">{regenError}</p>
+          )}
+        </section>
 
         <p className="text-center text-xs text-white/40 pt-2">
           {canShare

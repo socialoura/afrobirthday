@@ -9,6 +9,9 @@ import {
 } from "@/lib/orderEmailTemplates";
 
 export const runtime = "nodejs";
+// notifyOrderPaid generates the TTS voiceover and downloads the custom song,
+// which can exceed the default 10s budget. 60s is the Hobby plan ceiling.
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {

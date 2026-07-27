@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
-import { getAllOrders } from "@/lib/db";
+import { getAllOrders, setOrderMedia } from "@/lib/db";
 import {
   sendTelegramMessage,
+  sendTelegramAudio,
   buildOrdersListMessage,
   getPendingOrders,
   getOverdueOrders,
   sendOverdueAlerts,
 } from "@/lib/telegramBot";
+
+export const runtime = "nodejs";
+// /vocal runs OpenAI TTS + a Supabase upload, well past the default 10s budget.
+export const maxDuration = 60;
 
 type TelegramUpdate = {
   message?: {
@@ -32,6 +37,7 @@ export async function POST(request: Request) {
           `/orders — Voir la queue de production\n` +
           `/overdue — Voir les commandes en retard\n` +
           `/stats — Stats rapides\n` +
+          `/vocal [id] — Générer le vocal d'une commande\n` +
           `/chatid — Afficher ton Chat ID`,
         chatId
       );
@@ -72,6 +78,68 @@ export async function POST(request: Request) {
       msg += `💰 Total payées: <b>${paid.length}</b>`;
 
       await sendTelegramMessage(msg, chatId);
+    } else if (text === "/vocal" || text.startsWith("/vocal ")) {
+      // Manual voiceover generation. Deliberately bypasses the language
+      // heuristic (unlike the automatic pass at payment time): an explicit
+      // /vocal means "read this out loud", whatever the detector thinks.
+      const arg = text.slice("/vocal".length).trim().toLowerCase();
+      const paid = (await getAllOrders()).filter((o) => o.status === "paid");
+
+      let order = paid[0]; // getAllOrders is ordered created_at DESC
+      if (arg) {
+        const matches = paid.filter((o) => String(o.id).toLowerCase().startsWith(arg));
+        if (matches.length === 0) {
+          await sendTelegramMessage(
+            `❌ Aucune commande payée dont l'ID commence par <code>${arg}</code>.`,
+            chatId
+          );
+          return NextResponse.json({ ok: true });
+        }
+        if (matches.length > 1) {
+          await sendTelegramMessage(
+            `⚠️ ${matches.length} commandes commencent par <code>${arg}</code> :\n` +
+              matches.map((o) => `<code>${String(o.id).slice(0, 8)}</code>`).join("\n") +
+              `\n\nPrécise davantage l'ID.`,
+            chatId
+          );
+          return NextResponse.json({ ok: true });
+        }
+        order = matches[0];
+      }
+
+      if (!order) {
+        await sendTelegramMessage("❌ Aucune commande payée.", chatId);
+        return NextResponse.json({ ok: true });
+      }
+      if (!order.message?.trim()) {
+        await sendTelegramMessage(
+          `❌ La commande <code>${String(order.id).slice(0, 8)}</code> n'a pas de message.`,
+          chatId
+        );
+        return NextResponse.json({ ok: true });
+      }
+
+      const short = String(order.id).slice(0, 8);
+      await sendTelegramMessage(
+        `⏳ Génération du vocal pour <code>${short}</code>…`,
+        chatId
+      );
+
+      const { generateVoiceover, describeVoiceoverFailure } = await import(
+        "@/lib/voiceover"
+      );
+      const result = await generateVoiceover(order.message, String(order.id));
+      if (!result.ok) {
+        await sendTelegramMessage(
+          `❌ <b>Échec</b> — ${describeVoiceoverFailure(result.reason)}` +
+            (result.detail ? `\n<code>${result.detail.slice(0, 200)}</code>` : ""),
+          chatId
+        );
+        return NextResponse.json({ ok: true });
+      }
+
+      await setOrderMedia(String(order.id), { voiceoverUrl: result.url });
+      await sendTelegramAudio(result.url, `🗣️ Vocal — <code>${short}</code>`, chatId);
     } else if (text === "/chatid") {
       await sendTelegramMessage(
         `🔑 <b>Ton Chat ID :</b> <code>${chatId}</code>\n\n` +
