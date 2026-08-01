@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard, Wallet } from "lucide-react";
+import posthog from "posthog-js";
 import { cn, currencyFromLocale, type CurrencyCode, PRICES } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
 import { useLocale, useTranslations } from "next-intl";
@@ -215,6 +216,24 @@ export default function OrderFormSection() {
   const deliveryMethod = watch("deliveryMethod");
   const message = watch("message") || "";
 
+  const hasStartedOrderRef = useRef(false);
+  const trackOrderStarted = useCallback(() => {
+    if (hasStartedOrderRef.current) return;
+    hasStartedOrderRef.current = true;
+    posthog.capture("order_form_started");
+  }, []);
+
+  const isFirstMusicOptionRender = useRef(true);
+  useEffect(() => {
+    if (isFirstMusicOptionRender.current) {
+      isFirstMusicOptionRender.current = false;
+      return;
+    }
+    if (musicOption === "custom") {
+      posthog.capture("music_selected", { music_option: "custom" });
+    }
+  }, [musicOption]);
+
   const totalPrice =
     pricing.base +
     (musicOption === "custom" ? pricing.customSong : 0) +
@@ -283,11 +302,13 @@ export default function OrderFormSection() {
   }, []);
 
   const handlePhotoSelect = (file: File) => {
+    trackOrderStarted();
     if (file.size > 5 * 1024 * 1024) {
       alert(t("alerts.photoTooLarge"));
       return;
     }
     setPhoto(file);
+    posthog.capture("photo_selected", { file_size_kb: Math.round(file.size / 1024) });
     const reader = new FileReader();
     reader.onload = (e) => setPhotoPreview(e.target?.result as string);
     reader.readAsDataURL(file);
@@ -298,6 +319,15 @@ export default function OrderFormSection() {
       alert(t("alerts.photoMissing"));
       return;
     }
+
+    posthog.capture("checkout_initiated", {
+      payment_method: data.paymentMethod,
+      music_option: musicOption,
+      delivery_method: deliveryMethod,
+      total_price: totalPrice,
+      currency: localCurrency,
+    });
+    posthog.identify(data.email, { email: data.email });
 
     setIsSubmitting(true);
     
@@ -513,6 +543,7 @@ export default function OrderFormSection() {
 
                 <textarea
                   {...register("message")}
+                  onFocus={trackOrderStarted}
                   placeholder={t("message.placeholder")}
                   maxLength={100}
                   rows={3}
@@ -537,6 +568,7 @@ export default function OrderFormSection() {
                 <input
                   type="email"
                   {...register("email")}
+                  onFocus={trackOrderStarted}
                   placeholder={t("email.placeholder")}
                   className={cn(
                     "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base h-12",

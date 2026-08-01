@@ -34,6 +34,17 @@ const nextConfig = {
       },
     ];
   },
+  // Reverse proxy for PostHog ingestion (EU cloud) — keeps analytics same-origin
+  // so ad-blockers targeting posthog.com don't drop organic-traffic events.
+  // The "/ingest" prefix must match api_host in src/instrumentation-client.ts.
+  async rewrites() {
+    return [
+      { source: '/ingest/static/:path*', destination: 'https://eu-assets.i.posthog.com/static/:path*' },
+      { source: '/ingest/decide', destination: 'https://eu.i.posthog.com/decide' },
+      { source: '/ingest/:path*', destination: 'https://eu.i.posthog.com/:path*' },
+    ];
+  },
+  skipTrailingSlashRedirect: true,
 };
 
 export default withNextIntl(nextConfig);

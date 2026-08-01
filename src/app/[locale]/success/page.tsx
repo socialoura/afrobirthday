@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import GoogleAdsPurchaseConversion from "@/app/success/GoogleAdsPurchaseConversion";
+import PostHogPurchaseCompleted from "@/app/success/PostHogPurchaseCompleted";
 
 export const metadata: Metadata = {
   title: "Payment Successful",
@@ -27,6 +28,7 @@ export default async function SuccessPage({
     <main className="pt-24 pb-20 min-h-screen bg-dark relative overflow-hidden">
       <Suspense fallback={null}>
         <GoogleAdsPurchaseConversion />
+        <PostHogPurchaseCompleted />
       </Suspense>
 
       <div className="absolute inset-0">

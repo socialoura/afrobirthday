@@ -10,6 +10,6 @@ export default createMiddleware({
 
 export const config = {
   matcher: [
-    "/((?!api|_next|admin|success|paypal|v/|.*\\..*).*)",
+    "/((?!api|_next|admin|success|paypal|v/|ingest|.*\\..*).*)",
   ],
 };
