@@ -32,7 +32,11 @@ export function useExchangeRates() {
           }
         }
 
-        const res = await fetch("/api/exchange-rates", { cache: "no-store" });
+        // No cache override: this only runs once the local 1h cache above
+        // has expired, so it's fine (and faster for the visitor) to let the
+        // browser/CDN honor the API route's own Cache-Control instead of
+        // forcing a fresh origin hit every time.
+        const res = await fetch("/api/exchange-rates");
         if (!res.ok) throw new Error("Failed to fetch exchange rates");
         const payload = (await res.json()) as ExchangeRatesPayload;
 
