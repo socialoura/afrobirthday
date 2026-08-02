@@ -11,7 +11,7 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
   },
   experimental: {
-    optimizePackageImports: ['lucide-react', '@stripe/react-stripe-js'],
+    optimizePackageImports: ['lucide-react', '@stripe/react-stripe-js', 'recharts'],
   },
   async headers() {
     return [
