@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          # Dummy values so the build doesn't fail on missing secrets —
+          # this job only validates the build compiles, it never deploys.
+          NEXT_PUBLIC_SITE_URL: https://afrobirthday.com
+          STRIPE_SECRET_KEY: sk_test_dummy
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_dummy
+          ADMIN_USERNAME: ci
+          ADMIN_PASSWORD: ci-dummy-password
+          ADMIN_TOKEN_SECRET: ci-dummy-secret-at-least-32-characters-long
