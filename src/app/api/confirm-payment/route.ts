@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { ensureOrdersTable, getOrderById, markOrderPaid } from "@/lib/db";
+import { ensureOrdersTable, getOrderById, markOrderPaid, incrementPromoCodeUsage } from "@/lib/db";
 import { notifyOrderPaid } from "@/lib/discordWebhook";
 import { sendEmailWithResend } from "@/lib/resend";
 import {
@@ -65,6 +65,12 @@ export async function POST(request: NextRequest) {
 
     // Get updated order for email
     const order = (await getOrderById(orderId)) ?? existingOrder;
+
+    if (order?.promo_code) {
+      await incrementPromoCodeUsage(order.promo_code).catch((err) =>
+        console.error("Failed to increment promo code usage (confirm-payment):", err)
+      );
+    }
 
     // Send confirmation email
     if (order?.email) {

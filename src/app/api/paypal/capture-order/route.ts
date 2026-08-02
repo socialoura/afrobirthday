@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ensureOrdersTable, getOrderById, markOrderPaidPayPal } from "@/lib/db";
+import { ensureOrdersTable, getOrderById, markOrderPaidPayPal, incrementPromoCodeUsage } from "@/lib/db";
 import { notifyOrderPaid } from "@/lib/discordWebhook";
 import { capturePayPalOrder } from "@/lib/paypal";
 import { sendEmailWithResend } from "@/lib/resend";
@@ -49,6 +49,12 @@ export async function POST(request: NextRequest) {
 
     const order = (await getOrderById(orderId)) ?? existingOrder;
 
+    if (!wasAlreadyPaid && order?.promo_code) {
+      await incrementPromoCodeUsage(order.promo_code).catch((err) =>
+        console.error("Failed to increment promo code usage (PayPal):", err)
+      );
+    }
+
     if (!wasAlreadyPaid && order?.email) {
       try {
         await sendEmailWithResend({
@@ -73,7 +79,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      value: order?.total_usd ?? null,
+      // total_local reflects the actual amount charged (after any promo
+      // discount); total_usd is the pre-discount reference price.
+      value: order?.total_local ?? order?.total_usd ?? null,
       currency: "USD",
     });
   } catch (error) {
