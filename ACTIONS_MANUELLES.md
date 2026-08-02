@@ -15,11 +15,10 @@ Chaque correctif appliqué automatiquement est un commit séparé sur `main`
 
 ## 🔴 Accès externe requis (je ne peux pas le faire moi-même)
 
-1. **Ajouter `CRON_SECRET` sur Vercel** — déjà généré et ajouté à `.env.local`
-   (`CRON_SECRET=bc2f3d3efbce444ef9195752e830b86f5b1a9b210e787626da0e58ed70b995a4`).
-   Vercel → projet `afrobirthday` → Settings → Environment Variables → ajoute
-   `CRON_SECRET` avec cette valeur pour **Production** et **Preview**, puis
-   redéploie.
+1. ✅ **`CRON_SECRET` sur Vercel** — fait. Ajouté sur le projet `afrobirthday`
+   (Production + Preview) via l'API Vercel avec le token que tu as mis dans
+   `.env.local`. Un redeploy est nécessaire pour qu'il prenne effet (il le
+   sera dès le prochain `git push`).
 
 2. **Ré-encoder vraiment la vidéo hero sous les 5 Mo** — le WebM cassé (68,9 Mo)
    a été supprimé, donc Chrome/Firefox/Edge chargent déjà 25 Mo de moins. Mais
@@ -171,6 +170,12 @@ remote pour l'instant) :
   légales — 6 pages n'avaient strictement aucune donnée structurée avant
 - Alerte Telegram si le webhook Stripe (source de vérité des paiements) ou
   la capture PayPal échoue — même logique que l'alerte `confirm-payment`
+- Sauvegarde du brouillon de commande (email/message/options) en
+  localStorage, restauré si la page est rechargée par accident
+- `totalVisitors` dans le dashboard admin branché sur un vrai chiffre
+  PostHog (via la clé `POSTHOG` que tu as ajoutée) au lieu d'un 1000 codé en
+  dur — le taux de conversion affiché est maintenant réel
+- `CRON_SECRET` et `POSTHOG` ajoutés sur Vercel (Production + Preview)
 
 **Pour pousser ces commits en production** : `git push` (déclenche un déploiement
 Vercel immédiat) — je ne l'ai pas fait automatiquement, dis-moi quand tu veux
