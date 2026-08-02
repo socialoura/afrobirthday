@@ -6,12 +6,14 @@ import {
   ensureOrdersTable,
   getPricingOverrides,
   getPricingSettings,
+  validatePromoCode,
 } from "@/lib/db";
 import {
   getServerExchangeRates,
   isSupportedCurrency,
   resolveLocalCharge,
 } from "@/lib/currency";
+import { applyPromoToCharge, usdDiscountAmount } from "@/lib/promo";
 import { deviceTypeFromUserAgent } from "@/lib/device";
 
 export const runtime = "nodejs";
@@ -36,6 +38,7 @@ export async function POST(request: NextRequest) {
       deliveryMethod,
       photoUrl,
       currency: requestedCurrency,
+      promoCode: requestedPromoCode,
     } = body;
 
     if (!orderId || typeof orderId !== "string") {
@@ -75,6 +78,21 @@ export async function POST(request: NextRequest) {
       override: overrides[currency],
     });
 
+    // Never trust a client-sent discount: re-validate the code server-side
+    // and recompute the charge from scratch.
+    let finalCharge = charge;
+    let appliedPromoCode: string | null = null;
+    let discountUsd = 0;
+    if (typeof requestedPromoCode === "string" && requestedPromoCode.trim()) {
+      const promo = await validatePromoCode(requestedPromoCode.trim());
+      if (!promo) {
+        return NextResponse.json({ error: "Invalid or expired promo code" }, { status: 400 });
+      }
+      finalCharge = applyPromoToCharge(charge, promo);
+      appliedPromoCode = promo.code;
+      discountUsd = usdDiscountAmount(computedTotalUsd, promo);
+    }
+
     await createOrder({
       id: orderId,
       email,
@@ -87,14 +105,16 @@ export async function POST(request: NextRequest) {
       totalUsd: computedTotalUsd,
       country,
       device,
-      currency: charge.currency,
-      totalLocal: charge.localAmount,
-      exchangeRate: charge.rate,
+      currency: finalCharge.currency,
+      totalLocal: finalCharge.localAmount,
+      exchangeRate: finalCharge.rate,
+      promoCode: appliedPromoCode ?? undefined,
+      discountAmount: discountUsd,
     });
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: charge.stripeAmount,
-      currency: charge.currency.toLowerCase(),
+      amount: finalCharge.stripeAmount,
+      currency: finalCharge.currency.toLowerCase(),
       receipt_email: email,
       metadata: {
         orderId,
@@ -102,9 +122,10 @@ export async function POST(request: NextRequest) {
         message,
         hasCustomSong: hasCustomSong ? "true" : "false",
         isExpress: isExpress ? "true" : "false",
-        currency: charge.currency,
+        currency: finalCharge.currency,
         totalUsd: computedTotalUsd.toFixed(2),
-        exchangeRate: String(charge.rate),
+        exchangeRate: String(finalCharge.rate),
+        ...(appliedPromoCode ? { promoCode: appliedPromoCode, discountUsd: discountUsd.toFixed(2) } : {}),
       },
       automatic_payment_methods: {
         enabled: true,

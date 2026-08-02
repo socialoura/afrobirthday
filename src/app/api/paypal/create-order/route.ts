@@ -4,7 +4,9 @@ import {
   createOrder,
   ensureOrdersTable,
   getPricingSettings,
+  validatePromoCode,
 } from "@/lib/db";
+import { discountedUsdTotal, usdDiscountAmount } from "@/lib/promo";
 import { createPayPalOrder } from "@/lib/paypal";
 import { deviceTypeFromUserAgent } from "@/lib/device";
 
@@ -33,6 +35,7 @@ export async function POST(request: NextRequest) {
       musicFileUrl,
       deliveryMethod,
       photoUrl,
+      promoCode: requestedPromoCode,
     } = body;
 
     if (!orderId || typeof orderId !== "string") {
@@ -55,6 +58,21 @@ export async function POST(request: NextRequest) {
     const country = request.headers.get("x-vercel-ip-country") ?? undefined;
     const device = deviceTypeFromUserAgent(request.headers.get("user-agent"));
 
+    // Never trust a client-sent discount: re-validate the code server-side
+    // and recompute the charge from scratch.
+    let chargedUsd = computedTotalUsd;
+    let appliedPromoCode: string | null = null;
+    let discountUsd = 0;
+    if (typeof requestedPromoCode === "string" && requestedPromoCode.trim()) {
+      const promo = await validatePromoCode(requestedPromoCode.trim());
+      if (!promo) {
+        return NextResponse.json({ error: "Invalid or expired promo code" }, { status: 400 });
+      }
+      chargedUsd = discountedUsdTotal(computedTotalUsd, promo);
+      appliedPromoCode = promo.code;
+      discountUsd = usdDiscountAmount(computedTotalUsd, promo);
+    }
+
     await createOrder({
       id: orderId,
       email,
@@ -67,6 +85,11 @@ export async function POST(request: NextRequest) {
       totalUsd: computedTotalUsd,
       country,
       device,
+      currency: "USD",
+      totalLocal: chargedUsd,
+      exchangeRate: 1,
+      promoCode: appliedPromoCode ?? undefined,
+      discountAmount: discountUsd,
     });
 
     const returnUrl = `${origin}/paypal/success?orderId=${encodeURIComponent(orderId)}`;
@@ -74,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     const { paypalOrderId, approveUrl } = await createPayPalOrder({
       orderId,
-      amountUsd: computedTotalUsd,
+      amountUsd: chargedUsd,
       returnUrl,
       cancelUrl,
     });
