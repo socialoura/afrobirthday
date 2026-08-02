@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard, Wallet } from "lucide-react";
 import posthog from "posthog-js";
-import { cn, currencyFromLocale, type CurrencyCode, PRICES } from "@/lib/utils";
+import { cn, currencyFromLocale, type CurrencyCode, PRICES, ORDER_DRAFT_STORAGE_KEY } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -250,6 +250,7 @@ export default function OrderFormSection() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<OrderFormData>({
     resolver: zodResolver(orderSchema),
@@ -264,6 +265,39 @@ export default function OrderFormSection() {
   const musicOption = watch("musicOption");
   const deliveryMethod = watch("deliveryMethod");
   const message = watch("message") || "";
+
+  // Restore an in-progress draft (email/message/options — never the photo
+  // file itself, which can't be persisted) so an accidental refresh doesn't
+  // wipe out what the customer already typed.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(ORDER_DRAFT_STORAGE_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as Partial<OrderFormData>;
+      if (draft.email) setValue("email", draft.email);
+      if (draft.message) setValue("message", draft.message);
+      if (draft.musicOption) setValue("musicOption", draft.musicOption);
+      if (draft.musicLink) setValue("musicLink", draft.musicLink);
+      if (draft.deliveryMethod) setValue("deliveryMethod", draft.deliveryMethod);
+      if (draft.paymentMethod) setValue("paymentMethod", draft.paymentMethod);
+    } catch {
+      // ignore malformed/unavailable storage
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist the draft on every change (debounced by the browser's own event
+  // loop via react-hook-form's watch subscription — cheap, no extra timers).
+  useEffect(() => {
+    const subscription = watch((values) => {
+      try {
+        localStorage.setItem(ORDER_DRAFT_STORAGE_KEY, JSON.stringify(values));
+      } catch {
+        // ignore (e.g. storage disabled/full)
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [watch]);
 
   const hasStartedOrderRef = useRef(false);
   const trackOrderStarted = useCallback(() => {

@@ -5,6 +5,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** localStorage key for the in-progress order form draft (email/message/options). */
+export const ORDER_DRAFT_STORAGE_KEY = "afrobirthday_order_draft_v1";
+
 export type CurrencyCode =
   | "USD"
   | "EUR"

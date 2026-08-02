@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
+import { ORDER_DRAFT_STORAGE_KEY } from "@/lib/utils";
 
 export default function PostHogPurchaseCompleted() {
   const searchParams = useSearchParams();
@@ -34,6 +35,7 @@ export default function PostHogPurchaseCompleted() {
 
     try {
       window.localStorage.setItem(key, "1");
+      window.localStorage.removeItem(ORDER_DRAFT_STORAGE_KEY);
     } catch {
       // ignore
     }
