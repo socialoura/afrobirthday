@@ -133,6 +133,12 @@ Chaque correctif appliqué automatiquement est un commit séparé sur `main`
   (`create-checkout` vs `create-payment-intent`) — refactor structurel du
   code de paiement, même remarque que les points 3/4 ci-dessus.
 - **Contenu blog / SEO editorial** — travail éditorial, pas du code.
+- **Nettoyer les fichiers markdown à la racine** (`SOUL.md`,
+  `HERMES-PROMPTS.md`, `AGENTS.md`, `QUICK_START.txt`, etc.) — je ne les ai
+  pas touchés : certains ressemblent à de la config pour un autre agent
+  IA/automatisation sur ce projet ("Hermes"), les déplacer sans savoir s'ils
+  sont référencés ailleurs pourrait casser quelque chose que je ne vois pas.
+  À toi de me dire si je peux les réorganiser en sécurité.
 
 ---
 
@@ -176,6 +182,13 @@ remote pour l'instant) :
   PostHog (via la clé `POSTHOG` que tu as ajoutée) au lieu d'un 1000 codé en
   dur — le taux de conversion affiché est maintenant réel
 - `CRON_SECRET` et `POSTHOG` ajoutés sur Vercel (Production + Preview)
+- `.env.example` créé (n'existait jamais) + correction du `.gitignore` qui
+  l'aurait bloqué + README mis à jour (stack technique obsolète : disait
+  encore "Neon PostgreSQL")
+- Dependabot configuré (PRs hebdomadaires groupées mineur/patch, majeures
+  séparées) — pour la modernisation des dépendances sans upgrade en bloc
+- Analyseur de bundle ajouté (`npm run analyze`), aucun effet sur le build
+  normal
 
 **Pour pousser ces commits en production** : `git push` (déclenche un déploiement
 Vercel immédiat) — je ne l'ai pas fait automatiquement, dis-moi quand tu veux
