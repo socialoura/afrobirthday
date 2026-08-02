@@ -475,5 +475,19 @@
       "ssl": "SSL Versleuteld",
       "guaranteed": "Gegarandeerde Service"
     }
+  },
+  "LegalMeta": {
+    "privacy": {
+      "title": "Privacybeleid",
+      "description": "Lees het privacybeleid van AfroBirthday om te begrijpen welke gegevens we verzamelen, hoe we ze gebruiken en hoe we je foto's en persoonlijke gegevens beschermen."
+    },
+    "refund": {
+      "title": "Terugbetalingsbeleid",
+      "description": "Terugbetalingsbeleid en geld-terug-garantie van AfroBirthday. Kom meer te weten over de voorwaarden, hoe je een terugbetaling aanvraagt en de verwerkingstijd."
+    },
+    "terms": {
+      "title": "Servicevoorwaarden",
+      "description": "Lees de servicevoorwaarden van AfroBirthday over bestellen, betalen, levertijden, terugbetalingen en richtlijnen voor content."
+    }
   }
 }

@@ -514,5 +514,19 @@
         "desc": "You'll get an email with your download link as soon as it's ready!"
       }
     }
+  },
+  "LegalMeta": {
+    "privacy": {
+      "title": "Privacy Policy",
+      "description": "Read AfroBirthday's privacy policy to understand what data we collect, how we use it, and how we protect your photos and personal information."
+    },
+    "refund": {
+      "title": "Refund Policy",
+      "description": "AfroBirthday refund policy and money-back guarantee. Learn eligibility, how to request a refund, and expected processing times."
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "description": "Read AfroBirthday terms of service including ordering, payment, delivery timelines, refunds, and content guidelines."
+    }
   }
 }

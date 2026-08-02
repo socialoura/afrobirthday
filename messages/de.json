@@ -504,5 +504,19 @@
         "desc": "Sobald Ihr Video fertig ist, erhalten Sie eine E-Mail mit dem Download-Link."
       }
     }
+  },
+  "LegalMeta": {
+    "privacy": {
+      "title": "Datenschutzerklärung",
+      "description": "Lies die Datenschutzerklärung von AfroBirthday, um zu erfahren, welche Daten wir erheben, wie wir sie nutzen und wie wir deine Fotos und persönlichen Daten schützen."
+    },
+    "refund": {
+      "title": "Rückerstattungsrichtlinie",
+      "description": "Rückerstattungsrichtlinie und Geld-zurück-Garantie von AfroBirthday. Erfahre mehr über die Voraussetzungen, die Beantragung einer Rückerstattung und die Bearbeitungszeiten."
+    },
+    "terms": {
+      "title": "Nutzungsbedingungen",
+      "description": "Lies die Nutzungsbedingungen von AfroBirthday zu Bestellung, Zahlung, Lieferzeiten, Rückerstattungen und Inhaltsrichtlinien."
+    }
   }
 }

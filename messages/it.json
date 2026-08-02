@@ -475,5 +475,19 @@
       "ssl": "Crittografia SSL",
       "guaranteed": "Servizio Garantito"
     }
+  },
+  "LegalMeta": {
+    "privacy": {
+      "title": "Informativa sulla privacy",
+      "description": "Leggi l'informativa sulla privacy di AfroBirthday per sapere quali dati raccogliamo, come li utilizziamo e come proteggiamo le tue foto e i tuoi dati personali."
+    },
+    "refund": {
+      "title": "Politica di rimborso",
+      "description": "Politica di rimborso e garanzia soddisfatti o rimborsati di AfroBirthday. Scopri i requisiti, come richiedere un rimborso e i tempi di elaborazione."
+    },
+    "terms": {
+      "title": "Termini di servizio",
+      "description": "Leggi i termini di servizio di AfroBirthday su ordini, pagamento, tempi di consegna, rimborsi e linee guida sui contenuti."
+    }
   }
 }

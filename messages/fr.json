@@ -514,5 +514,19 @@
         "desc": "Vous recevrez un email avec votre lien de téléchargement dès qu'elle sera prête !"
       }
     }
+  },
+  "LegalMeta": {
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "description": "Consultez la politique de confidentialité d'AfroBirthday pour comprendre quelles données nous collectons, comment nous les utilisons et comment nous protégeons vos photos et informations personnelles."
+    },
+    "refund": {
+      "title": "Politique de remboursement",
+      "description": "Politique de remboursement et garantie satisfait ou remboursé d'AfroBirthday. Découvrez les conditions d'éligibilité, comment demander un remboursement et les délais de traitement."
+    },
+    "terms": {
+      "title": "Conditions d'utilisation",
+      "description": "Consultez les conditions d'utilisation d'AfroBirthday : commande, paiement, délais de livraison, remboursements et règles de contenu."
+    }
   }
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { buildAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
@@ -7,23 +8,23 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "LegalMeta.terms" });
+  const title = t("title");
+  const description = t("description");
 
   return {
-    title: "Terms of Service",
-    description:
-      "Read AfroBirthday terms of service including ordering, payment, delivery timelines, refunds, and content guidelines.",
+    title,
+    description,
     alternates: buildAlternates(locale, "/terms"),
     openGraph: {
-      title: "Terms of Service",
-      description:
-        "Read AfroBirthday terms of service including ordering, payment, delivery timelines, refunds, and content guidelines.",
+      title,
+      description,
       url: `/${locale}/terms`,
       images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     },
     twitter: {
-      title: "Terms of Service",
-      description:
-        "Read AfroBirthday terms of service including ordering, payment, delivery timelines, refunds, and content guidelines.",
+      title,
+      description,
       images: ["/og-image.png"],
     },
   };

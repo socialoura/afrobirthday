@@ -504,5 +504,19 @@
         "desc": "Recibirás un correo con tu enlace de descarga en cuanto esté listo."
       }
     }
+  },
+  "LegalMeta": {
+    "privacy": {
+      "title": "Política de privacidad",
+      "description": "Consulta la política de privacidad de AfroBirthday para saber qué datos recopilamos, cómo los usamos y cómo protegemos tus fotos e información personal."
+    },
+    "refund": {
+      "title": "Política de reembolso",
+      "description": "Política de reembolso y garantía de devolución de AfroBirthday. Conoce los requisitos, cómo solicitar un reembolso y los plazos de procesamiento."
+    },
+    "terms": {
+      "title": "Términos de servicio",
+      "description": "Consulta los términos de servicio de AfroBirthday: pedidos, pago, plazos de entrega, reembolsos y normas de contenido."
+    }
   }
 }

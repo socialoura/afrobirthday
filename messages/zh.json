@@ -504,5 +504,19 @@
         "desc": "视频准备好后，您会立即收到包含下载链接的邮件！"
       }
     }
+  },
+  "LegalMeta": {
+    "privacy": {
+      "title": "隐私政策",
+      "description": "阅读 AfroBirthday 的隐私政策，了解我们收集哪些数据、如何使用这些数据，以及我们如何保护您的照片和个人信息。"
+    },
+    "refund": {
+      "title": "退款政策",
+      "description": "AfroBirthday 的退款政策与退款保证。了解退款资格、申请退款的方式以及预计处理时间。"
+    },
+    "terms": {
+      "title": "服务条款",
+      "description": "阅读 AfroBirthday 的服务条款，包括下单、付款、配送时间、退款和内容准则。"
+    }
   }
 }
