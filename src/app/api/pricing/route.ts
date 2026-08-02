@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
-import { getPricingOverrides, getPricingSettings } from "@/lib/db";
+import { getPricingOverrides, getPricingSettings, getSetting } from "@/lib/db";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const [pricing, overrides] = await Promise.all([
+    const [pricing, overrides, promoEnabledSetting] = await Promise.all([
       getPricingSettings(),
       getPricingOverrides(),
+      getSetting("promo_enabled"),
     ]);
     return NextResponse.json(
-      { ...pricing, overrides },
+      { ...pricing, overrides, promoEnabled: promoEnabledSetting === "true" },
       {
         headers: {
           "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
