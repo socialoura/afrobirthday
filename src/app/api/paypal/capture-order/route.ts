@@ -7,6 +7,7 @@ import {
   renderOrderConfirmationEmailHtml,
   renderOrderConfirmationEmailText,
 } from "@/lib/orderEmailTemplates";
+import { sendTelegramMessage } from "@/lib/telegramBot";
 
 export const runtime = "nodejs";
 // notifyOrderPaid generates the TTS voiceover and downloads the custom song,
@@ -77,6 +78,11 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("PayPal capture error:", error);
+    await sendTelegramMessage(
+      `🚨 <b>PayPal capture-order failed</b>\nA payment may have been approved by the customer but not recorded.\nError: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    ).catch(() => {});
     return NextResponse.json(
       { error: "Failed to capture PayPal order" },
       { status: 500 }
