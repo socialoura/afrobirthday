@@ -15,12 +15,7 @@ Chaque correctif appliqué automatiquement est un commit séparé sur `main`
 
 ## 🔴 Accès externe requis (je ne peux pas le faire moi-même)
 
-1. ✅ **`CRON_SECRET` sur Vercel** — fait. Ajouté sur le projet `afrobirthday`
-   (Production + Preview) via l'API Vercel avec le token que tu as mis dans
-   `.env.local`. Un redeploy est nécessaire pour qu'il prenne effet (il le
-   sera dès le prochain `git push`).
-
-2. **Ré-encoder vraiment la vidéo hero sous les 5 Mo** — le WebM cassé (68,9 Mo)
+1. **Ré-encoder vraiment la vidéo hero sous les 5 Mo** — le WebM cassé (68,9 Mo)
    a été supprimé, donc Chrome/Firefox/Edge chargent déjà 25 Mo de moins. Mais
    le MP4 (43,6 Mo) reste le plus gros problème de perf du site. FFmpeg n'est
    pas installé sur cette machine :
@@ -34,7 +29,7 @@ Chaque correctif appliqué automatiquement est un commit séparé sur `main`
 
 ## 🟠 Trop risqué à faire sans test réel en conditions de paiement
 
-3. **Brancher les codes promo au checkout** — toute l'infra existe déjà côté
+2. **Brancher les codes promo au checkout** — toute l'infra existe déjà côté
    admin/DB (`validatePromoCode`, `incrementPromoCodeUsage`, colonnes
    `promo_code`/`discount_amount`), mais rien ne l'appelle. Le brancher
    correctement touche 3 chemins de paiement différents en parallèle
@@ -45,7 +40,7 @@ Chaque correctif appliqué automatiquement est un commit séparé sur `main`
    financier direct. À faire en supervisant chaque étape avec de vrais tests
    de paiement (mode test Stripe + sandbox PayPal).
 
-4. **Aligner la devise PayPal sur le prix local affiché** — PayPal facture
+3. **Aligner la devise PayPal sur le prix local affiché** — PayPal facture
    toujours en USD alors que l'UI affiche un prix converti dans la devise
    locale. Le corriger nécessite de savoir quelles devises ton compte
    marchand PayPal peut réellement recevoir (visible seulement dans ton
@@ -59,27 +54,27 @@ Chaque correctif appliqué automatiquement est un commit séparé sur `main`
 
 ## 🟡 Décisions produit / contenu (pas à moi de trancher)
 
-5. **`SocialProofSection.tsx`** — composant complet ("500+ clients, 50+ pays,
+4. **`SocialProofSection.tsx`** — composant complet ("500+ clients, 50+ pays,
    4.9/5") mais jamais affiché sur le site, et non traduit. Je ne l'ai pas
    réactivé : je ne peux pas confirmer que ces chiffres sont exacts
    aujourd'hui. À toi de me donner les vrais chiffres (ou de me dire de les
    retirer/supprimer le composant) et je le branche.
 
-6. **Deux jeux de témoignages différents et non synchronisés**
+5. **Deux jeux de témoignages différents et non synchronisés**
    (`TestimonialsSection.tsx` vs `SocialProofSection.tsx`) — lequel garder,
    lequel des deux fusionner dedans ?
 
-7. **`reviewCount` du schema JSON-LD** — j'ai corrigé le nombre codé en dur
+6. **`reviewCount` du schema JSON-LD** — j'ai corrigé le nombre codé en dur
    (500) pour qu'il reflète le vrai nombre de témoignages affichés. Mais si
    ces témoignages eux-mêmes ne sont pas des avis clients vérifiables, le
    schema `AggregateRating` reste un risque vis-à-vis des règles de Google
    sur les avis — à voir si tu veux brancher une vraie plateforme d'avis
    (Trustpilot etc.) plus tard.
 
-8. **Le "-50%" permanent dans le hero** — prix barré fixe, sans vraie logique
+7. **Le "-50%" permanent dans le hero** — prix barré fixe, sans vraie logique
    temporelle. Décision marketing, pas un bug technique.
 
-9. **Schema `VideoObject` pour les vidéos showcase** — je n'ai pas ajouté ce
+8. **Schema `VideoObject` pour les vidéos showcase** — je n'ai pas ajouté ce
    schema (pourtant un vrai gain SEO potentiel) car il demande une vraie
    `uploadDate` par vidéo pour être éligible aux rich results Google.
    Inventer une date aurait recréé exactement le problème du `reviewCount`
