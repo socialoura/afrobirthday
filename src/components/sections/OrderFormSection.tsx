@@ -32,6 +32,55 @@ const createOrderSchema = (t: ReturnType<typeof useTranslations>) =>
 
 type OrderFormData = z.infer<ReturnType<typeof createOrderSchema>>;
 
+/**
+ * Downscales/re-encodes large photos client-side before upload, cutting
+ * upload time and storage cost. Uses createImageBitmap's imageOrientation
+ * option so EXIF-rotated phone photos don't come out sideways. Returns null
+ * (meaning: use the original file) if compression isn't worth it, isn't
+ * supported, or fails for any reason — never blocks the upload.
+ */
+async function compressImageIfPossible(file: File): Promise<File | null> {
+  if (typeof window === "undefined" || typeof createImageBitmap !== "function") {
+    return null;
+  }
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const maxDim = 2000;
+    const { width, height } = bitmap;
+
+    if (width <= maxDim && height <= maxDim && file.size <= 1.5 * 1024 * 1024) {
+      bitmap.close?.();
+      return null;
+    }
+
+    const scale = Math.min(1, maxDim / Math.max(width, height));
+    const targetWidth = Math.round(width * scale);
+    const targetHeight = Math.round(height * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      bitmap.close?.();
+      return null;
+    }
+    ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
+    bitmap.close?.();
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob((b) => resolve(b), "image/jpeg", 0.85)
+    );
+    if (!blob || blob.size >= file.size) return null;
+
+    return new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", {
+      type: "image/jpeg",
+    });
+  } catch {
+    return null;
+  }
+}
+
 function VisaLogo() {
   return (
     <svg
@@ -301,17 +350,21 @@ export default function OrderFormSection() {
     }
   }, []);
 
-  const handlePhotoSelect = (file: File) => {
+  const handlePhotoSelect = async (file: File) => {
     trackOrderStarted();
     if (file.size > 5 * 1024 * 1024) {
       alert(t("alerts.photoTooLarge"));
       return;
     }
-    setPhoto(file);
-    posthog.capture("photo_selected", { file_size_kb: Math.round(file.size / 1024) });
+
+    const compressed = await compressImageIfPossible(file);
+    const finalFile = compressed ?? file;
+
+    setPhoto(finalFile);
+    posthog.capture("photo_selected", { file_size_kb: Math.round(finalFile.size / 1024) });
     const reader = new FileReader();
     reader.onload = (e) => setPhotoPreview(e.target?.result as string);
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(finalFile);
   };
 
   const onSubmit = async (data: OrderFormData) => {
