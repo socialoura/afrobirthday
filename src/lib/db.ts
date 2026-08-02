@@ -413,17 +413,6 @@ export async function setSetting(key: string, value: string) {
   `;
 }
 
-export async function getStripeSettings() {
-  const secret = await getSetting('stripe_secret_key');
-  const publishable = await getSetting('stripe_publishable_key');
-  return { secretKey: secret, publishableKey: publishable };
-}
-
-export async function updateStripeSettings(secretKey: string, publishableKey: string) {
-  await setSetting('stripe_secret_key', secretKey);
-  await setSetting('stripe_publishable_key', publishableKey);
-}
-
 export type PricingSettings = {
   base: number;
   customSong: number;
