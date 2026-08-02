@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -12,7 +12,6 @@ import {
 } from "@stripe/react-stripe-js";
 import { X, CreditCard, Lock, ShieldCheck, CheckCircle2, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -99,17 +98,11 @@ function PaymentForm({
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!stripe || !elements) {
-      return;
-    }
-
-    if (!termsAccepted) {
-      setError(t("errors.termsRequired"));
       return;
     }
 
@@ -211,22 +204,6 @@ function PaymentForm({
         </div>
       </div>
 
-      {/* Terms Checkbox */}
-      <label className="flex items-start gap-3 mb-4 cursor-pointer bg-dark/30 rounded-xl p-4 border border-white/10">
-        <input
-          type="checkbox"
-          checked={termsAccepted}
-          onChange={(e) => setTermsAccepted(e.target.checked)}
-          className="w-5 h-5 mt-0.5 rounded border-white/30 bg-dark/50 text-primary focus:ring-primary focus:ring-offset-0"
-        />
-        <span className="text-sm text-white/70">
-          {t("termsPrefix")}{" "}
-          <Link href="/terms" className="text-primary hover:underline" target="_blank">
-            {t("termsLink")}
-          </Link>
-        </span>
-      </label>
-
       {/* Error Message */}
       {error && (
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 mb-4 text-red-400 text-sm">
@@ -282,6 +259,43 @@ export default function CustomPaymentModal({
   onSuccess,
 }: CustomPaymentModalProps) {
   const t = useTranslations("PaymentModal");
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    modalRef.current?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab" || !modalRef.current) return;
+
+      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, iframe, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen || !stripePromise) return null;
 
@@ -296,7 +310,14 @@ export default function CustomPaymentModal({
       <div className="absolute inset-0 bg-dark/95 backdrop-blur-md" />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md bg-gradient-to-b from-dark via-dark to-dark/95 rounded-3xl p-6 border border-white/10 shadow-2xl shadow-primary/10 animate-in fade-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("title")}
+        tabIndex={-1}
+        className="relative w-full max-w-md bg-gradient-to-b from-dark via-dark to-dark/95 rounded-3xl p-6 border border-white/10 shadow-2xl shadow-primary/10 animate-in fade-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto outline-none"
+      >
         {/* Close Button */}
         <button
           type="button"

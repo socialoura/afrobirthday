@@ -8,6 +8,7 @@ import {
   renderOrderConfirmationEmailText,
 } from "@/lib/orderEmailTemplates";
 import { formatStripeAmount } from "@/lib/currency";
+import { sendTelegramMessage } from "@/lib/telegramBot";
 
 export const runtime = "nodejs";
 // notifyOrderPaid generates the TTS voiceover and downloads the custom song
@@ -101,6 +102,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Confirm payment error:", error);
+    await sendTelegramMessage(
+      `⚠️ <b>confirm-payment failed</b>\nA Stripe payment may have succeeded but order confirmation (email/notification) failed to process.\nError: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    ).catch(() => {});
     return NextResponse.json(
       { error: "Failed to confirm payment" },
       { status: 500 }

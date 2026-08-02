@@ -70,7 +70,11 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      ok: true,
+      value: order?.total_usd ?? null,
+      currency: "USD",
+    });
   } catch (error) {
     console.error("PayPal capture error:", error);
     return NextResponse.json(

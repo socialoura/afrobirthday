@@ -30,10 +30,14 @@ export default function PayPalSuccessClient() {
           throw new Error(data?.error ?? "PayPal capture failed");
         }
 
+        const data = (await res.json().catch(() => null)) as
+          | { value?: number | null; currency?: string }
+          | null;
+
         const qs = new URLSearchParams();
         qs.set("orderId", orderId);
-        qs.set("value", "1.0");
-        qs.set("currency", "USD");
+        qs.set("value", data?.value != null ? String(data.value) : "1.0");
+        qs.set("currency", data?.currency ?? "USD");
         router.replace(`/success?${qs.toString()}`);
       } catch (e) {
         setError(e instanceof Error ? e.message : "PayPal capture failed");

@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 export default function ChatWidget() {
   const t = useTranslations("Chat");
   const [isOpen, setIsOpen] = useState(false);
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
   return (
     <>
@@ -66,14 +67,16 @@ export default function ChatWidget() {
             {t("emailCta")}
           </a>
 
-          <a
-            href="https://wa.me/0?text=Hi%20AfroBirthday!"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full border border-slate-200 text-slate-900 font-semibold hover:bg-slate-50 transition-colors"
-          >
-            {t("whatsappCta")}
-          </a>
+          {whatsappNumber && (
+            <a
+              href={`https://wa.me/${whatsappNumber}?text=Hi%20AfroBirthday!`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full border border-slate-200 text-slate-900 font-semibold hover:bg-slate-50 transition-colors"
+            >
+              {t("whatsappCta")}
+            </a>
+          )}
 
           <p className="text-xs text-slate-500 text-center pt-2">{t("hours")}</p>
         </div>

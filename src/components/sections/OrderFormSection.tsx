@@ -529,7 +529,7 @@ export default function OrderFormSection() {
               <div className="glass-card p-6">
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div>
-                    <label className="block font-semibold text-white">
+                    <label htmlFor="order-message" className="block font-semibold text-white">
                       {t("message.label")} <span className="text-error">*</span>
                     </label>
                     <p className="text-white/70 text-sm mt-1">
@@ -542,6 +542,7 @@ export default function OrderFormSection() {
                 </div>
 
                 <textarea
+                  id="order-message"
                   {...register("message")}
                   onFocus={trackOrderStarted}
                   placeholder={t("message.placeholder")}
@@ -559,13 +560,14 @@ export default function OrderFormSection() {
 
               {/* Email */}
               <div className="glass-card p-6">
-                <label className="block font-semibold mb-2 text-white">
+                <label htmlFor="order-email" className="block font-semibold mb-2 text-white">
                   {t("email.label")} <span className="text-error">*</span>
                 </label>
                 <p className="text-white/70 text-sm mb-4">
                   {t("email.help")}
                 </p>
                 <input
+                  id="order-email"
                   type="email"
                   {...register("email")}
                   onFocus={trackOrderStarted}

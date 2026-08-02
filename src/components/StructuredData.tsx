@@ -75,7 +75,7 @@ export default async function StructuredData({ type, locale }: StructuredDataPro
           ? {
               "@type": "AggregateRating",
               ratingValue,
-              reviewCount: 500,
+              reviewCount,
               bestRating: 5,
               worstRating: 1,
             }
