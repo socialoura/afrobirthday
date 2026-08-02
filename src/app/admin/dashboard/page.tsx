@@ -110,11 +110,6 @@ export default function AdminDashboardPage() {
   });
 
   // Settings state
-  const [stripeSettings, setStripeSettings] = useState({
-    secretKey: "",
-    publishableKey: "",
-  });
-
   const [pricingSettings, setPricingSettings] = useState({
     base: 19.99,
     customSong: 9.99,
@@ -192,24 +187,6 @@ export default function AdminDashboardPage() {
     }
   }, [token]);
 
-  const fetchStripeSettings = useCallback(async () => {
-    if (!token) return;
-    try {
-      const res = await fetch("/api/admin/stripe-settings", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setStripeSettings({
-          secretKey: data.secretKey || "",
-          publishableKey: data.publishableKey || "",
-        });
-      }
-    } catch (error) {
-      console.error("Fetch stripe settings error:", error);
-    }
-  }, [token]);
-
   const fetchPricingSettings = useCallback(async () => {
     if (!token) return;
     try {
@@ -266,7 +243,6 @@ export default function AdminDashboardPage() {
       fetchOrders();
       fetchGoogleAdsExpenses();
     } else if (activeTab === "settings") {
-      fetchStripeSettings();
       fetchPricingSettings();
     } else if (activeTab === "promo") {
       fetchPromoCodes();
@@ -278,7 +254,6 @@ export default function AdminDashboardPage() {
     fetchOrders,
     fetchPromoCodes,
     fetchPromoSettings,
-    fetchStripeSettings,
     fetchPricingSettings,
     fetchGoogleAdsExpenses,
   ]);
@@ -459,15 +434,6 @@ export default function AdminDashboardPage() {
   };
 
   // Settings actions
-  const saveStripeSettings = async () => {
-    await fetch("/api/admin/stripe-settings", {
-      method: "PUT",
-      headers: authHeaders(),
-      body: JSON.stringify(stripeSettings),
-    });
-    alert("Stripe settings saved");
-  };
-
   const savePricingSettings = async () => {
     const overrides: Record<string, Record<string, number>> = {};
     for (const [code, value] of Object.entries(priceOverrides)) {
@@ -1092,56 +1058,6 @@ export default function AdminDashboardPage() {
         {/* Settings Tab */}
         {activeTab === "settings" && (
           <div className="space-y-6">
-            <div className="glass-card p-6 rounded-xl">
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Stripe API Keys
-              </h3>
-              <p className="text-white/60 text-sm mb-4">
-                These keys are stored in the database. For production, use
-                environment variables instead.
-              </p>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-white/60 mb-1">
-                    Secret Key (sk_...)
-                  </label>
-                  <input
-                    type="password"
-                    value={stripeSettings.secretKey}
-                    onChange={(e) =>
-                      setStripeSettings((s) => ({
-                        ...s,
-                        secretKey: e.target.value,
-                      }))
-                    }
-                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-white/60 mb-1">
-                    Publishable Key (pk_...)
-                  </label>
-                  <input
-                    type="text"
-                    value={stripeSettings.publishableKey}
-                    onChange={(e) =>
-                      setStripeSettings((s) => ({
-                        ...s,
-                        publishableKey: e.target.value,
-                      }))
-                    }
-                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-                  />
-                </div>
-                <button
-                  onClick={saveStripeSettings}
-                  className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-                >
-                  Save Stripe Settings
-                </button>
-              </div>
-            </div>
-
             <div className="glass-card p-6 rounded-xl">
               <h3 className="text-lg font-semibold text-white mb-4">Pricing (USD)</h3>
               <p className="text-white/60 text-sm mb-4">
