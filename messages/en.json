@@ -276,6 +276,15 @@
         "subtitle": "Pay with your PayPal balance"
       }
     },
+    "promo": {
+      "label": "Promo code",
+      "placeholder": "Enter code",
+      "apply": "Apply",
+      "applying": "Checking...",
+      "invalid": "This code is invalid or expired.",
+      "appliedLabel": "Promo applied",
+      "remove": "Remove"
+    },
     "summary": {
       "title": "Order Summary",
       "items": {
@@ -283,6 +292,7 @@
         "customSong": "Custom Song",
         "express": "Express Delivery"
       },
+      "discount": "Discount ({code})",
       "total": "Total",
       "chargedUsd": "Charged in USD at checkout",
       "estimate": "Prices are estimates in your local currency."

@@ -185,6 +185,15 @@ export default function OrderFormSection() {
   const [priceOverrides, setPriceOverrides] = useState<
     Partial<Record<CurrencyCode, Partial<{ base: number; customSong: number; expressDelivery: number }>>>
   >({});
+  const [promoEnabled, setPromoEnabled] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<{
+    code: string;
+    discountType: "percentage" | "fixed";
+    discountValue: number;
+  } | null>(null);
+  const [promoChecking, setPromoChecking] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
   const { rates, fetchedAt, loading: ratesLoading } = useExchangeRates();
 
   useEffect(() => {
@@ -205,9 +214,12 @@ export default function OrderFormSection() {
           customSong: number;
           expressDelivery: number;
           overrides: Partial<Record<CurrencyCode, Partial<{ base: number; customSong: number; expressDelivery: number }>>>;
+          promoEnabled: boolean;
         }>;
 
         if (!isMounted) return;
+
+        setPromoEnabled(data.promoEnabled === true);
 
         setPricing((prev) => ({
           base: typeof data.base === "number" && Number.isFinite(data.base) ? data.base : prev.base,
@@ -340,6 +352,20 @@ export default function OrderFormSection() {
     (musicOption === "custom" ? localComponent("customSong") : 0) +
     (deliveryMethod === "express" ? localComponent("expressDelivery") : 0);
 
+  // Client-side estimate only, for display — the server always re-validates
+  // the code and recomputes the discounted charge from scratch.
+  const discountLocal = useMemo(() => {
+    if (!appliedPromo) return 0;
+    const rate = localCurrency === "USD" ? 1 : rates[localCurrency] ?? 1;
+    const raw =
+      appliedPromo.discountType === "percentage"
+        ? localTotal * (appliedPromo.discountValue / 100)
+        : appliedPromo.discountValue * rate;
+    return Math.min(localTotal, Math.max(0, raw));
+  }, [appliedPromo, localTotal, localCurrency, rates]);
+
+  const finalTotal = Math.max(0, localTotal - discountLocal);
+
   // True when at least one component of the displayed total is auto-converted
   // (no manual override) — i.e. the live exchange rate actually applies.
   const usesLiveRate = useMemo(() => {
@@ -375,6 +401,47 @@ export default function OrderFormSection() {
       }),
     });
   }, [browserLocale, fetchedAt, localCurrency, ratesLoading]);
+
+  const handleApplyPromo = useCallback(async () => {
+    const code = promoInput.trim();
+    if (!code) return;
+
+    setPromoChecking(true);
+    setPromoError(null);
+
+    try {
+      const res = await fetch("/api/validate-promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = (await res.json()) as {
+        valid: boolean;
+        code?: string;
+        discountType?: "percentage" | "fixed";
+        discountValue?: number;
+      };
+
+      if (data.valid && data.code && data.discountType && typeof data.discountValue === "number") {
+        setAppliedPromo({ code: data.code, discountType: data.discountType, discountValue: data.discountValue });
+        posthog.capture("promo_code_applied", { code: data.code });
+      } else {
+        setAppliedPromo(null);
+        setPromoError(t("promo.invalid"));
+      }
+    } catch {
+      setAppliedPromo(null);
+      setPromoError(t("promo.invalid"));
+    } finally {
+      setPromoChecking(false);
+    }
+  }, [promoInput, t]);
+
+  const handleRemovePromo = useCallback(() => {
+    setAppliedPromo(null);
+    setPromoInput("");
+    setPromoError(null);
+  }, []);
 
   const handlePhotoDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -413,6 +480,7 @@ export default function OrderFormSection() {
       delivery_method: deliveryMethod,
       total_price: totalPrice,
       currency: localCurrency,
+      ...(appliedPromo ? { promo_code: appliedPromo.code } : {}),
     });
     posthog.identify(data.email, { email: data.email });
 
@@ -471,6 +539,7 @@ export default function OrderFormSection() {
             totalPrice,
             hasCustomSong: musicOption === "custom",
             isExpress: deliveryMethod === "express",
+            promoCode: appliedPromo?.code,
           }),
         });
 
@@ -498,6 +567,7 @@ export default function OrderFormSection() {
           currency: localCurrency,
           hasCustomSong: musicOption === "custom",
           isExpress: deliveryMethod === "express",
+          promoCode: appliedPromo?.code,
         }),
       });
 
@@ -880,6 +950,49 @@ export default function OrderFormSection() {
               </div>
             </div>
 
+            {/* Promo code */}
+            {promoEnabled && (
+              <div className="glass-card p-5">
+                <label htmlFor="order-promo" className="block font-semibold text-white mb-3">
+                  {t("promo.label")}
+                </label>
+                {appliedPromo ? (
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-success bg-success/10 text-sm">
+                    <span className="text-white">
+                      {t("promo.appliedLabel")}: <span className="font-semibold">{appliedPromo.code}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleRemovePromo}
+                      className="text-white/70 hover:text-white underline"
+                    >
+                      {t("promo.remove")}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      id="order-promo"
+                      type="text"
+                      value={promoInput}
+                      onChange={(e) => setPromoInput(e.target.value)}
+                      placeholder={t("promo.placeholder")}
+                      className="flex-1 min-w-0 px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base h-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyPromo}
+                      disabled={promoChecking || !promoInput.trim()}
+                      className="px-4 rounded-xl border border-white/20 bg-white/5 text-white font-medium hover:border-primary/50 disabled:opacity-50 shrink-0"
+                    >
+                      {promoChecking ? t("promo.applying") : t("promo.apply")}
+                    </button>
+                  </div>
+                )}
+                {promoError && <p className="text-error text-sm mt-2">{promoError}</p>}
+              </div>
+            )}
+
             {/* Price Summary */}
             <div className="bg-gradient-to-r from-primary/20 to-accent/20 border border-white/10 text-white p-6 rounded-3xl">
               <div className="flex items-center justify-between mb-4">
@@ -903,10 +1016,16 @@ export default function OrderFormSection() {
                     <span>+{formatMoney(localComponent("expressDelivery"))}</span>
                   </div>
                 )}
+                {appliedPromo && discountLocal > 0 && (
+                  <div className="flex justify-between text-success">
+                    <span>{t("summary.discount", { code: appliedPromo.code })}</span>
+                    <span>-{formatMoney(discountLocal)}</span>
+                  </div>
+                )}
                 <div className="border-t border-white/20 pt-2 mt-2">
                   <div className="flex justify-between text-lg font-bold">
                     <span>{t("summary.total")}</span>
-                    <span className="text-secondary">{formatMoney(localTotal)}</span>
+                    <span className="text-secondary">{formatMoney(finalTotal)}</span>
                   </div>
                   {usesLiveRate && ratesNote && (
                     <p className="text-white/60 text-xs mt-2">{ratesNote}</p>
@@ -957,7 +1076,7 @@ export default function OrderFormSection() {
                   {paymentMethod === "paypal" ? <Wallet size={18} /> : <CreditCard size={18} />}
                   {paymentMethod === "paypal"
                     ? t("submit.paypal")
-                    : t("submit.pay", { amount: formatMoney(localTotal) })}
+                    : t("submit.pay", { amount: formatMoney(finalTotal) })}
                 </>
               )}
             </button>
@@ -992,12 +1111,12 @@ export default function OrderFormSection() {
             setCurrentOrderId(null);
           }}
           clientSecret={stripeClientSecret}
-          amount={formatMoney(localTotal)}
+          amount={formatMoney(finalTotal)}
           productName={t("productName")}
           orderId={currentOrderId}
           onSuccess={() => {
             const orderId = currentOrderId;
-            const value = localTotal;
+            const value = finalTotal;
             const currency = localCurrency;
             const qs = new URLSearchParams();
             if (orderId) qs.set("orderId", orderId);

@@ -276,6 +276,15 @@
         "subtitle": "Payer avec votre solde PayPal"
       }
     },
+    "promo": {
+      "label": "Code promo",
+      "placeholder": "Entrez le code",
+      "apply": "Appliquer",
+      "applying": "Vérification...",
+      "invalid": "Ce code est invalide ou expiré.",
+      "appliedLabel": "Code promo appliqué",
+      "remove": "Retirer"
+    },
     "summary": {
       "title": "Récapitulatif",
       "items": {
@@ -283,6 +292,7 @@
         "customSong": "Chanson personnalisée",
         "express": "Livraison express"
       },
+      "discount": "Réduction ({code})",
       "total": "Total",
       "chargedUsd": "Facturé en USD au paiement",
       "estimate": "Les prix sont des estimations dans votre devise locale."
