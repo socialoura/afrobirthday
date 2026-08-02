@@ -8,6 +8,7 @@ import {
   renderOrderConfirmationEmailText,
 } from "@/lib/orderEmailTemplates";
 import { formatStripeAmount } from "@/lib/currency";
+import { sendTelegramMessage } from "@/lib/telegramBot";
 
 export const runtime = "nodejs";
 // notifyOrderPaid generates the TTS voiceover and downloads the custom song,
@@ -173,6 +174,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   } catch (err) {
     console.error("Webhook handler error:", err);
+    await sendTelegramMessage(
+      `🚨 <b>Stripe webhook handler failed</b>\nEvent type: ${event.type}\nA payment event may not have been recorded (order not marked paid, or email/notification not sent).\nError: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    ).catch(() => {});
     return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
   }
 }
