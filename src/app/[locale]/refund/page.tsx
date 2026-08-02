@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { buildAlternates } from "@/lib/seo";
+import StructuredData from "@/components/StructuredData";
 
 export async function generateMetadata({
   params,
@@ -32,9 +33,17 @@ export async function generateMetadata({
   };
 }
 
-export default function RefundPage() {
+export default async function RefundPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "LegalMeta.refund" });
+
   return (
     <main className="pt-24 pb-20">
+      <StructuredData type="page" locale={locale} pageName={t("title")} path="/refund" />
       <div className="section-container max-w-4xl">
         <h1 className="heading-1 text-center mb-8">Refund Policy</h1>
         <p className="text-dark/60 text-center mb-12">Last updated: January 2024</p>

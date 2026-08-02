@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { buildAlternates } from "@/lib/seo";
+import StructuredData from "@/components/StructuredData";
 
 export async function generateMetadata({
   params,
@@ -30,9 +31,17 @@ export async function generateMetadata({
   };
 }
 
-export default function PrivacyPage() {
+export default async function PrivacyPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "LegalMeta.privacy" });
+
   return (
     <main className="pt-24 pb-20">
+      <StructuredData type="page" locale={locale} pageName={t("title")} path="/privacy" />
       <div className="section-container max-w-4xl">
         <h1 className="heading-1 text-center mb-8">Privacy Policy</h1>
         <p className="text-dark/60 text-center mb-12">Last updated: January 2024</p>

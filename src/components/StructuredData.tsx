@@ -4,11 +4,30 @@ import { PRICES } from "@/lib/utils";
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://afrobirthday.com";
 
 type StructuredDataProps = {
-  type: "home" | "faq";
+  type: "home" | "faq" | "page";
   locale: string;
+  /** Required for type "page" — the breadcrumb label, e.g. "About Us". */
+  pageName?: string;
+  /** Required for type "page" — the path segment, e.g. "/about". */
+  path?: string;
 };
 
-export default async function StructuredData({ type, locale }: StructuredDataProps) {
+function breadcrumbSchema(
+  items: Array<{ name: string; url: string }>
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
+export default async function StructuredData({ type, locale, pageName, path }: StructuredDataProps) {
   const url = `${SITE}/${locale}`;
 
   const organization = {
@@ -82,6 +101,8 @@ export default async function StructuredData({ type, locale }: StructuredDataPro
           : undefined,
     };
 
+    const breadcrumb = breadcrumbSchema([{ name: "Home", url }]);
+
     return (
       <>
         <script
@@ -91,6 +112,10 @@ export default async function StructuredData({ type, locale }: StructuredDataPro
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(product) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
         />
       </>
     );
@@ -108,6 +133,10 @@ export default async function StructuredData({ type, locale }: StructuredDataPro
         acceptedAnswer: { "@type": "Answer", text: it.answer },
       })),
     };
+    const breadcrumb = breadcrumbSchema([
+      { name: "Home", url },
+      { name: "FAQ", url: `${url}/faq` },
+    ]);
     return (
       <>
         <script
@@ -117,6 +146,29 @@ export default async function StructuredData({ type, locale }: StructuredDataPro
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faq) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+        />
+      </>
+    );
+  }
+
+  if (type === "page" && pageName && path) {
+    const breadcrumb = breadcrumbSchema([
+      { name: "Home", url },
+      { name: pageName, url: `${url}${path}` },
+    ]);
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organization) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
         />
       </>
     );

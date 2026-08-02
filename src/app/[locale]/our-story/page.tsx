@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { buildAlternates } from "@/lib/seo";
+import StructuredData from "@/components/StructuredData";
 
 export async function generateMetadata({
   params,
@@ -31,8 +32,14 @@ export async function generateMetadata({
     },
   };
 }
-export default async function OurStoryPage() {
+export default async function OurStoryPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const t = await getTranslations("OurStoryPage");
+  const tMeta = await getTranslations({ locale, namespace: "OurStoryPage.meta" });
   const values = [
     {
       icon: Heart,
@@ -65,6 +72,7 @@ export default async function OurStoryPage() {
 
   return (
     <main className="pt-24 pb-20 bg-dark relative overflow-hidden">
+      <StructuredData type="page" locale={locale} pageName={tMeta("title")} path="/our-story" />
       <div className="section-container relative">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none -z-10" />
 

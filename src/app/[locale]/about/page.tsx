@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { buildAlternates } from "@/lib/seo";
+import StructuredData from "@/components/StructuredData";
 
 export async function generateMetadata({
   params,
@@ -32,11 +33,18 @@ export async function generateMetadata({
   };
 }
 
-export default async function AboutPage() {
+export default async function AboutPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const t = await getTranslations("AboutPage");
+  const tMeta = await getTranslations({ locale, namespace: "AboutPage.meta" });
 
   return (
     <main className="pt-24 pb-20">
+      <StructuredData type="page" locale={locale} pageName={tMeta("title")} path="/about" />
       <div className="section-container max-w-4xl">
         <h1 className="heading-1 text-center mb-8">{t("title")}</h1>
 
