@@ -80,6 +80,13 @@ Chaque correctif appliqué automatiquement est un commit séparé sur `main`
 8. **Le "-50%" permanent dans le hero** — prix barré fixe, sans vraie logique
    temporelle. Décision marketing, pas un bug technique.
 
+9. **Schema `VideoObject` pour les vidéos showcase** — je n'ai pas ajouté ce
+   schema (pourtant un vrai gain SEO potentiel) car il demande une vraie
+   `uploadDate` par vidéo pour être éligible aux rich results Google.
+   Inventer une date aurait recréé exactement le problème du `reviewCount`
+   factice que je viens de corriger. Donne-moi les vraies dates de mise en
+   ligne des 4 vidéos showcase et je l'ajoute.
+
 ---
 
 ## 🎨 Design (mis de côté sur ta demande — à faire quand tu pourras diriger chaque choix)
@@ -103,6 +110,16 @@ Chaque correctif appliqué automatiquement est un commit séparé sur `main`
 - **Rate limiting distribué** (Upstash/Vercel KV) pour `/api/upload` et
   `/api/admin/login` — nécessite de provisionner un service externe.
 - **Pixel Meta / TikTok** — nécessite tes comptes Business Meta/TikTok.
+
+---
+
+## ℹ️ Correction à une affirmation précédente de ce fichier/backlog
+
+- **`/api/admin/login` a en fait déjà un rate limiting** (5 tentatives / 15
+  min, comparaison en temps constant) — j'avais dit le contraire plus tôt à
+  tort. Reste la même limite que `/api/upload` : en mémoire, donc pas partagé
+  entre instances serverless. Pas d'action nécessaire sauf si tu veux du
+  vrai rate limiting distribué (voir section "Nécessite un compte externe").
 
 ---
 
@@ -146,6 +163,14 @@ remote pour l'instant) :
   plusieurs textes de confiance du Hero)
 - Compression des photos côté client avant upload (limite 2000px, JPEG q=0.85,
   respect de l'orientation EXIF)
+- Suppression de `getStripeSettings`/`updateStripeSettings` (orphelines
+  depuis la suppression du panneau admin)
+- `/api/exchange-rates` : le client profite maintenant du cache HTTP au lieu
+  de forcer `no-store` sur chaque appel
+- `BreadcrumbList` (structured data) ajouté sur toutes les pages marketing/
+  légales — 6 pages n'avaient strictement aucune donnée structurée avant
+- Alerte Telegram si le webhook Stripe (source de vérité des paiements) ou
+  la capture PayPal échoue — même logique que l'alerte `confirm-payment`
 
 **Pour pousser ces commits en production** : `git push` (déclenche un déploiement
 Vercel immédiat) — je ne l'ai pas fait automatiquement, dis-moi quand tu veux
