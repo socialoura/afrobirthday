@@ -120,6 +120,7 @@ export default function AdminDashboardPage() {
 
   // Google Ads state
   const [googleAdsExpenses, setGoogleAdsExpenses] = useState<GoogleAdsExpense[]>([]);
+  const [totalVisitors, setTotalVisitors] = useState<number | undefined>(undefined);
   const [newAdsMonth, setNewAdsMonth] = useState("");
   const [newAdsAmount, setNewAdsAmount] = useState("");
 
@@ -235,6 +236,23 @@ export default function AdminDashboardPage() {
     }
   }, [token]);
 
+  const fetchTotalVisitors = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch("/api/admin/analytics-visitors", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.totalVisitors === "number") {
+          setTotalVisitors(data.totalVisitors);
+        }
+      }
+    } catch (error) {
+      console.error("Fetch total visitors error:", error);
+    }
+  }, [token]);
+
   useEffect(() => {
     if (!token) return;
     if (activeTab === "orders") {
@@ -242,6 +260,7 @@ export default function AdminDashboardPage() {
     } else if (activeTab === "analytics") {
       fetchOrders();
       fetchGoogleAdsExpenses();
+      fetchTotalVisitors();
     } else if (activeTab === "settings") {
       fetchPricingSettings();
     } else if (activeTab === "promo") {
@@ -256,6 +275,7 @@ export default function AdminDashboardPage() {
     fetchPromoSettings,
     fetchPricingSettings,
     fetchGoogleAdsExpenses,
+    fetchTotalVisitors,
   ]);
 
   const handleLogout = () => {
@@ -850,6 +870,7 @@ export default function AdminDashboardPage() {
             <AnalyticsDashboard
               orders={orders}
               googleAdsExpenses={googleAdsExpenses}
+              totalVisitors={totalVisitors}
             />
           </div>
         )}
