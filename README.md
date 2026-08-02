@@ -16,6 +16,16 @@ npm run build
 npm start
 ```
 
+## ⚙️ Configuration
+
+Copiez `.env.example` vers `.env.local` et renseignez les vraies valeurs
+(Stripe, PayPal, Supabase, Resend, Telegram, OpenAI, PostHog...). Chaque
+variable est commentée avec son usage et si elle est requise ou optionnelle.
+
+```bash
+cp .env.example .env.local
+```
+
 ## 🎬 Optimisation des vidéos
 
 Les vidéos du site sont automatiquement optimisées pour réduire la taille et améliorer les performances.
@@ -37,8 +47,8 @@ npm run optimize:videos
 - TypeScript
 - Tailwind CSS
 - Stripe + PayPal
-- Neon PostgreSQL
-- Vercel Analytics
+- Supabase (Postgres + Storage)
+- PostHog + Vercel Analytics
 
 ## 📚 Documentation
 
