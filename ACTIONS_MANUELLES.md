@@ -29,18 +29,7 @@ Chaque correctif appliqué automatiquement est un commit séparé sur `main`
 
 ## 🟠 Trop risqué à faire sans test réel en conditions de paiement
 
-2. **Brancher les codes promo au checkout** — toute l'infra existe déjà côté
-   admin/DB (`validatePromoCode`, `incrementPromoCodeUsage`, colonnes
-   `promo_code`/`discount_amount`), mais rien ne l'appelle. Le brancher
-   correctement touche 3 chemins de paiement différents en parallèle
-   (`create-checkout`, `create-payment-intent`, `paypal/create-order`) + il
-   faut incrémenter l'usage seulement sur paiement confirmé (webhook), pas à
-   la création de commande. Je n'ai pas de moyen de tester une vraie
-   transaction Stripe/PayPal ici — un bug dans ce genre de code a un impact
-   financier direct. À faire en supervisant chaque étape avec de vrais tests
-   de paiement (mode test Stripe + sandbox PayPal).
-
-3. **Aligner la devise PayPal sur le prix local affiché** — PayPal facture
+2. **Aligner la devise PayPal sur le prix local affiché** — PayPal facture
    toujours en USD alors que l'UI affiche un prix converti dans la devise
    locale. Le corriger nécessite de savoir quelles devises ton compte
    marchand PayPal peut réellement recevoir (visible seulement dans ton
@@ -52,29 +41,53 @@ Chaque correctif appliqué automatiquement est un commit séparé sur `main`
 
 ---
 
+## 🧪 Implémenté mais à valider avec de vrais tests de paiement
+
+- **Codes promo au checkout** — c'est fait : champ visible sur le formulaire
+  (seulement si tu actives `promo_enabled` dans l'onglet "Promo" de l'admin),
+  validation via un nouvel endpoint public `/api/validate-promo`, remise
+  appliquée et re-vérifiée côté serveur dans les 3 chemins de paiement
+  (`create-checkout`, `create-payment-intent`, `paypal/create-order` — le
+  montant envoyé par le client n'est jamais utilisé tel quel), et
+  `incrementPromoCodeUsage` n'est appelé qu'au moment où le paiement est
+  confirmé (webhook Stripe / `confirm-payment` / capture PayPal), pas à la
+  création de la commande. Un code "fixed" est traité en USD (comme l'admin
+  l'affiche déjà : "Fixed ($)").
+  Je n'ai pas pu faire de vraie transaction Stripe test-mode / PayPal
+  sandbox ici pour vérifier le montant réellement débité de bout en bout —
+  à faire toi-même avant de compter dessus en production :
+  1. Créé un code promo test dans l'admin (ex. `-10%` ou `-5$`).
+  2. Passer une commande en mode test Stripe avec ce code, vérifier dans le
+     dashboard Stripe que le montant débité correspond bien au prix réduit.
+  3. Faire pareil en sandbox PayPal.
+  4. Vérifier que `current_uses` du code n'augmente qu'une fois par
+     commande (recharger `/success` ne doit pas le réincrémenter).
+
+---
+
 ## 🟡 Décisions produit / contenu (pas à moi de trancher)
 
-4. **`SocialProofSection.tsx`** — composant complet ("500+ clients, 50+ pays,
+3. **`SocialProofSection.tsx`** — composant complet ("500+ clients, 50+ pays,
    4.9/5") mais jamais affiché sur le site, et non traduit. Je ne l'ai pas
    réactivé : je ne peux pas confirmer que ces chiffres sont exacts
    aujourd'hui. À toi de me donner les vrais chiffres (ou de me dire de les
    retirer/supprimer le composant) et je le branche.
 
-5. **Deux jeux de témoignages différents et non synchronisés**
+4. **Deux jeux de témoignages différents et non synchronisés**
    (`TestimonialsSection.tsx` vs `SocialProofSection.tsx`) — lequel garder,
    lequel des deux fusionner dedans ?
 
-6. **`reviewCount` du schema JSON-LD** — j'ai corrigé le nombre codé en dur
+5. **`reviewCount` du schema JSON-LD** — j'ai corrigé le nombre codé en dur
    (500) pour qu'il reflète le vrai nombre de témoignages affichés. Mais si
    ces témoignages eux-mêmes ne sont pas des avis clients vérifiables, le
    schema `AggregateRating` reste un risque vis-à-vis des règles de Google
    sur les avis — à voir si tu veux brancher une vraie plateforme d'avis
    (Trustpilot etc.) plus tard.
 
-7. **Le "-50%" permanent dans le hero** — prix barré fixe, sans vraie logique
+6. **Le "-50%" permanent dans le hero** — prix barré fixe, sans vraie logique
    temporelle. Décision marketing, pas un bug technique.
 
-8. **Schema `VideoObject` pour les vidéos showcase** — je n'ai pas ajouté ce
+7. **Schema `VideoObject` pour les vidéos showcase** — je n'ai pas ajouté ce
    schema (pourtant un vrai gain SEO potentiel) car il demande une vraie
    `uploadDate` par vidéo pour être éligible aux rich results Google.
    Inventer une date aurait recréé exactement le problème du `reviewCount`
@@ -184,6 +197,10 @@ remote pour l'instant) :
   séparées) — pour la modernisation des dépendances sans upgrade en bloc
 - Analyseur de bundle ajouté (`npm run analyze`), aucun effet sur le build
   normal
+- Codes promo branchés de bout en bout (formulaire → validation serveur →
+  3 chemins de paiement → incrémentation à la confirmation) — voir la
+  section "À valider avec de vrais tests de paiement" ci-dessus avant mise
+  en prod
 
 **Pour pousser ces commits en production** : `git push` (déclenche un déploiement
 Vercel immédiat) — je ne l'ai pas fait automatiquement, dis-moi quand tu veux
