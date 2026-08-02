@@ -83,6 +83,31 @@ export async function ensureOrdersTable() {
     ADD COLUMN IF NOT EXISTS voiceover_url text,
     ADD COLUMN IF NOT EXISTS downloaded_music_url text
   `;
+
+  // Also created by initAdminTables(), but createOrder() needs these columns
+  // even if the admin dashboard was never opened on this database.
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS promo_code text,
+    ADD COLUMN IF NOT EXISTS discount_amount numeric(10,2) DEFAULT 0
+  `;
+}
+
+export async function ensurePromoCodesTable() {
+  const sql = getSql();
+  await sql`
+    CREATE TABLE IF NOT EXISTS promo_codes (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      code text UNIQUE NOT NULL,
+      discount_type text NOT NULL CHECK (discount_type IN ('percentage', 'fixed')),
+      discount_value numeric(10,2) NOT NULL,
+      max_uses integer,
+      current_uses integer NOT NULL DEFAULT 0,
+      expires_at timestamptz,
+      is_active boolean NOT NULL DEFAULT true,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )
+  `;
 }
 
 export async function ensureSettingsTable() {
@@ -114,6 +139,10 @@ export type OrderCreateInput = {
   exchangeRate?: number;
   /** Device the order was placed from: mobile | tablet | desktop. */
   device?: string;
+  /** Promo code applied at checkout, if any (canonical stored casing). */
+  promoCode?: string;
+  /** Discount amount in USD, matching the total_usd reference price. */
+  discountAmount?: number;
 };
 
 export async function createOrder(input: OrderCreateInput) {
@@ -134,7 +163,9 @@ export async function createOrder(input: OrderCreateInput) {
       currency,
       total_local,
       exchange_rate,
-      device
+      device,
+      promo_code,
+      discount_amount
     ) VALUES (
       ${input.id}::uuid,
       ${input.email},
@@ -149,7 +180,9 @@ export async function createOrder(input: OrderCreateInput) {
       ${input.currency ?? "USD"},
       ${input.totalLocal ?? input.totalUsd},
       ${input.exchangeRate ?? 1},
-      ${input.device ?? null}
+      ${input.device ?? null},
+      ${input.promoCode ?? null},
+      ${input.discountAmount ?? 0}
     )
     ON CONFLICT (id) DO NOTHING
   `;
@@ -231,19 +264,7 @@ export async function initAdminTables() {
   `;
 
   // Promo codes table
-  await sql`
-    CREATE TABLE IF NOT EXISTS promo_codes (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      code text UNIQUE NOT NULL,
-      discount_type text NOT NULL CHECK (discount_type IN ('percentage', 'fixed')),
-      discount_value numeric(10,2) NOT NULL,
-      max_uses integer,
-      current_uses integer NOT NULL DEFAULT 0,
-      expires_at timestamptz,
-      is_active boolean NOT NULL DEFAULT true,
-      created_at timestamptz NOT NULL DEFAULT now()
-    )
-  `;
+  await ensurePromoCodesTable();
 
   // Google Ads expenses table
   await sql`
@@ -541,11 +562,12 @@ export async function deletePromoCode(id: string) {
 }
 
 export async function validatePromoCode(code: string): Promise<PromoCode | null> {
+  await ensurePromoCodesTable();
   const sql = getSql();
   const rows = await sql`
-    SELECT * FROM promo_codes 
-    WHERE code = ${code} 
-      AND is_active = true 
+    SELECT * FROM promo_codes
+    WHERE UPPER(code) = UPPER(${code})
+      AND is_active = true
       AND (expires_at IS NULL OR expires_at > now())
       AND (max_uses IS NULL OR current_uses < max_uses)
   `;
@@ -553,8 +575,9 @@ export async function validatePromoCode(code: string): Promise<PromoCode | null>
 }
 
 export async function incrementPromoCodeUsage(code: string) {
+  await ensurePromoCodesTable();
   const sql = getSql();
-  await sql`UPDATE promo_codes SET current_uses = current_uses + 1 WHERE code = ${code}`;
+  await sql`UPDATE promo_codes SET current_uses = current_uses + 1 WHERE UPPER(code) = UPPER(${code})`;
 }
 
 // ============================================
