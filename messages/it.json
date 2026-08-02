@@ -16,10 +16,18 @@
     "localCurrencyNote": "Visualizzato e addebitato nella tua valuta locale",
     "ctaOrder": "Ordina il mio video",
     "ctaWatch": "Guarda esempi",
+    "ordersThisYear": "Oltre 500 ordini quest'anno",
+    "liveTag": "Video reale",
+    "videoCaption": "Reazione del cliente · 1,2M visualizzazioni",
     "trust": {
       "delivery": "Consegna 24h",
       "guarantee": "Garanzia di rimborso",
-      "rating": "Valutazione 4,9/5"
+      "rating": "Valutazione 4,9/5",
+      "payment": "Pagamento sicuro"
+    },
+    "miniReview": {
+      "text": "Il regalo più bello di sempre — ha pianto!",
+      "name": "Marie L. · Bruxelles"
     }
   },
   "Footer": {
@@ -489,5 +497,15 @@
       "title": "Termini di servizio",
       "description": "Leggi i termini di servizio di AfroBirthday su ordini, pagamento, tempi di consegna, rimborsi e linee guida sui contenuti."
     }
+  },
+  "Chat": {
+    "open": "Apri chat",
+    "close": "Chiudi chat",
+    "title": "Assistenza AfroBirthday",
+    "subtitle": "Di solito rispondiamo entro poche ore",
+    "body": "Hai una domanda su un ordine, la consegna o un rimborso? Contattaci e il nostro team ti risponderà a breve.",
+    "emailCta": "Scrivici",
+    "whatsappCta": "Chatta su WhatsApp",
+    "hours": "Tempo medio di risposta: meno di 4 ore"
   }
 }

@@ -16,10 +16,18 @@
     "localCurrencyNote": "Getoond en afgerekend in je lokale valuta",
     "ctaOrder": "Bestel mijn video",
     "ctaWatch": "Bekijk voorbeelden",
+    "ordersThisYear": "500+ bestellingen dit jaar",
+    "liveTag": "Echte video",
+    "videoCaption": "Reactie van klant · 1,2M weergaven",
     "trust": {
       "delivery": "Levering in 24u",
       "guarantee": "Geld-terug-garantie",
-      "rating": "Score 4,9/5"
+      "rating": "Score 4,9/5",
+      "payment": "Veilig betalen"
+    },
+    "miniReview": {
+      "text": "Beste cadeau ooit — ze huilde!",
+      "name": "Marie L. · Brussel"
     }
   },
   "Footer": {
@@ -489,5 +497,15 @@
       "title": "Servicevoorwaarden",
       "description": "Lees de servicevoorwaarden van AfroBirthday over bestellen, betalen, levertijden, terugbetalingen en richtlijnen voor content."
     }
+  },
+  "Chat": {
+    "open": "Chat openen",
+    "close": "Chat sluiten",
+    "title": "AfroBirthday Support",
+    "subtitle": "We reageren meestal binnen een paar uur",
+    "body": "Heb je een vraag over een bestelling, levering of terugbetaling? Neem contact op en ons team reageert snel.",
+    "emailCta": "Mail ons",
+    "whatsappCta": "Chat via WhatsApp",
+    "hours": "Gemiddelde reactietijd: minder dan 4 uur"
   }
 }

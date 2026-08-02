@@ -518,5 +518,15 @@
       "title": "服务条款",
       "description": "阅读 AfroBirthday 的服务条款，包括下单、付款、配送时间、退款和内容准则。"
     }
+  },
+  "Chat": {
+    "open": "打开聊天",
+    "close": "关闭聊天",
+    "title": "AfroBirthday 客服支持",
+    "subtitle": "我们通常会在几个小时内回复",
+    "body": "对订单、配送或退款有疑问？联系我们，我们的团队会尽快回复您。",
+    "emailCta": "给我们发邮件",
+    "whatsappCta": "通过 WhatsApp 联系",
+    "hours": "平均回复时间：4 小时以内"
   }
 }

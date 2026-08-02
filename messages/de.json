@@ -518,5 +518,15 @@
       "title": "Nutzungsbedingungen",
       "description": "Lies die Nutzungsbedingungen von AfroBirthday zu Bestellung, Zahlung, Lieferzeiten, Rückerstattungen und Inhaltsrichtlinien."
     }
+  },
+  "Chat": {
+    "open": "Chat öffnen",
+    "close": "Chat schließen",
+    "title": "AfroBirthday Support",
+    "subtitle": "Wir antworten normalerweise innerhalb weniger Stunden",
+    "body": "Frage zu einer Bestellung, Lieferung oder Rückerstattung? Melde dich bei uns, unser Team antwortet dir in Kürze.",
+    "emailCta": "E-Mail schreiben",
+    "whatsappCta": "Auf WhatsApp chatten",
+    "hours": "Durchschnittliche Antwortzeit: unter 4 Stunden"
   }
 }

@@ -16,10 +16,18 @@
     "localCurrencyNote": "Exibido e cobrado na sua moeda local",
     "ctaOrder": "Pedir meu vídeo",
     "ctaWatch": "Ver exemplos",
+    "ordersThisYear": "Mais de 500 pedidos este ano",
+    "liveTag": "Vídeo real",
+    "videoCaption": "Reação do cliente · 1,2M visualizações",
     "trust": {
       "delivery": "Entrega em 24h",
       "guarantee": "Garantia de reembolso",
-      "rating": "Nota 4,9/5"
+      "rating": "Nota 4,9/5",
+      "payment": "Pagamento seguro"
+    },
+    "miniReview": {
+      "text": "O melhor presente de todos — ela chorou!",
+      "name": "Marie L. · Bruxelas"
     }
   },
   "Footer": {
@@ -489,5 +497,15 @@
       "title": "Termos de Serviço",
       "description": "Leia os termos de serviço da AfroBirthday sobre pedidos, pagamento, prazos de entrega, reembolsos e diretrizes de conteúdo."
     }
+  },
+  "Chat": {
+    "open": "Abrir chat",
+    "close": "Fechar chat",
+    "title": "Suporte AfroBirthday",
+    "subtitle": "Normalmente respondemos em poucas horas",
+    "body": "Tem uma dúvida sobre um pedido, entrega ou reembolso? Fale connosco e a nossa equipa responderá em breve.",
+    "emailCta": "Envie-nos um email",
+    "whatsappCta": "Conversar no WhatsApp",
+    "hours": "Tempo médio de resposta: menos de 4 horas"
   }
 }

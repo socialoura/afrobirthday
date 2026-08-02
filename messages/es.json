@@ -518,5 +518,15 @@
       "title": "Términos de servicio",
       "description": "Consulta los términos de servicio de AfroBirthday: pedidos, pago, plazos de entrega, reembolsos y normas de contenido."
     }
+  },
+  "Chat": {
+    "open": "Abrir chat",
+    "close": "Cerrar chat",
+    "title": "Soporte de AfroBirthday",
+    "subtitle": "Normalmente respondemos en pocas horas",
+    "body": "¿Tienes una pregunta sobre un pedido, la entrega o un reembolso? Escríbenos y nuestro equipo te responderá enseguida.",
+    "emailCta": "Escríbenos",
+    "whatsappCta": "Chatear por WhatsApp",
+    "hours": "Tiempo medio de respuesta: menos de 4 horas"
   }
 }
