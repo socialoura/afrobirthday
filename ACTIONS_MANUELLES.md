@@ -190,6 +190,8 @@ remote pour l'instant) :
 - Vidéo hero ré-encodée : 43,6 Mo → 3,6 Mo (-91%), FFmpeg installé via
   winget, qualité vérifiée par comparaison de frames avant/après
   (`public/original-videos/blessing_video_principal.mp4` garde l'original)
+- Les 4 vidéos showcase ré-encodées : 52 Mo → 28,3 Mo au total (-46%),
+  même méthode, qualité vérifiée, originaux dans `public/original-videos/`
 
 **Pour pousser ces commits en production** : `git push` (déclenche un déploiement
 Vercel immédiat) — je ne l'ai pas fait automatiquement, dis-moi quand tu veux
