@@ -136,6 +136,36 @@ Chaque correctif appliqué automatiquement est un commit séparé sur `main`
 
 ---
 
+## 📧 5 emails automatiques ajoutés — actions restantes avant activation
+
+Implémentés : demande d'avis Trustpilot, panier abandonné, cross-sell
+"autre anniversaire ?", rappel annuel, parrainage (codes personnels +
+récompense). Chacun suit le même pattern (cron + toggle admin + template) —
+voir l'onglet Settings du dashboard admin, bloc "Automated Emails".
+
+Avant de laisser tourner en prod :
+
+1. **Relire chaque texte d'email dans une vraie boîte de réception** avant
+   d'activer son toggle — seul celui de la demande d'avis (Trustpilot) est
+   activé par défaut, sur ta demande explicite ; les 4 autres sont désactivés
+   par défaut.
+2. **Créer le code `winback_promo_code`** dans l'onglet Promo (ex.
+   `COMEBACK15`), puis le renseigner dans le champ correspondant du bloc
+   Automated Emails — sans ça, les emails cross-sell et rappel annuel restent
+   no-op (le cron saute l'envoi si le champ est vide).
+3. **Vercel Hobby ne permet qu'une fréquence de cron quotidienne** — les 5
+   nouveaux cron jobs tournent chacun une fois par jour (`vercel.json`,
+   décalés d'une heure). Le délai réglé dans l'admin (ex. "3 heures" pour le
+   panier abandonné) est donc une condition d'éligibilité, pas une garantie
+   d'envoi exact à l'heure près — l'email part au prochain passage du cron
+   après que le délai soit dépassé.
+4. **Parrainage** : testé uniquement en lecture de code, pas avec une vraie
+   commande sandbox Stripe/PayPal utilisant un code de parrainage — à valider
+   toi-même avant de compter dessus (vérifier que `promo_code_redemptions`
+   reçoit bien une ligne et que le parrain reçoit son email de récompense).
+
+---
+
 ## ✅ Ce qui a été fait automatiquement (pour référence)
 
 Chaque ligne = un commit séparé sur `main`, en local (rien poussé sur le
@@ -192,6 +222,9 @@ remote pour l'instant) :
   (`public/original-videos/blessing_video_principal.mp4` garde l'original)
 - Les 4 vidéos showcase ré-encodées : 52 Mo → 28,3 Mo au total (-46%),
   même méthode, qualité vérifiée, originaux dans `public/original-videos/`
+- 5 emails automatiques (demande d'avis Trustpilot, panier abandonné,
+  cross-sell, rappel annuel, parrainage avec codes personnels + récompense) —
+  voir la section dédiée ci-dessus pour les actions restantes avant activation
 
 **Pour pousser ces commits en production** : `git push` (déclenche un déploiement
 Vercel immédiat) — je ne l'ai pas fait automatiquement, dis-moi quand tu veux

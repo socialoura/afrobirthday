@@ -301,6 +301,34 @@ export async function initAdminTables() {
     ADD COLUMN IF NOT EXISTS final_video_url text,
     ADD COLUMN IF NOT EXISTS final_video_sent_at timestamptz
   `;
+
+  // Automated post-delivery emails: one nullable "sent_at" column per email
+  // type, doubling as the idempotency guard for its cron job.
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS review_email_sent_at timestamptz,
+    ADD COLUMN IF NOT EXISTS abandoned_cart_email_sent_at timestamptz,
+    ADD COLUMN IF NOT EXISTS cross_sell_email_sent_at timestamptz,
+    ADD COLUMN IF NOT EXISTS annual_reminder_email_sent_at timestamptz,
+    ADD COLUMN IF NOT EXISTS referral_email_sent_at timestamptz
+  `;
+
+  // Referral codes: promo_codes.owner_email links a code back to the
+  // customer it was generated for (NULL for regular admin-created codes).
+  await sql`
+    ALTER TABLE promo_codes
+    ADD COLUMN IF NOT EXISTS owner_email text
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS promo_code_redemptions (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      code text NOT NULL,
+      order_id uuid NOT NULL,
+      referred_email text NOT NULL,
+      redeemed_at timestamptz NOT NULL DEFAULT now()
+    )
+  `;
 }
 
 // ============================================
@@ -338,6 +366,11 @@ export type Order = {
   final_video_sent_at: string | null;
   voiceover_url: string | null;
   downloaded_music_url: string | null;
+  review_email_sent_at: string | null;
+  abandoned_cart_email_sent_at: string | null;
+  cross_sell_email_sent_at: string | null;
+  annual_reminder_email_sent_at: string | null;
+  referral_email_sent_at: string | null;
 };
 
 // Persist best-effort media generated at payment time (voiceover MP3, and the
@@ -404,6 +437,41 @@ export async function markFinalVideoSent(orderId: string) {
     SET final_video_sent_at = now(),
         order_status = 'completed'
     WHERE id = ${orderId}::uuid
+  `;
+}
+
+export async function markReviewEmailSent(orderId: string) {
+  const sql = getSql();
+  await sql`
+    UPDATE orders SET review_email_sent_at = now() WHERE id = ${orderId}::uuid
+  `;
+}
+
+export async function markAbandonedCartEmailSent(orderId: string) {
+  const sql = getSql();
+  await sql`
+    UPDATE orders SET abandoned_cart_email_sent_at = now() WHERE id = ${orderId}::uuid
+  `;
+}
+
+export async function markCrossSellEmailSent(orderId: string) {
+  const sql = getSql();
+  await sql`
+    UPDATE orders SET cross_sell_email_sent_at = now() WHERE id = ${orderId}::uuid
+  `;
+}
+
+export async function markAnnualReminderEmailSent(orderId: string) {
+  const sql = getSql();
+  await sql`
+    UPDATE orders SET annual_reminder_email_sent_at = now() WHERE id = ${orderId}::uuid
+  `;
+}
+
+export async function markReferralEmailSent(orderId: string) {
+  const sql = getSql();
+  await sql`
+    UPDATE orders SET referral_email_sent_at = now() WHERE id = ${orderId}::uuid
   `;
 }
 
@@ -512,6 +580,8 @@ export type PromoCode = {
   expires_at: string | null;
   is_active: boolean;
   created_at: string;
+  /** Set for auto-generated referral codes; NULL for regular admin codes. */
+  owner_email: string | null;
 };
 
 export async function getAllPromoCodes(): Promise<PromoCode[]> {
@@ -526,11 +596,31 @@ export async function createPromoCode(data: {
   discountValue: number;
   maxUses?: number;
   expiresAt?: string;
+  ownerEmail?: string;
 }) {
   const sql = getSql();
   await sql`
-    INSERT INTO promo_codes (code, discount_type, discount_value, max_uses, expires_at)
-    VALUES (${data.code}, ${data.discountType}, ${data.discountValue}, ${data.maxUses ?? null}, ${data.expiresAt ?? null}::timestamptz)
+    INSERT INTO promo_codes (code, discount_type, discount_value, max_uses, expires_at, owner_email)
+    VALUES (${data.code}, ${data.discountType}, ${data.discountValue}, ${data.maxUses ?? null}, ${data.expiresAt ?? null}::timestamptz, ${data.ownerEmail ?? null})
+  `;
+}
+
+export async function getPromoCodeByCode(code: string): Promise<PromoCode | null> {
+  await ensurePromoCodesTable();
+  const sql = getSql();
+  const rows = await sql`SELECT * FROM promo_codes WHERE UPPER(code) = UPPER(${code}) LIMIT 1`;
+  return rows.length > 0 ? (rows[0] as unknown as PromoCode) : null;
+}
+
+export async function recordPromoCodeRedemption(data: {
+  code: string;
+  orderId: string;
+  referredEmail: string;
+}) {
+  const sql = getSql();
+  await sql`
+    INSERT INTO promo_code_redemptions (code, order_id, referred_email)
+    VALUES (${data.code}, ${data.orderId}::uuid, ${data.referredEmail})
   `;
 }
 

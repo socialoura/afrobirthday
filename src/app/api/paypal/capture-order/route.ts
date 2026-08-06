@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ensureOrdersTable, getOrderById, markOrderPaidPayPal, incrementPromoCodeUsage } from "@/lib/db";
 import { notifyOrderPaid } from "@/lib/discordWebhook";
+import { handlePossibleReferralRedemption } from "@/lib/referralEmail";
 import { capturePayPalOrder } from "@/lib/paypal";
 import { sendEmailWithResend } from "@/lib/resend";
 import {
@@ -52,6 +53,9 @@ export async function POST(request: NextRequest) {
     if (!wasAlreadyPaid && order?.promo_code) {
       await incrementPromoCodeUsage(order.promo_code).catch((err) =>
         console.error("Failed to increment promo code usage (PayPal):", err)
+      );
+      await handlePossibleReferralRedemption(order).catch((err) =>
+        console.error("Failed to process referral redemption (PayPal):", err)
       );
     }
 

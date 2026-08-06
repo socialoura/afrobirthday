@@ -1,0 +1,23 @@
+import { type Order, markAnnualReminderEmailSent } from "@/lib/db";
+import { sendEmailWithResend } from "@/lib/resend";
+import {
+  renderAnnualReminderEmailHtml,
+  renderAnnualReminderEmailText,
+} from "@/lib/orderEmailTemplates";
+
+export async function sendAnnualReminderEmail(order: Order, promoCode: string): Promise<void> {
+  await sendEmailWithResend({
+    to: order.email,
+    subject: "Same celebration this year?",
+    html: renderAnnualReminderEmailHtml(order, promoCode),
+    text: renderAnnualReminderEmailText(order, promoCode),
+    replyTo: "support@afrobirthday.com",
+    headers: {
+      "List-Unsubscribe": "<mailto:support@afrobirthday.com?subject=unsubscribe>",
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      "X-Entity-Ref-ID": order.id,
+    },
+  });
+
+  await markAnnualReminderEmailSent(order.id);
+}

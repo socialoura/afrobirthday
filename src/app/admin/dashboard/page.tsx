@@ -68,6 +68,7 @@ type PromoCode = {
   current_uses: number;
   expires_at: string | null;
   is_active: boolean;
+  owner_email: string | null;
 };
 
 type GoogleAdsExpense = {
@@ -117,6 +118,10 @@ export default function AdminDashboardPage() {
   });
   const [priceOverrides, setPriceOverrides] = useState<OverrideForm>({});
   const [newOverrideCurrency, setNewOverrideCurrency] = useState("");
+
+  // Automated emails state (review request, abandoned cart, cross-sell,
+  // annual reminder, referral) — one merged settings object.
+  const [emailSettings, setEmailSettings] = useState<Record<string, string>>({});
 
   // Google Ads state
   const [googleAdsExpenses, setGoogleAdsExpenses] = useState<GoogleAdsExpense[]>([]);
@@ -185,6 +190,21 @@ export default function AdminDashboardPage() {
       }
     } catch (error) {
       console.error("Fetch promo settings error:", error);
+    }
+  }, [token]);
+
+  const fetchEmailSettings = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch("/api/admin/automated-emails-settings", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEmailSettings(data.settings || {});
+      }
+    } catch (error) {
+      console.error("Fetch automated email settings error:", error);
     }
   }, [token]);
 
@@ -263,6 +283,7 @@ export default function AdminDashboardPage() {
       fetchTotalVisitors();
     } else if (activeTab === "settings") {
       fetchPricingSettings();
+      fetchEmailSettings();
     } else if (activeTab === "promo") {
       fetchPromoCodes();
       fetchPromoSettings();
@@ -274,6 +295,7 @@ export default function AdminDashboardPage() {
     fetchPromoCodes,
     fetchPromoSettings,
     fetchPricingSettings,
+    fetchEmailSettings,
     fetchGoogleAdsExpenses,
     fetchTotalVisitors,
   ]);
@@ -410,6 +432,20 @@ export default function AdminDashboardPage() {
       body: JSON.stringify({ enabled: !promoEnabled }),
     });
     setPromoEnabled(!promoEnabled);
+  };
+
+  // Automated emails actions
+  const updateEmailSetting = async (key: string, value: string) => {
+    setEmailSettings((prev) => ({ ...prev, [key]: value }));
+    await fetch("/api/admin/automated-emails-settings", {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify({ [key]: value }),
+    });
+  };
+
+  const toggleEmailSetting = (key: string) => {
+    updateEmailSetting(key, emailSettings[key] === "true" ? "false" : "true");
   };
 
   const createPromoHandler = async () => {
@@ -1028,7 +1064,17 @@ export default function AdminDashboardPage() {
                       key={promo.id}
                       className="border-b border-white/5 hover:bg-white/5"
                     >
-                      <td className="p-4 text-white font-mono">{promo.code}</td>
+                      <td className="p-4 text-white font-mono">
+                        {promo.code}
+                        {promo.owner_email && (
+                          <span
+                            title={`Referral code for ${promo.owner_email}`}
+                            className="ml-2 px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-xs font-sans"
+                          >
+                            Referral
+                          </span>
+                        )}
+                      </td>
                       <td className="p-4 text-white">
                         {promo.discount_type === "percentage"
                           ? `${promo.discount_value}%`
@@ -1229,6 +1275,225 @@ export default function AdminDashboardPage() {
                   className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                 >
                   Save Pricing
+                </button>
+              </div>
+            </div>
+
+            {/* Automated Emails */}
+            <div className="glass-card p-6 rounded-xl space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Automated Emails</h3>
+                <p className="text-white/60 text-sm">
+                  Emails sent automatically on a schedule, no manual action needed.
+                </p>
+              </div>
+
+              {/* Review request */}
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-white font-medium">Review request (Trustpilot)</p>
+                  <p className="text-white/60 text-sm">
+                    Sent this many days after the final video is delivered.
+                  </p>
+                  <input
+                    type="number"
+                    min="0"
+                    value={emailSettings.review_email_delay_days ?? "3"}
+                    onChange={(e) => updateEmailSetting("review_email_delay_days", e.target.value)}
+                    className="mt-2 w-24 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  />
+                </div>
+                <button
+                  onClick={() => toggleEmailSetting("review_email_enabled")}
+                  className={`relative w-14 h-7 shrink-0 rounded-full transition-colors ${
+                    emailSettings.review_email_enabled === "true" ? "bg-green-500" : "bg-white/20"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                      emailSettings.review_email_enabled === "true" ? "left-8" : "left-1"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Abandoned cart */}
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-white font-medium">Abandoned cart reminder</p>
+                  <p className="text-white/60 text-sm">
+                    Sent this many hours after an order is left unpaid.
+                  </p>
+                  <input
+                    type="number"
+                    min="0"
+                    value={emailSettings.abandoned_cart_email_delay_hours ?? "3"}
+                    onChange={(e) =>
+                      updateEmailSetting("abandoned_cart_email_delay_hours", e.target.value)
+                    }
+                    className="mt-2 w-24 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  />
+                </div>
+                <button
+                  onClick={() => toggleEmailSetting("abandoned_cart_email_enabled")}
+                  className={`relative w-14 h-7 shrink-0 rounded-full transition-colors ${
+                    emailSettings.abandoned_cart_email_enabled === "true" ? "bg-green-500" : "bg-white/20"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                      emailSettings.abandoned_cart_email_enabled === "true" ? "left-8" : "left-1"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Shared winback promo code (cross-sell + annual reminder) */}
+              <div>
+                <p className="text-white font-medium">Winback promo code</p>
+                <p className="text-white/60 text-sm">
+                  Code mentioned in the cross-sell and annual reminder emails below (create it
+                  first in the Promo tab).
+                </p>
+                <input
+                  type="text"
+                  value={emailSettings.winback_promo_code ?? ""}
+                  onChange={(e) => updateEmailSetting("winback_promo_code", e.target.value)}
+                  placeholder="e.g. COMEBACK15"
+                  className="mt-2 w-48 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                />
+              </div>
+
+              {/* Cross-sell */}
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-white font-medium">Cross-sell (&quot;another birthday?&quot;)</p>
+                  <p className="text-white/60 text-sm">
+                    Sent this many days after the final video is delivered.
+                  </p>
+                  <input
+                    type="number"
+                    min="0"
+                    value={emailSettings.cross_sell_email_delay_days ?? "7"}
+                    onChange={(e) =>
+                      updateEmailSetting("cross_sell_email_delay_days", e.target.value)
+                    }
+                    className="mt-2 w-24 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  />
+                </div>
+                <button
+                  onClick={() => toggleEmailSetting("cross_sell_email_enabled")}
+                  className={`relative w-14 h-7 shrink-0 rounded-full transition-colors ${
+                    emailSettings.cross_sell_email_enabled === "true" ? "bg-green-500" : "bg-white/20"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                      emailSettings.cross_sell_email_enabled === "true" ? "left-8" : "left-1"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Annual reminder */}
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-white font-medium">Annual reminder</p>
+                  <p className="text-white/60 text-sm">
+                    Sent this many days after the original order date.
+                  </p>
+                  <input
+                    type="number"
+                    min="0"
+                    value={emailSettings.annual_reminder_email_delay_days ?? "365"}
+                    onChange={(e) =>
+                      updateEmailSetting("annual_reminder_email_delay_days", e.target.value)
+                    }
+                    className="mt-2 w-24 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  />
+                </div>
+                <button
+                  onClick={() => toggleEmailSetting("annual_reminder_email_enabled")}
+                  className={`relative w-14 h-7 shrink-0 rounded-full transition-colors ${
+                    emailSettings.annual_reminder_email_enabled === "true" ? "bg-green-500" : "bg-white/20"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                      emailSettings.annual_reminder_email_enabled === "true" ? "left-8" : "left-1"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Referral program */}
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-white font-medium">Referral program</p>
+                  <p className="text-white/60 text-sm">
+                    Sends each customer a personal code this many days after delivery; rewards
+                    them when a friend uses it.
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <label className="text-xs text-white/50">
+                      Delay (days)
+                      <input
+                        type="number"
+                        min="0"
+                        value={emailSettings.referral_email_delay_days ?? "3"}
+                        onChange={(e) =>
+                          updateEmailSetting("referral_email_delay_days", e.target.value)
+                        }
+                        className="block w-20 mt-1 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                      />
+                    </label>
+                    <label className="text-xs text-white/50">
+                      Friend discount %
+                      <input
+                        type="number"
+                        min="0"
+                        value={emailSettings.referral_friend_discount_value ?? "15"}
+                        onChange={(e) =>
+                          updateEmailSetting("referral_friend_discount_value", e.target.value)
+                        }
+                        className="block w-20 mt-1 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                      />
+                    </label>
+                    <label className="text-xs text-white/50">
+                      Max uses/code
+                      <input
+                        type="number"
+                        min="1"
+                        value={emailSettings.referral_max_uses ?? "5"}
+                        onChange={(e) => updateEmailSetting("referral_max_uses", e.target.value)}
+                        className="block w-20 mt-1 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                      />
+                    </label>
+                    <label className="text-xs text-white/50">
+                      Reward %
+                      <input
+                        type="number"
+                        min="0"
+                        value={emailSettings.referral_reward_value ?? "15"}
+                        onChange={(e) =>
+                          updateEmailSetting("referral_reward_value", e.target.value)
+                        }
+                        className="block w-20 mt-1 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                      />
+                    </label>
+                  </div>
+                </div>
+                <button
+                  onClick={() => toggleEmailSetting("referral_email_enabled")}
+                  className={`relative w-14 h-7 shrink-0 rounded-full transition-colors ${
+                    emailSettings.referral_email_enabled === "true" ? "bg-green-500" : "bg-white/20"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                      emailSettings.referral_email_enabled === "true" ? "left-8" : "left-1"
+                    }`}
+                  />
                 </button>
               </div>
             </div>

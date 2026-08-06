@@ -141,6 +141,243 @@ function formatOrderTotal(order: Order) {
   return `${local} (≈ ${usd})`;
 }
 
+/** Shared wrapper (font/width/footer) for the automated post-order emails below. */
+function wrapEmailHtml(bodyHtml: string) {
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 560px; margin: 0 auto; padding: 16px;">
+      ${bodyHtml}
+
+      <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
+
+      <p style="margin:0; font-size: 12px; color: #888;">
+        AfroBirthday — Personalized birthday videos<br/>
+        Support: <a href="mailto:support@afrobirthday.com" style="color: #888;">support@afrobirthday.com</a><br/>
+        You're receiving this email because you placed an order on afrobirthday.com.
+      </p>
+    </div>
+  `;
+}
+
+function wrapEmailText(bodyLines: string[]) {
+  return [
+    ...bodyLines,
+    "",
+    "—",
+    "AfroBirthday — Personalized birthday videos",
+    "Support: support@afrobirthday.com",
+    "You're receiving this email because you placed an order on afrobirthday.com.",
+  ].join("\n");
+}
+
+function formatDiscountLabel(discountType: "percentage" | "fixed", discountValue: number) {
+  return discountType === "percentage" ? `${discountValue}% off` : `$${discountValue} off`;
+}
+
+export function renderReviewRequestEmailHtml(_order: Order) {
+  return wrapEmailHtml(`
+    <p style="margin:0 0 16px;">Hi,</p>
+    <p style="margin:0 0 16px;">
+      We hope you loved your personalized birthday video! If you have a minute,
+      we'd really appreciate a quick review — it helps other people discover us.
+    </p>
+    <p style="margin:0 0 16px;">
+      <a href="https://www.trustpilot.com/review/afrobirthday.com" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
+        Leave a review on Trustpilot
+      </a>
+    </p>
+    <p style="margin:0 0 16px;">
+      Thank you for your support,<br/>
+      The AfroBirthday team
+    </p>
+  `);
+}
+
+export function renderReviewRequestEmailText(_order: Order) {
+  return wrapEmailText([
+    "Hi,",
+    "",
+    "We hope you loved your personalized birthday video! If you have a minute, we'd really appreciate a quick review — it helps other people discover us.",
+    "",
+    "Leave a review on Trustpilot: https://www.trustpilot.com/review/afrobirthday.com",
+    "",
+    "Thank you for your support,",
+    "The AfroBirthday team",
+  ]);
+}
+
+export function renderCrossSellEmailHtml(_order: Order, promoCode: string) {
+  return wrapEmailHtml(`
+    <p style="margin:0 0 16px;">Hi,</p>
+    <p style="margin:0 0 16px;">
+      Got another birthday coming up? Surprise someone else with a personalized
+      AfroBirthday video — use the code below for a discount on your next order.
+    </p>
+    <p style="margin:0 0 16px; font-size: 18px;">
+      <strong style="letter-spacing: 1px;">${escapeHtml(promoCode)}</strong>
+    </p>
+    <p style="margin:0 0 16px;">
+      Thanks for being an AfroBirthday customer,<br/>
+      The AfroBirthday team
+    </p>
+  `);
+}
+
+export function renderCrossSellEmailText(_order: Order, promoCode: string) {
+  return wrapEmailText([
+    "Hi,",
+    "",
+    "Got another birthday coming up? Surprise someone else with a personalized AfroBirthday video — use the code below for a discount on your next order.",
+    "",
+    `Promo code: ${promoCode}`,
+    "",
+    "Thanks for being an AfroBirthday customer,",
+    "The AfroBirthday team",
+  ]);
+}
+
+export function renderAnnualReminderEmailHtml(_order: Order, promoCode: string) {
+  return wrapEmailHtml(`
+    <p style="margin:0 0 16px;">Hi,</p>
+    <p style="margin:0 0 16px;">
+      It's been a year since your last AfroBirthday video — same celebration
+      again this year? Here's a code to make it easy.
+    </p>
+    <p style="margin:0 0 16px; font-size: 18px;">
+      <strong style="letter-spacing: 1px;">${escapeHtml(promoCode)}</strong>
+    </p>
+    <p style="margin:0 0 16px;">
+      Looking forward to making another one for you,<br/>
+      The AfroBirthday team
+    </p>
+  `);
+}
+
+export function renderAnnualReminderEmailText(_order: Order, promoCode: string) {
+  return wrapEmailText([
+    "Hi,",
+    "",
+    "It's been a year since your last AfroBirthday video — same celebration again this year? Here's a code to make it easy.",
+    "",
+    `Promo code: ${promoCode}`,
+    "",
+    "Looking forward to making another one for you,",
+    "The AfroBirthday team",
+  ]);
+}
+
+export function renderAbandonedCartEmailHtml(_order: Order, resumeUrl: string) {
+  const safeUrl = escapeHtml(resumeUrl);
+  return wrapEmailHtml(`
+    <p style="margin:0 0 16px;">Hi,</p>
+    <p style="margin:0 0 16px;">
+      Looks like you started a personalized birthday video but didn't finish
+      checking out. Your details are saved — pick up right where you left off.
+    </p>
+    <p style="margin: 0 0 16px;">
+      <a href="${safeUrl}" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
+        Finish your order
+      </a>
+    </p>
+    <p style="margin:0 0 16px;">
+      The AfroBirthday team
+    </p>
+  `);
+}
+
+export function renderAbandonedCartEmailText(_order: Order, resumeUrl: string) {
+  return wrapEmailText([
+    "Hi,",
+    "",
+    "Looks like you started a personalized birthday video but didn't finish checking out. Your details are saved — pick up right where you left off:",
+    resumeUrl,
+    "",
+    "The AfroBirthday team",
+  ]);
+}
+
+export function renderReferralCodeEmailHtml(
+  _order: Order,
+  code: string,
+  discountType: "percentage" | "fixed",
+  discountValue: number
+) {
+  const discountLabel = formatDiscountLabel(discountType, discountValue);
+  return wrapEmailHtml(`
+    <p style="margin:0 0 16px;">Hi,</p>
+    <p style="margin:0 0 16px;">
+      Loved your AfroBirthday video? Share it with friends — here's your
+      personal code for them to get ${escapeHtml(discountLabel)} on their first order.
+      When they use it, we'll send you a reward too.
+    </p>
+    <p style="margin:0 0 16px; font-size: 18px;">
+      <strong style="letter-spacing: 1px;">${escapeHtml(code)}</strong>
+    </p>
+    <p style="margin:0 0 16px;">
+      Thanks for spreading the word,<br/>
+      The AfroBirthday team
+    </p>
+  `);
+}
+
+export function renderReferralCodeEmailText(
+  _order: Order,
+  code: string,
+  discountType: "percentage" | "fixed",
+  discountValue: number
+) {
+  const discountLabel = formatDiscountLabel(discountType, discountValue);
+  return wrapEmailText([
+    "Hi,",
+    "",
+    `Loved your AfroBirthday video? Share it with friends — here's your personal code for them to get ${discountLabel} on their first order. When they use it, we'll send you a reward too.`,
+    "",
+    `Your referral code: ${code}`,
+    "",
+    "Thanks for spreading the word,",
+    "The AfroBirthday team",
+  ]);
+}
+
+export function renderReferralRewardEmailHtml(
+  rewardCode: string,
+  discountType: "percentage" | "fixed",
+  discountValue: number
+) {
+  const discountLabel = formatDiscountLabel(discountType, discountValue);
+  return wrapEmailHtml(`
+    <p style="margin:0 0 16px;">Hi,</p>
+    <p style="margin:0 0 16px;">
+      Good news — a friend just used your referral code! As a thank you,
+      here's a code for ${escapeHtml(discountLabel)} on your next AfroBirthday video.
+    </p>
+    <p style="margin:0 0 16px; font-size: 18px;">
+      <strong style="letter-spacing: 1px;">${escapeHtml(rewardCode)}</strong>
+    </p>
+    <p style="margin:0 0 16px;">
+      Thanks for spreading the word,<br/>
+      The AfroBirthday team
+    </p>
+  `);
+}
+
+export function renderReferralRewardEmailText(
+  rewardCode: string,
+  discountType: "percentage" | "fixed",
+  discountValue: number
+) {
+  const discountLabel = formatDiscountLabel(discountType, discountValue);
+  return wrapEmailText([
+    "Hi,",
+    "",
+    `Good news — a friend just used your referral code! As a thank you, here's a code for ${discountLabel} on your next AfroBirthday video.`,
+    "",
+    `Your reward code: ${rewardCode}`,
+    "",
+    "Thanks for spreading the word,",
+    "The AfroBirthday team",
+  ]);
+}
+
 function escapeHtml(input: string) {
   return input
     .replaceAll("&", "&amp;")

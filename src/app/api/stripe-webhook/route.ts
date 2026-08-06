@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { ensureOrdersTable, getOrderById, markOrderPaid, markOrderCanceled, incrementPromoCodeUsage } from "@/lib/db";
 import { sendDiscordWebhook, notifyOrderPaid } from "@/lib/discordWebhook";
+import { handlePossibleReferralRedemption } from "@/lib/referralEmail";
 import { sendEmailWithResend } from "@/lib/resend";
 import {
   renderOrderConfirmationEmailHtml,
@@ -57,6 +58,9 @@ export async function POST(request: Request) {
         if (order?.promo_code) {
           await incrementPromoCodeUsage(order.promo_code).catch((err) =>
             console.error("Failed to increment promo code usage (Stripe PI):", err)
+          );
+          await handlePossibleReferralRedemption(order).catch((err) =>
+            console.error("Failed to process referral redemption (Stripe PI):", err)
           );
         }
 
@@ -129,6 +133,9 @@ export async function POST(request: Request) {
         if (order?.promo_code) {
           await incrementPromoCodeUsage(order.promo_code).catch((err) =>
             console.error("Failed to increment promo code usage (Stripe):", err)
+          );
+          await handlePossibleReferralRedemption(order).catch((err) =>
+            console.error("Failed to process referral redemption (Stripe):", err)
           );
         }
 
