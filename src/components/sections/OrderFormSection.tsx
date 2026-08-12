@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard, Wallet } from "lucide-react";
+import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard, Wallet, ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
 import posthog from "posthog-js";
 import { cn, currencyFromLocale, type CurrencyCode, PRICES, ORDER_DRAFT_STORAGE_KEY } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
@@ -12,7 +12,36 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import dynamic from "next/dynamic";
 
-const CustomPaymentModal = dynamic(() => import("@/components/CustomPaymentModal"), { ssr: false });
+const InlineStripePayment = dynamic(() => import("@/components/InlineStripePayment"), { ssr: false });
+
+type MusicEmbed = { platform: "youtube" | "spotify" | "soundcloud"; embedUrl: string };
+
+/** Turns a pasted YouTube/Spotify/SoundCloud link into an embeddable preview URL, client-side only. */
+function getMusicEmbed(link: string): MusicEmbed | null {
+  const trimmed = link.trim();
+  if (!trimmed) return null;
+
+  const youtubeMatch = trimmed.match(
+    /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/
+  );
+  if (youtubeMatch) {
+    return { platform: "youtube", embedUrl: `https://www.youtube.com/embed/${youtubeMatch[1]}` };
+  }
+
+  const spotifyMatch = trimmed.match(/open\.spotify\.com\/(?:intl-\w+\/)?track\/([A-Za-z0-9]+)/);
+  if (spotifyMatch) {
+    return { platform: "spotify", embedUrl: `https://open.spotify.com/embed/track/${spotifyMatch[1]}` };
+  }
+
+  if (/soundcloud\.com\//.test(trimmed)) {
+    return {
+      platform: "soundcloud",
+      embedUrl: `https://w.soundcloud.com/player/?url=${encodeURIComponent(trimmed)}&auto_play=false&color=%23ff5500&show_teaser=false`,
+    };
+  }
+
+  return null;
+}
 
 const createOrderSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
@@ -25,6 +54,7 @@ const createOrderSchema = (t: ReturnType<typeof useTranslations>) =>
     musicOption: z.enum(["default", "custom"]),
     musicLink: z.string().url().optional().or(z.literal("")),
     deliveryMethod: z.enum(["standard", "express"]),
+    danceExtended: z.boolean().default(false),
     termsAccepted: z.literal(true, {
       errorMap: () => ({ message: t("errors.termsRequired") }),
     }),
@@ -83,13 +113,7 @@ async function compressImageIfPossible(file: File): Promise<File | null> {
 
 function VisaLogo() {
   return (
-    <svg
-      role="img"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-label="Visa"
-      className="h-5 w-8 shrink-0 text-white/85"
-    >
+    <svg viewBox="0 0 24 24" className="h-5 w-auto" style={{ color: "#1434CB" }}>
       <title>Visa</title>
       <path
         fill="currentColor"
@@ -101,36 +125,23 @@ function VisaLogo() {
 
 function MastercardLogo() {
   return (
-    <svg
-      role="img"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-label="Mastercard"
-      className="h-5 w-8 shrink-0 text-white/85"
-    >
+    <svg viewBox="0 0 24 24" className="h-5 w-auto">
       <title>Mastercard</title>
-      <path
-        fill="currentColor"
-        d="M11.343 18.031c.058.049.12.098.181.146-1.177.783-2.59 1.238-4.107 1.238C3.32 19.416 0 16.096 0 12c0-4.095 3.32-7.416 7.416-7.416 1.518 0 2.931.456 4.105 1.238-.06.051-.12.098-.165.15C9.6 7.489 8.595 9.688 8.595 12c0 2.311 1.001 4.51 2.748 6.031zm5.241-13.447c-1.52 0-2.931.456-4.105 1.238.06.051.12.098.165.15C14.4 7.489 15.405 9.688 15.405 12c0 2.31-1.001 4.507-2.748 6.031-.058.049-.12.098-.181.146 1.177.783 2.588 1.238 4.107 1.238C20.68 19.416 24 16.096 24 12c0-4.094-3.32-7.416-7.416-7.416zM12 6.174c-.096.075-.189.15-.28.231C10.156 7.764 9.169 9.765 9.169 12c0 2.236.987 4.236 2.551 5.595.09.08.185.158.28.232.096-.074.189-.152.28-.232 1.563-1.359 2.551-3.359 2.551-5.595 0-2.235-.987-4.236-2.551-5.595-.09-.08-.184-.156-.28-.231z"
-      />
+      <circle cx="9" cy="12" r="7" fill="#EB001B" />
+      <circle cx="15" cy="12" r="7" fill="#F79E1B" />
+      <path fill="#FF5F00" d="M12 17.5a7 7 0 010-11 7 7 0 000 11z" />
     </svg>
   );
 }
 
 function AmexLogo() {
   return (
-    <svg
-      role="img"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-label="American Express"
-      className="h-5 w-8 shrink-0 text-white/85"
-    >
+    <svg viewBox="0 0 24 24" className="h-5 w-auto" style={{ color: "#2E77BC" }}>
       <title>American Express</title>
-      <path
-        fill="currentColor"
-        d="M16.015 14.378c0-.32-.135-.496-.344-.622-.21-.12-.464-.135-.81-.135h-1.543v2.82h.675v-1.027h.72c.24 0 .39.024.478.125.12.13.104.38.104.55v.35h.66v-.555c-.002-.25-.017-.376-.108-.516-.06-.08-.18-.18-.33-.234l.02-.008c.18-.072.48-.297.48-.747zm-.87.407l-.028-.002c-.09.053-.195.058-.33.058h-.81v-.63h.824c.12 0 .24 0 .33.05.098.048.156.147.15.255 0 .12-.045.215-.134.27zM20.297 15.837H19v.6h1.304c.676 0 1.05-.278 1.05-.884 0-.28-.066-.448-.187-.582-.153-.133-.392-.193-.73-.207l-.376-.015c-.104 0-.18 0-.255-.03-.09-.03-.15-.105-.15-.21 0-.09.017-.166.09-.21.083-.046.177-.066.272-.06h1.23v-.602h-1.35c-.704 0-.958.437-.958.84 0 .9.776.855 1.407.87.104 0 .18.015.225.06.046.03.082.106.082.18 0 .077-.035.15-.08.18-.06.053-.15.07-.277.07zM0 0v10.096L.81 8.22h1.75l.225.464V8.22h2.043l.45 1.02.437-1.013h6.502c.295 0 .56.057.756.236v-.23h1.787v.23c.307-.17.686-.23 1.12-.23h2.606l.24.466v-.466h1.918l.254.465v-.466h1.858v3.948H20.87l-.36-.6v.585h-2.353l-.256-.63h-.583l-.27.614h-1.213c-.48 0-.84-.104-1.08-.24v.24h-2.89v-.884c0-.12-.03-.12-.105-.135h-.105v1.036H6.067v-.48l-.21.48H4.69l-.202-.48v.465H2.235l-.256-.624H1.4l-.256.624H0V24h23.786v-7.108c-.27.135-.613.18-.973.18H21.09v-.255c-.21.165-.57.255-.914.255H14.71v-.9c0-.12-.018-.12-.12-.12h-.075v1.022h-1.8v-1.066c-.298.136-.643.15-.928.136h-.214v.915h-2.18l-.54-.617-.57.6H4.742v-3.93h3.61l.518.602.554-.6h2.412c.28 0 .74.03.942.225v-.24h2.177c.202 0 .644.045.903.225v-.24h3.265v.24c.163-.164.508-.24.803-.24h1.89v.24c.194-.15.464-.24.84-.24h1.176V0H0zM21.156 14.955c.004.005.006.012.01.016.01.01.024.01.032.02l-.042-.035zM23.828 13.082h.065v.555h-.065zM23.865 15.03v-.005c-.03-.025-.046-.048-.075-.07-.15-.153-.39-.215-.764-.225l-.36-.012c-.12 0-.194-.007-.27-.03-.09-.03-.15-.105-.15-.21 0-.09.03-.16.09-.204.076-.045.15-.05.27-.05h1.223v-.588h-1.283c-.69 0-.96.437-.96.84 0 .9.78.855 1.41.87.104 0 .18.015.224.06.046.03.076.106.076.18 0 .07-.034.138-.09.18-.045.056-.136.07-.27.07h-1.288v.605h1.287c.42 0 .734-.118.9-.36h.03c.09-.134.135-.3.135-.523 0-.24-.045-.39-.135-.526zM18.597 14.208v-.583h-2.235V16.458h2.235v-.585h-1.57v-.57h1.533v-.584h-1.532v-.51M13.51 8.787h.685V11.6h-.684zM13.126 9.543l-.007.006c0-.314-.13-.5-.34-.624-.217-.125-.47-.135-.81-.135H10.43v2.82h.674v-1.034h.72c.24 0 .39.03.487.12.122.136.107.378.107.548v.354h.677v-.553c0-.25-.016-.375-.11-.516-.09-.107-.202-.19-.33-.237.172-.07.472-.3.472-.75zm-.855.396h-.015c-.09.054-.195.056-.33.056H11.1v-.623h.825c.12 0 .24.004.33.05.09.04.15.128.15.25s-.047.22-.134.266zM15.92 9.373h.632v-.6h-.644c-.464 0-.804.105-1.02.33-.286.3-.362.69-.362 1.11 0 .512.123.833.36 1.074.232.238.645.31.97.31h.78l.255-.627h1.39l.262.627h1.36v-2.11l1.272 2.11h.95l.002.002V8.786h-.684v1.963l-1.18-1.96h-1.02V11.4L18.11 8.744h-1.004l-.943 2.22h-.3c-.177 0-.362-.03-.468-.134-.125-.15-.186-.36-.186-.662 0-.285.08-.51.194-.63.133-.135.272-.165.516-.165zm1.668-.108l.464 1.118v.002h-.93l.466-1.12zM2.38 10.97l.254.628H4V9.393l.972 2.205h.584l.973-2.202.015 2.202h.69v-2.81H6.118l-.807 1.904-.876-1.905H3.343v2.663L2.205 8.787h-.997L.01 11.597h.72l.26-.626h1.39zm-.688-1.705l.46 1.118-.003.002h-.915l.457-1.12zM11.856 13.62H9.714l-.85.923-.825-.922H5.346v2.82H8l.855-.932.824.93h1.302v-.94h.838c.6 0 1.17-.164 1.17-.945l-.006-.003c0-.78-.598-.93-1.128-.93zM7.67 15.853l-.014-.002H6.02v-.557h1.47v-.574H6.02v-.51H7.7l.733.82-.764.824zm2.642.33l-1.03-1.147 1.03-1.108v2.253zm1.553-1.258h-.885v-.717h.885c.24 0 .42.098.42.344 0 .243-.15.372-.42.372zM9.967 9.373v-.586H7.73V11.6h2.237v-.58H8.4v-.564h1.527V9.88H8.4v-.507"
-      />
+      <rect width="24" height="24" rx="2" fill="currentColor" />
+      <text x="12" y="14" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold">
+        AMEX
+      </text>
     </svg>
   );
 }
@@ -142,7 +153,8 @@ function PayPalLogo() {
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
       aria-label="PayPal"
-      className="h-5 w-8 shrink-0 text-white/85"
+      className="h-5 w-auto"
+      style={{ color: "#003087" }}
     >
       <title>PayPal</title>
       <path
@@ -163,6 +175,59 @@ function CardLogos() {
   );
 }
 
+function StepIndicator({
+  currentStep,
+  labels,
+}: {
+  currentStep: 1 | 2 | 3;
+  labels: [string, string, string];
+}) {
+  return (
+    <div className="flex items-start" aria-label="Progress">
+      {labels.map((label, i) => {
+        const step = (i + 1) as 1 | 2 | 3;
+        const isComplete = step < currentStep;
+        const isActive = step === currentStep;
+        return (
+          <div key={step} className={cn("flex items-center", step < 3 ? "flex-1" : "")}>
+            <div className="flex flex-col items-center gap-2 shrink-0">
+              <div
+                className={cn(
+                  "w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-colors shrink-0",
+                  isComplete
+                    ? "bg-primary text-white"
+                    : isActive
+                    ? "bg-primary/15 border-2 border-primary text-primary"
+                    : "bg-white/5 border border-white/15 text-white/40"
+                )}
+                aria-current={isActive ? "step" : undefined}
+              >
+                {isComplete ? <Check size={16} /> : step}
+              </div>
+              <span
+                className={cn(
+                  "text-xs font-medium whitespace-nowrap",
+                  isActive || isComplete ? "text-white" : "text-white/40"
+                )}
+              >
+                {label}
+              </span>
+            </div>
+            {step < 3 && (
+              <div
+                className={cn(
+                  "flex-1 h-0.5 mx-2 mb-5",
+                  isComplete ? "bg-primary" : "bg-white/10"
+                )}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function OrderFormSection() {
   const t = useTranslations("OrderForm");
   const activeLocale = useLocale();
@@ -170,20 +235,29 @@ export default function OrderFormSection() {
 
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [musicFile, setMusicFile] = useState<File | null>(null);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  // react-hook-form + zodResolver can populate a field's error the instant
+  // it first mounts (e.g. the terms checkbox has no defaultValue), before
+  // the user ever tried to submit. Only surface validation errors after a
+  // genuine submit attempt so nothing looks broken on arrival at step 3.
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
-  const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
+  const [isPreparingPayment, setIsPreparingPayment] = useState(false);
+  const [paymentSetupError, setPaymentSetupError] = useState<string | null>(null);
   const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
   const [browserLocale, setBrowserLocale] = useState("en-US");
-  const [pricing, setPricing] = useState<{ base: number; customSong: number; expressDelivery: number }>(() => ({
+  const [pricing, setPricing] = useState<{ base: number; customSong: number; expressDelivery: number; danceExtended: number }>(() => ({
     base: PRICES.base,
     customSong: PRICES.customSong,
     expressDelivery: PRICES.expressDelivery,
+    danceExtended: PRICES.danceExtended,
   }));
   const [priceOverrides, setPriceOverrides] = useState<
-    Partial<Record<CurrencyCode, Partial<{ base: number; customSong: number; expressDelivery: number }>>>
+    Partial<Record<CurrencyCode, Partial<{ base: number; customSong: number; expressDelivery: number; danceExtended: number }>>>
   >({});
   const [promoEnabled, setPromoEnabled] = useState(false);
   const [promoInput, setPromoInput] = useState("");
@@ -213,7 +287,8 @@ export default function OrderFormSection() {
           base: number;
           customSong: number;
           expressDelivery: number;
-          overrides: Partial<Record<CurrencyCode, Partial<{ base: number; customSong: number; expressDelivery: number }>>>;
+          danceExtended: number;
+          overrides: Partial<Record<CurrencyCode, Partial<{ base: number; customSong: number; expressDelivery: number; danceExtended: number }>>>;
           promoEnabled: boolean;
         }>;
 
@@ -231,6 +306,10 @@ export default function OrderFormSection() {
             typeof data.expressDelivery === "number" && Number.isFinite(data.expressDelivery)
               ? data.expressDelivery
               : prev.expressDelivery,
+          danceExtended:
+            typeof data.danceExtended === "number" && Number.isFinite(data.danceExtended)
+              ? data.danceExtended
+              : prev.danceExtended,
         }));
 
         if (data.overrides && typeof data.overrides === "object") {
@@ -248,21 +327,14 @@ export default function OrderFormSection() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!isStripeModalOpen) return;
-
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [isStripeModalOpen]);
-
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    getValues,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<OrderFormData>({
     resolver: zodResolver(orderSchema),
@@ -270,13 +342,31 @@ export default function OrderFormSection() {
       paymentMethod: "card",
       musicOption: "default",
       deliveryMethod: "standard",
+      danceExtended: false,
     },
   });
 
+  // react-hook-form + zodResolver can populate an error for a field the
+  // instant it first mounts (e.g. the terms checkbox, since it has no
+  // defaultValue) even though the user hasn't interacted with it yet or
+  // tried to submit. Clear that premature error each time step 3 mounts —
+  // a real submit attempt without checking it will correctly re-flag it.
   const paymentMethod = watch("paymentMethod");
   const musicOption = watch("musicOption");
+  const musicLinkValue = watch("musicLink");
+  const musicEmbed = useMemo(() => getMusicEmbed(musicLinkValue ?? ""), [musicLinkValue]);
   const deliveryMethod = watch("deliveryMethod");
+  const danceExtended = watch("danceExtended");
   const message = watch("message") || "";
+  const email = watch("email") || "";
+  const termsAccepted = watch("termsAccepted");
+
+  // The inline Stripe pay button sets a manual termsAccepted error (RHF's
+  // schema validation doesn't run for it, since there's no form submit) —
+  // clear it as soon as the box is actually checked so it doesn't linger.
+  useEffect(() => {
+    if (termsAccepted) clearErrors("termsAccepted");
+  }, [termsAccepted, clearErrors]);
 
   // Restore an in-progress draft (email/message/options — never the photo
   // file itself, which can't be persisted) so an accidental refresh doesn't
@@ -286,12 +376,14 @@ export default function OrderFormSection() {
       const raw = localStorage.getItem(ORDER_DRAFT_STORAGE_KEY);
       if (!raw) return;
       const draft = JSON.parse(raw) as Partial<OrderFormData>;
+      // Only restore what the customer typed (safe to bring back silently).
+      // Never restore paid toggles (custom song, express delivery, dance
+      // extended) or the payment method — those must always be an active
+      // choice on the current visit, not silently re-applied from a stale
+      // draft, or someone could be charged for options they forgot about.
       if (draft.email) setValue("email", draft.email);
       if (draft.message) setValue("message", draft.message);
-      if (draft.musicOption) setValue("musicOption", draft.musicOption);
       if (draft.musicLink) setValue("musicLink", draft.musicLink);
-      if (draft.deliveryMethod) setValue("deliveryMethod", draft.deliveryMethod);
-      if (draft.paymentMethod) setValue("paymentMethod", draft.paymentMethod);
     } catch {
       // ignore malformed/unavailable storage
     }
@@ -318,6 +410,12 @@ export default function OrderFormSection() {
     posthog.capture("order_form_started");
   }, []);
 
+  // Cached across setup attempts so returning to step 3 (or a retry) doesn't
+  // re-upload files that are already sitting in storage from a prior attempt.
+  const photoUrlRef = useRef<string | null>(null);
+  const musicFileUrlRef = useRef<string | null>(null);
+  const paymentSetupInFlightRef = useRef(false);
+
   const isFirstMusicOptionRender = useRef(true);
   useEffect(() => {
     if (isFirstMusicOptionRender.current) {
@@ -332,7 +430,8 @@ export default function OrderFormSection() {
   const totalPrice =
     pricing.base +
     (musicOption === "custom" ? pricing.customSong : 0) +
-    (deliveryMethod === "express" ? pricing.expressDelivery : 0);
+    (deliveryMethod === "express" ? pricing.expressDelivery : 0) +
+    (danceExtended ? pricing.danceExtended : 0);
 
   // Resolves a price component in the active local currency: a manual admin
   // override for that currency wins, otherwise the USD price is converted with
@@ -340,7 +439,7 @@ export default function OrderFormSection() {
   const localComponent = useMemo(() => {
     const override = priceOverrides[localCurrency];
     const rate = localCurrency === "USD" ? 1 : rates[localCurrency] ?? 1;
-    return (key: "base" | "customSong" | "expressDelivery") => {
+    return (key: "base" | "customSong" | "expressDelivery" | "danceExtended") => {
       const ov = override?.[key];
       if (typeof ov === "number" && Number.isFinite(ov) && ov >= 0) return ov;
       return pricing[key] * rate;
@@ -350,7 +449,8 @@ export default function OrderFormSection() {
   const localTotal =
     localComponent("base") +
     (musicOption === "custom" ? localComponent("customSong") : 0) +
-    (deliveryMethod === "express" ? localComponent("expressDelivery") : 0);
+    (deliveryMethod === "express" ? localComponent("expressDelivery") : 0) +
+    (danceExtended ? localComponent("danceExtended") : 0);
 
   // Client-side estimate only, for display — the server always re-validates
   // the code and recomputes the discounted charge from scratch.
@@ -371,13 +471,14 @@ export default function OrderFormSection() {
   const usesLiveRate = useMemo(() => {
     if (localCurrency === "USD") return false;
     const override = priceOverrides[localCurrency];
-    const overridden = (key: "base" | "customSong" | "expressDelivery") =>
+    const overridden = (key: "base" | "customSong" | "expressDelivery" | "danceExtended") =>
       typeof override?.[key] === "number";
     if (!overridden("base")) return true;
     if (musicOption === "custom" && !overridden("customSong")) return true;
     if (deliveryMethod === "express" && !overridden("expressDelivery")) return true;
+    if (danceExtended && !overridden("danceExtended")) return true;
     return false;
-  }, [priceOverrides, localCurrency, musicOption, deliveryMethod]);
+  }, [priceOverrides, localCurrency, musicOption, deliveryMethod, danceExtended]);
 
   const formatMoney = useMemo(() => {
     return (value: number) =>
@@ -462,17 +563,93 @@ export default function OrderFormSection() {
     const finalFile = compressed ?? file;
 
     setPhoto(finalFile);
+    setPhotoError(null);
+    photoUrlRef.current = null;
+    setStripeClientSecret(null);
     posthog.capture("photo_selected", { file_size_kb: Math.round(finalFile.size / 1024) });
     const reader = new FileReader();
     reader.onload = (e) => setPhotoPreview(e.target?.result as string);
     reader.readAsDataURL(finalFile);
   };
 
+  const scrollToOrderTop = () => {
+    document.getElementById("order")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  // Manual field-scoped validation (not RHF's trigger()) — with a zod
+  // resolver, trigger() re-runs the whole schema and can populate errors for
+  // fields on OTHER steps (e.g. termsAccepted) before the user ever sees them.
+  const goToStep2 = () => {
+    let ok = true;
+
+    if (!photo) {
+      setPhotoError(t("alerts.photoMissing"));
+      ok = false;
+    } else {
+      setPhotoError(null);
+    }
+
+    clearErrors(["message", "email"]);
+    const messageValue = getValues("message") ?? "";
+    if (messageValue.trim().length < 3) {
+      setError("message", { type: "manual", message: t("errors.messageMin") });
+      ok = false;
+    } else if (messageValue.length > 100) {
+      setError("message", { type: "manual", message: t("errors.messageMax") });
+      ok = false;
+    }
+    const emailValue = getValues("email") ?? "";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
+      setError("email", { type: "manual", message: t("errors.emailInvalid") });
+      ok = false;
+    }
+
+    if (!ok) return;
+    posthog.capture("order_form_step_completed", { step: 1 });
+    setCurrentStep(2);
+    scrollToOrderTop();
+  };
+
+  const goToStep3 = () => {
+    clearErrors(["musicLink"]);
+    const linkValue = (getValues("musicLink") ?? "").trim();
+    if (linkValue) {
+      try {
+        new URL(linkValue);
+      } catch {
+        setError("musicLink", { type: "manual", message: t("errors.musicLinkInvalid") });
+        return;
+      }
+    }
+    posthog.capture("order_form_step_completed", { step: 2 });
+    setCurrentStep(3);
+    scrollToOrderTop();
+  };
+
+  const goBack = () => {
+    setCurrentStep((step) => {
+      if (step === 3) {
+        // Leaving the payment step — any price-affecting choice below (music,
+        // delivery, dance extended, promo) can change on step 1/2, so force a
+        // fresh order + PaymentIntent next time step 3 is reached.
+        setStripeClientSecret(null);
+        setCurrentOrderId(null);
+        setPaymentSetupError(null);
+      }
+      return step > 1 ? ((step - 1) as 1 | 2) : step;
+    });
+    scrollToOrderTop();
+  };
+
+  // PayPal only — its checkout is an external redirect, not a Stripe Element,
+  // so it stays behind the generic form submit rather than the eager,
+  // inline setup used for card (see setupCardPayment below).
   const onSubmit = async (data: OrderFormData) => {
     if (!photo) {
       alert(t("alerts.photoMissing"));
       return;
     }
+    if (data.paymentMethod !== "paypal") return;
 
     posthog.capture("checkout_initiated", {
       payment_method: data.paymentMethod,
@@ -485,7 +662,7 @@ export default function OrderFormSection() {
     posthog.identify(data.email, { email: data.email });
 
     setIsSubmitting(true);
-    
+
     try {
       const orderId = crypto.randomUUID();
       setCurrentOrderId(orderId);
@@ -527,40 +704,88 @@ export default function OrderFormSection() {
         if (url) musicFileUrl = url;
       }
 
-      if (data.paymentMethod === "paypal") {
-        const response = await fetch("/api/paypal/create-order", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId,
-            ...data,
-            photoUrl,
-            musicFileUrl,
-            totalPrice,
-            hasCustomSong: musicOption === "custom",
-            isExpress: deliveryMethod === "express",
-            promoCode: appliedPromo?.code,
-          }),
-        });
-
-        if (!response.ok) {
-          const err = (await response.json().catch(() => null)) as { error?: string } | null;
-          throw new Error(err?.error ?? "PayPal checkout failed");
-        }
-
-        const payload = (await response.json()) as { url?: string };
-        if (payload.url) {
-          window.location.href = payload.url;
-        }
-        return;
-      }
-
-      const response = await fetch("/api/create-payment-intent", {
+      const response = await fetch("/api/paypal/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orderId,
           ...data,
+          photoUrl,
+          musicFileUrl,
+          totalPrice,
+          hasCustomSong: musicOption === "custom",
+          isExpress: deliveryMethod === "express",
+          promoCode: appliedPromo?.code,
+        }),
+      });
+
+      if (!response.ok) {
+        const err = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(err?.error ?? "PayPal checkout failed");
+      }
+
+      const payload = (await response.json()) as { url?: string };
+      if (payload.url) {
+        window.location.href = payload.url;
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      alert(t("alerts.genericError"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Card path: as soon as the customer reaches step 3 with "Card" selected,
+  // upload the photo/music and create the order + Stripe PaymentIntent so the
+  // payment form can render inline right there — no separate click-to-reveal
+  // step, no popup.
+  const setupCardPayment = useCallback(async () => {
+    if (!photo || paymentSetupInFlightRef.current) return;
+    paymentSetupInFlightRef.current = true;
+    setIsPreparingPayment(true);
+    setPaymentSetupError(null);
+
+    try {
+      let photoUrl = photoUrlRef.current;
+      if (!photoUrl) {
+        const photoForm = new FormData();
+        photoForm.append("file", photo);
+        photoForm.append("folder", "orders/photos");
+        const photoUploadRes = await fetch("/api/upload", { method: "POST", body: photoForm });
+        if (!photoUploadRes.ok) throw new Error("Photo upload failed");
+        const uploaded = (await photoUploadRes.json()) as { url?: string };
+        if (!uploaded.url) throw new Error("Missing photo URL");
+        photoUrl = uploaded.url;
+        photoUrlRef.current = photoUrl;
+      }
+
+      let musicFileUrl = musicFileUrlRef.current ?? undefined;
+      if (musicFile && !musicFileUrl) {
+        const musicForm = new FormData();
+        musicForm.append("file", musicFile);
+        musicForm.append("folder", "orders/music");
+        const musicUploadRes = await fetch("/api/upload", { method: "POST", body: musicForm });
+        if (!musicUploadRes.ok) throw new Error("Music upload failed");
+        const uploaded = (await musicUploadRes.json()) as { url?: string };
+        if (uploaded.url) {
+          musicFileUrl = uploaded.url;
+          musicFileUrlRef.current = uploaded.url;
+        }
+      }
+
+      const orderId = crypto.randomUUID();
+      const response = await fetch("/api/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId,
+          email,
+          message,
+          musicOption,
+          musicLink: musicLinkValue,
+          deliveryMethod,
+          danceExtended,
           photoUrl,
           musicFileUrl,
           totalPrice,
@@ -577,19 +802,60 @@ export default function OrderFormSection() {
       }
 
       const payload = (await response.json()) as { clientSecret?: string };
-      if (!payload.clientSecret) {
-        throw new Error("Missing payment client secret");
-      }
+      if (!payload.clientSecret) throw new Error("Missing payment client secret");
 
+      posthog.capture("checkout_initiated", {
+        payment_method: "card",
+        music_option: musicOption,
+        delivery_method: deliveryMethod,
+        total_price: totalPrice,
+        currency: localCurrency,
+        ...(appliedPromo ? { promo_code: appliedPromo.code } : {}),
+      });
+      posthog.identify(email, { email });
+
+      setCurrentOrderId(orderId);
       setStripeClientSecret(payload.clientSecret);
-      setIsStripeModalOpen(true);
-    } catch (error) {
-      console.error("Checkout error:", error);
-      alert(t("alerts.genericError"));
+    } catch (err) {
+      console.error("Payment setup error:", err);
+      setPaymentSetupError(t("payment.setupError"));
     } finally {
-      setIsSubmitting(false);
+      setIsPreparingPayment(false);
+      paymentSetupInFlightRef.current = false;
     }
-  };
+  }, [
+    photo,
+    musicFile,
+    email,
+    message,
+    musicOption,
+    musicLinkValue,
+    deliveryMethod,
+    danceExtended,
+    totalPrice,
+    localCurrency,
+    appliedPromo,
+    t,
+  ]);
+
+  useEffect(() => {
+    if (currentStep !== 3) return;
+    if (paymentMethod !== "card") return;
+    if (!photo) return;
+    if (stripeClientSecret || paymentSetupError || paymentSetupInFlightRef.current) return;
+    setupCardPayment();
+  }, [currentStep, paymentMethod, photo, stripeClientSecret, paymentSetupError, setupCardPayment]);
+
+  const handlePaymentSuccess = useCallback(() => {
+    const orderId = currentOrderId;
+    const value = finalTotal;
+    const currency = localCurrency;
+    const qs = new URLSearchParams();
+    if (orderId) qs.set("orderId", orderId);
+    if (Number.isFinite(value)) qs.set("value", String(value));
+    if (currency) qs.set("currency", currency);
+    window.location.href = `/${activeLocale}/success?${qs.toString()}`;
+  }, [currentOrderId, finalTotal, localCurrency, activeLocale]);
 
   return (
     <section id="order" className="py-24 bg-dark relative overflow-hidden">
@@ -608,11 +874,23 @@ export default function OrderFormSection() {
           </p>
         </div>
 
+        <div className="max-w-6xl mx-auto mb-10">
+          <StepIndicator
+            currentStep={currentStep}
+            labels={[t("sections.video"), t("sections.customize"), t("sections.payment")]}
+          />
+        </div>
+
         <div className="max-w-6xl mx-auto">
-          <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 lg:grid-cols-12">
+          <form
+            onSubmit={handleSubmit(onSubmit, () => setHasAttemptedSubmit(true))}
+            className="grid gap-8 lg:grid-cols-12"
+          >
             <div className="lg:col-span-7 space-y-6">
-              {/* Photo Upload */}
-              <div className="glass-card p-6">
+              {currentStep === 1 && (
+              <div className="glass-card p-6 space-y-6">
+                {/* Photo Upload */}
+                <div>
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div>
                     <label className="block font-semibold text-white">
@@ -680,10 +958,13 @@ export default function OrderFormSection() {
                     </label>
                   )}
                 </div>
+                {photoError && (
+                  <p className="text-error text-sm mt-2">{photoError}</p>
+                )}
               </div>
 
               {/* Custom Message */}
-              <div className="glass-card p-6">
+              <div className="border-t border-white/10 pt-6">
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div>
                     <label htmlFor="order-message" className="block font-semibold text-white">
@@ -716,7 +997,7 @@ export default function OrderFormSection() {
               </div>
 
               {/* Email */}
-              <div className="glass-card p-6">
+              <div className="border-t border-white/10 pt-6">
                 <label htmlFor="order-email" className="block font-semibold mb-2 text-white">
                   {t("email.label")} <span className="text-error">*</span>
                 </label>
@@ -737,8 +1018,12 @@ export default function OrderFormSection() {
                 {errors.email && (
                   <p className="text-error text-sm mt-2">{errors.email.message}</p>
                 )}
+                </div>
               </div>
+              )}
 
+              {currentStep === 2 && (
+              <>
               {/* Music Selection */}
               <div className="glass-card p-6">
                 <label className="block font-semibold mb-4 text-white">{t("music.label")}</label>
@@ -798,8 +1083,47 @@ export default function OrderFormSection() {
                     type="text"
                     {...register("musicLink")}
                     placeholder={t("music.linkPlaceholder")}
-                    className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base h-12"
+                    className={cn(
+                      "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base h-12",
+                      errors.musicLink ? "border-error" : "border-white/20"
+                    )}
                   />
+                  {errors.musicLink && (
+                    <p className="text-error text-sm">{errors.musicLink.message}</p>
+                  )}
+                  {musicEmbed?.platform === "youtube" && (
+                    <div className="rounded-xl overflow-hidden border border-white/20 bg-black/20">
+                      <iframe
+                        key={musicEmbed.embedUrl}
+                        src={musicEmbed.embedUrl}
+                        className="w-full aspect-video"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title="Aperçu musique"
+                      />
+                    </div>
+                  )}
+                  {musicEmbed?.platform === "spotify" && (
+                    <iframe
+                      key={musicEmbed.embedUrl}
+                      src={musicEmbed.embedUrl}
+                      className="w-full rounded-xl"
+                      style={{ height: 152 }}
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                      title="Aperçu musique"
+                    />
+                  )}
+                  {musicEmbed?.platform === "soundcloud" && (
+                    <div className="rounded-xl overflow-hidden border border-white/20 bg-black/20">
+                      <iframe
+                        key={musicEmbed.embedUrl}
+                        src={musicEmbed.embedUrl}
+                        className="w-full h-[166px]"
+                        allow="autoplay"
+                        title="Aperçu musique"
+                      />
+                    </div>
+                  )}
                   <div className="text-center text-white/70 text-sm">{t("music.or")}</div>
                   <div className="border border-white/20 rounded-xl p-4 bg-white/5">
                     <label className="cursor-pointer flex items-center justify-center gap-2">
@@ -812,7 +1136,11 @@ export default function OrderFormSection() {
                         accept="audio/mpeg,audio/wav"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) setMusicFile(file);
+                          if (file) {
+                            setMusicFile(file);
+                            musicFileUrlRef.current = null;
+                            setStripeClientSecret(null);
+                          }
                         }}
                         className="hidden"
                       />
@@ -874,124 +1202,301 @@ export default function OrderFormSection() {
               </div>
               </div>
 
+              {/* Dance Extended */}
+              <div className="glass-card p-6">
+                <label
+                  className={cn(
+                    "flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all",
+                    danceExtended
+                      ? "border-primary bg-primary/10"
+                      : "border-white/20 hover:border-primary/50 bg-white/5"
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    {...register("danceExtended")}
+                    className="w-5 h-5 text-primary rounded"
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium text-white">{t("danceExtended.title")}</p>
+                    <p className="text-sm text-white/80">{t("danceExtended.subtitle")}</p>
+                  </div>
+                  <span className="font-semibold text-primary">
+                    +{formatMoney(localComponent("danceExtended"))}
+                  </span>
+                </label>
+              </div>
+
+              {/* Promo code — settled here, before step 3, so the payment
+                  form (created the instant step 3 loads) always reflects the
+                  final price. */}
+              {promoEnabled && (
+                <div className="glass-card p-6">
+                  <label htmlFor="order-promo" className="block font-semibold text-white mb-3">
+                    {t("promo.label")}
+                  </label>
+                  {appliedPromo ? (
+                    <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-success bg-success/10 text-sm">
+                      <span className="text-white">
+                        {t("promo.appliedLabel")}: <span className="font-semibold">{appliedPromo.code}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleRemovePromo}
+                        className="text-white/70 hover:text-white underline"
+                      >
+                        {t("promo.remove")}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        id="order-promo"
+                        type="text"
+                        value={promoInput}
+                        onChange={(e) => setPromoInput(e.target.value)}
+                        placeholder={t("promo.placeholder")}
+                        className="flex-1 min-w-0 px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base h-12"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyPromo}
+                        disabled={promoChecking || !promoInput.trim()}
+                        className="px-4 rounded-xl border border-white/20 bg-white/5 text-white font-medium hover:border-primary/50 disabled:opacity-50 shrink-0"
+                      >
+                        {promoChecking ? t("promo.applying") : t("promo.apply")}
+                      </button>
+                    </div>
+                  )}
+                  {promoError && <p className="text-error text-sm mt-2">{promoError}</p>}
+                </div>
+              )}
+              </>
+              )}
+
+              {currentStep === 3 && (
+              <>
+              {/* Payment Method */}
+              <div className="glass-card p-6">
+                <div className="flex items-center gap-2">
+                  <CreditCard size={18} className="text-primary" />
+                  <label className="font-semibold text-white">{t("payment.label")}</label>
+                </div>
+                <p className="text-white/60 text-xs mt-1 mb-4">{t("payment.help")}</p>
+
+                <div className="space-y-3">
+                  {/* Credit card */}
+                  <label
+                    className={cn(
+                      "relative flex items-center gap-4 p-4 border rounded-2xl cursor-pointer transition-all",
+                      paymentMethod === "card"
+                        ? "border-primary bg-primary/10 ring-2 ring-primary/40 shadow-lg shadow-primary/10"
+                        : "border-white/15 hover:border-primary/40 hover:bg-white/[0.07] bg-white/5"
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      {...register("paymentMethod")}
+                      value="card"
+                      className="sr-only"
+                    />
+                    <span
+                      className={cn(
+                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all",
+                        paymentMethod === "card" ? "border-primary bg-primary" : "border-white/30"
+                      )}
+                    >
+                      {paymentMethod === "card" && (
+                        <Check size={12} strokeWidth={3} className="text-white" />
+                      )}
+                    </span>
+                    <span
+                      className={cn(
+                        "hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors",
+                        paymentMethod === "card" ? "bg-primary/20" : "bg-white/10"
+                      )}
+                    >
+                      <CreditCard
+                        size={20}
+                        className={paymentMethod === "card" ? "text-primary" : "text-white/60"}
+                      />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-white">{t("payment.card.title")}</p>
+                      <p className="text-xs text-white/60">{t("payment.card.subtitle")}</p>
+                    </div>
+                    <div className="hidden sm:flex items-center gap-1.5 bg-white rounded-lg px-2.5 py-2 shrink-0">
+                      <CardLogos />
+                    </div>
+                  </label>
+
+                  {/* PayPal */}
+                  <label
+                    className={cn(
+                      "relative flex items-center gap-4 p-4 border rounded-2xl cursor-pointer transition-all",
+                      paymentMethod === "paypal"
+                        ? "border-primary bg-primary/10 ring-2 ring-primary/40 shadow-lg shadow-primary/10"
+                        : "border-white/15 hover:border-primary/40 hover:bg-white/[0.07] bg-white/5"
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      {...register("paymentMethod")}
+                      value="paypal"
+                      className="sr-only"
+                    />
+                    <span
+                      className={cn(
+                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all",
+                        paymentMethod === "paypal" ? "border-primary bg-primary" : "border-white/30"
+                      )}
+                    >
+                      {paymentMethod === "paypal" && (
+                        <Check size={12} strokeWidth={3} className="text-white" />
+                      )}
+                    </span>
+                    <span
+                      className={cn(
+                        "hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors",
+                        paymentMethod === "paypal" ? "bg-primary/20" : "bg-white/10"
+                      )}
+                    >
+                      <Wallet
+                        size={20}
+                        className={paymentMethod === "paypal" ? "text-primary" : "text-white/60"}
+                      />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-white">PayPal</p>
+                      <p className="text-xs text-white/60">{t("payment.paypal.subtitle")}</p>
+                    </div>
+                    <div className="hidden sm:flex items-center bg-white rounded-lg px-2.5 py-2 shrink-0">
+                      <PayPalLogo />
+                    </div>
+                  </label>
+                </div>
+
+                {/* Inline Stripe payment — appears the moment the order/
+                    PaymentIntent is ready, right here in step 3, styled to
+                    match the rest of the form (no popup). */}
+                {paymentMethod === "card" && (
+                  <>
+                    {paymentSetupError ? (
+                      <div className="mt-5 pt-5 border-t border-white/10 text-center flex flex-col items-center gap-3">
+                        <AlertTriangle size={22} className="text-primary" aria-hidden="true" />
+                        <p className="text-sm text-white/80">{paymentSetupError}</p>
+                        <button
+                          type="button"
+                          onClick={setupCardPayment}
+                          className="btn-secondary py-2.5 px-5 text-sm"
+                        >
+                          {t("payment.retry")}
+                        </button>
+                      </div>
+                    ) : !stripeClientSecret ? (
+                      <div className="mt-5 pt-5 border-t border-white/10 flex items-center justify-center gap-3 text-white/60 text-sm">
+                        <Loader2 size={18} className="animate-spin text-primary" />
+                        {t("payment.preparing")}
+                      </div>
+                    ) : (
+                      <InlineStripePayment
+                        clientSecret={stripeClientSecret}
+                        amount={formatMoney(finalTotal)}
+                        orderId={currentOrderId}
+                        termsAccepted={termsAccepted === true}
+                        onTermsRequired={() => {
+                          setHasAttemptedSubmit(true);
+                          setError("termsAccepted", { type: "manual", message: t("errors.termsRequired") });
+                          document
+                            .getElementById("order-terms")
+                            ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }}
+                        onSuccess={handlePaymentSuccess}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Terms */}
+              <div id="order-terms" className="glass-card p-6">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    {...register("termsAccepted")}
+                    className="w-6 h-6 mt-0.5 text-primary rounded flex-shrink-0"
+                  />
+                  <span className="text-sm text-white/60">
+                    {t("terms.prefix")}{" "}
+                    <Link href="/terms" className="text-primary hover:underline">
+                      {t("terms.terms")}
+                    </Link>{" "}
+                    {t("terms.and")}{" "}
+                    <Link href="/refund" className="text-primary hover:underline">
+                      {t("terms.refund")}
+                    </Link>
+                  </span>
+                </label>
+                {hasAttemptedSubmit && errors.termsAccepted && (
+                  <p className="text-error text-sm mt-2">
+                    {errors.termsAccepted.message}
+                  </p>
+                )}
+              </div>
+              </>
+              )}
+
+              {/* Step navigation */}
+              <div className="flex gap-3 pt-2">
+                {currentStep > 1 && (
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    className="btn-secondary py-4 px-6 flex items-center justify-center gap-2 shrink-0"
+                  >
+                    <ArrowLeft size={18} />
+                    {t("nav.back")}
+                  </button>
+                )}
+
+                {currentStep < 3 ? (
+                  <button
+                    type="button"
+                    onClick={currentStep === 1 ? goToStep2 : goToStep3}
+                    className="btn-primary flex-1 py-4 text-base flex items-center justify-center gap-2 min-h-[56px]"
+                  >
+                    {t("nav.next")}
+                    <ArrowRight size={18} />
+                  </button>
+                ) : (
+                  // Card pays inline above (InlineStripePayment carries its own
+                  // pay button); only PayPal — an external redirect — still
+                  // needs this generic submit.
+                  paymentMethod === "paypal" && (
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="btn-primary flex-1 py-4 text-base md:text-lg flex items-center justify-center gap-2 min-h-[56px]"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 size={20} className="animate-spin" />
+                          {t("submit.processing")}
+                        </>
+                      ) : (
+                        <>
+                          <Wallet size={18} />
+                          {t("submit.paypal")}
+                        </>
+                      )}
+                    </button>
+                  )
+                )}
+              </div>
             </div>
 
             <div className="lg:col-span-5">
               <div className="lg:sticky lg:top-24 space-y-4">
-
-            {/* Payment Method */}
-            <div className="glass-card p-5">
-              <label className="block font-semibold text-white">{t("payment.label")}</label>
-              <p className="text-white/60 text-xs mt-1 mb-4">{t("payment.help")}</p>
-              <div className="space-y-3">
-                {/* Credit card */}
-                <label
-                  className={cn(
-                    "relative flex items-center gap-3 p-4 border rounded-2xl cursor-pointer transition-all",
-                    paymentMethod === "card"
-                      ? "border-primary bg-primary/10 ring-2 ring-primary/40"
-                      : "border-white/20 hover:border-primary/50 hover:bg-white/[0.07] bg-white/5"
-                  )}
-                >
-                  <input
-                    type="radio"
-                    {...register("paymentMethod")}
-                    value="card"
-                    className="sr-only"
-                  />
-                  <span
-                    className={cn(
-                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all",
-                      paymentMethod === "card" ? "border-primary bg-primary" : "border-white/30"
-                    )}
-                  >
-                    {paymentMethod === "card" && (
-                      <Check size={12} strokeWidth={3} className="text-white" />
-                    )}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-white">{t("payment.card.title")}</p>
-                    <p className="text-xs text-white/70">{t("payment.card.subtitle")}</p>
-                  </div>
-                  <CardLogos />
-                </label>
-
-                {/* PayPal */}
-                <label
-                  className={cn(
-                    "relative flex items-center gap-3 p-4 border rounded-2xl cursor-pointer transition-all",
-                    paymentMethod === "paypal"
-                      ? "border-primary bg-primary/10 ring-2 ring-primary/40"
-                      : "border-white/20 hover:border-primary/50 hover:bg-white/[0.07] bg-white/5"
-                  )}
-                >
-                  <input
-                    type="radio"
-                    {...register("paymentMethod")}
-                    value="paypal"
-                    className="sr-only"
-                  />
-                  <span
-                    className={cn(
-                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all",
-                      paymentMethod === "paypal" ? "border-primary bg-primary" : "border-white/30"
-                    )}
-                  >
-                    {paymentMethod === "paypal" && (
-                      <Check size={12} strokeWidth={3} className="text-white" />
-                    )}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-white">PayPal</p>
-                    <p className="text-xs text-white/70">{t("payment.paypal.subtitle")}</p>
-                  </div>
-                  <PayPalLogo />
-                </label>
-              </div>
-            </div>
-
-            {/* Promo code */}
-            {promoEnabled && (
-              <div className="glass-card p-5">
-                <label htmlFor="order-promo" className="block font-semibold text-white mb-3">
-                  {t("promo.label")}
-                </label>
-                {appliedPromo ? (
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-success bg-success/10 text-sm">
-                    <span className="text-white">
-                      {t("promo.appliedLabel")}: <span className="font-semibold">{appliedPromo.code}</span>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleRemovePromo}
-                      className="text-white/70 hover:text-white underline"
-                    >
-                      {t("promo.remove")}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <input
-                      id="order-promo"
-                      type="text"
-                      value={promoInput}
-                      onChange={(e) => setPromoInput(e.target.value)}
-                      placeholder={t("promo.placeholder")}
-                      className="flex-1 min-w-0 px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base h-12"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleApplyPromo}
-                      disabled={promoChecking || !promoInput.trim()}
-                      className="px-4 rounded-xl border border-white/20 bg-white/5 text-white font-medium hover:border-primary/50 disabled:opacity-50 shrink-0"
-                    >
-                      {promoChecking ? t("promo.applying") : t("promo.apply")}
-                    </button>
-                  </div>
-                )}
-                {promoError && <p className="text-error text-sm mt-2">{promoError}</p>}
-              </div>
-            )}
 
             {/* Price Summary */}
             <div className="bg-gradient-to-r from-primary/20 to-accent/20 border border-white/10 text-white p-6 rounded-3xl">
@@ -1016,6 +1521,12 @@ export default function OrderFormSection() {
                     <span>+{formatMoney(localComponent("expressDelivery"))}</span>
                   </div>
                 )}
+                {danceExtended && (
+                  <div className="flex justify-between">
+                    <span>{t("summary.items.danceExtended")}</span>
+                    <span>+{formatMoney(localComponent("danceExtended"))}</span>
+                  </div>
+                )}
                 {appliedPromo && discountLocal > 0 && (
                   <div className="flex justify-between text-success">
                     <span>{t("summary.discount", { code: appliedPromo.code })}</span>
@@ -1034,65 +1545,30 @@ export default function OrderFormSection() {
               </div>
             </div>
 
-            {/* Terms */}
-            <div className="glass-card p-5">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  {...register("termsAccepted")}
-                  className="w-6 h-6 mt-0.5 text-primary rounded flex-shrink-0"
-                />
-                <span className="text-sm text-white/60">
-                  {t("terms.prefix")}{" "}
-                  <Link href="/terms" className="text-primary hover:underline">
-                    {t("terms.terms")}
-                  </Link>{" "}
-                  {t("terms.and")}{" "}
-                  <Link href="/refund" className="text-primary hover:underline">
-                    {t("terms.refund")}
-                  </Link>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col items-center gap-2 glass-card px-3 py-4 text-center">
+                <span className="flex items-center justify-center w-10 h-10 rounded-full bg-accent/15 border border-accent/30">
+                  <Lock size={18} className="text-accent" />
                 </span>
-              </label>
-              {errors.termsAccepted && (
-                <p className="text-error text-sm mt-2">
-                  {errors.termsAccepted.message}
-                </p>
-              )}
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full btn-primary py-4 text-base md:text-lg flex items-center justify-center gap-2 min-h-[56px]"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 size={20} className="animate-spin" />
-                  {t("submit.processing")}
-                </>
-              ) : (
-                <>
-                  {paymentMethod === "paypal" ? <Wallet size={18} /> : <CreditCard size={18} />}
-                  {paymentMethod === "paypal"
-                    ? t("submit.paypal")
-                    : t("submit.pay", { amount: formatMoney(finalTotal) })}
-                </>
-              )}
-            </button>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-white/80">
-              <div className="flex items-center gap-2 glass-card px-3 py-2">
-                <Lock size={14} className="text-accent" />
-                {t("trust.secure")}
+                <span className="text-xs font-medium text-white/80 leading-tight">
+                  {t("trust.secure")}
+                </span>
               </div>
-              <div className="flex items-center gap-2 glass-card px-3 py-2">
-                <ShieldCheck size={14} className="text-accent" />
-                {t("trust.private")}
+              <div className="flex flex-col items-center gap-2 glass-card px-3 py-4 text-center">
+                <span className="flex items-center justify-center w-10 h-10 rounded-full bg-success/15 border border-success/30">
+                  <ShieldCheck size={18} className="text-success" />
+                </span>
+                <span className="text-xs font-medium text-white/80 leading-tight">
+                  {t("trust.private")}
+                </span>
               </div>
-              <div className="flex items-center gap-2 glass-card px-3 py-2">
-                <Clock size={14} className="text-accent" />
-                {t("trust.delivery")}
+              <div className="flex flex-col items-center gap-2 glass-card px-3 py-4 text-center">
+                <span className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary/15 border border-secondary/30">
+                  <Clock size={18} className="text-secondary" />
+                </span>
+                <span className="text-xs font-medium text-white/80 leading-tight">
+                  {t("trust.delivery")}
+                </span>
               </div>
             </div>
 
@@ -1101,31 +1577,6 @@ export default function OrderFormSection() {
           </form>
         </div>
       </div>
-
-      {stripeClientSecret && (
-        <CustomPaymentModal
-          isOpen={isStripeModalOpen}
-          onClose={() => {
-            setIsStripeModalOpen(false);
-            setStripeClientSecret(null);
-            setCurrentOrderId(null);
-          }}
-          clientSecret={stripeClientSecret}
-          amount={formatMoney(finalTotal)}
-          productName={t("productName")}
-          orderId={currentOrderId}
-          onSuccess={() => {
-            const orderId = currentOrderId;
-            const value = finalTotal;
-            const currency = localCurrency;
-            const qs = new URLSearchParams();
-            if (orderId) qs.set("orderId", orderId);
-            if (Number.isFinite(value)) qs.set("value", String(value));
-            if (currency) qs.set("currency", currency);
-            window.location.href = `/${activeLocale}/success?${qs.toString()}`;
-          }}
-        />
-      )}
     </section>
   );
 }

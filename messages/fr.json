@@ -20,7 +20,7 @@
     "liveTag": "Vraie vidéo",
     "videoCaption": "Réaction client · 1,2M vues",
     "trust": {
-      "delivery": "Livraison 24h",
+      "delivery": "Livraison 24-48h",
       "guarantee": "Satisfait ou remboursé",
       "rating": "4,9/5",
       "payment": "Paiement sécurisé"
@@ -28,7 +28,14 @@
     "miniReview": {
       "text": "Le meilleur cadeau — elle a pleuré !",
       "name": "Marie L. · Bruxelles"
-    }
+    },
+    "recentOrders": {
+      "singular": "{count} commande livrée cette semaine",
+      "plural": "{count} commandes livrées cette semaine"
+    },
+    "soundOn": "Activer le son",
+    "soundOff": "Couper le son",
+    "scrollHint": "Défiler pour commander"
   },
   "Footer": {
     "brand": "Nous répandons la joie africaine authentique pour des anniversaires partout dans le monde. Chaque vidéo est faite avec amour.",
@@ -100,10 +107,22 @@
       "play": "Lire {title}"
     },
     "videos": {
-      "0": { "title": "Anniversaire pour Sarah", "views": "2,1 M de vues" },
-      "1": { "title": "Du Kenya avec amour", "views": "1,8 M de vues" },
-      "2": { "title": "Surprise pour les 60 ans de maman", "views": "956 k vues" },
-      "3": { "title": "Célébration d'entreprise", "views": "723 k vues" }
+      "0": {
+        "title": "Anniversaire pour Sarah",
+        "views": "2,1 M de vues"
+      },
+      "1": {
+        "title": "Du Kenya avec amour",
+        "views": "1,8 M de vues"
+      },
+      "2": {
+        "title": "Surprise pour les 60 ans de maman",
+        "views": "956 k vues"
+      },
+      "3": {
+        "title": "Célébration d'entreprise",
+        "views": "723 k vues"
+      }
     }
   },
   "Testimonials": {
@@ -218,6 +237,16 @@
     "title": "Créez votre vidéo d'anniversaire",
     "productName": "Vidéo d'anniversaire personnalisée",
     "subtitle": "Remplissez le formulaire ci-dessous et nous créerons une vidéo personnalisée pour vous !",
+    "progress": "{completed} étape(s) sur {total} complétée(s)",
+    "sections": {
+      "video": "Votre vidéo",
+      "customize": "Personnalisation",
+      "payment": "Paiement"
+    },
+    "nav": {
+      "back": "Retour",
+      "next": "Continuer"
+    },
     "photo": {
       "label": "Téléverser une photo",
       "help": "Une photo nette nous aide à personnaliser la vidéo parfaitement.",
@@ -265,6 +294,10 @@
         "time": "12–24 heures"
       }
     },
+    "danceExtended": {
+      "title": "Version danse prolongée",
+      "subtitle": "La vidéo dure plus de 2 minutes."
+    },
     "payment": {
       "label": "Méthode de paiement",
       "help": "Choisissez votre moyen de paiement — chaque transaction est chiffrée et sécurisée.",
@@ -274,7 +307,10 @@
       },
       "paypal": {
         "subtitle": "Payer avec votre solde PayPal"
-      }
+      },
+      "preparing": "Préparation du paiement sécurisé…",
+      "setupError": "Impossible de préparer le paiement. Réessayez.",
+      "retry": "Réessayer"
     },
     "promo": {
       "label": "Code promo",
@@ -290,7 +326,8 @@
       "items": {
         "base": "Vidéo d'anniversaire",
         "customSong": "Chanson personnalisée",
-        "express": "Livraison express"
+        "express": "Livraison express",
+        "danceExtended": "Danse prolongée"
       },
       "discount": "Réduction ({code})",
       "total": "Total",
@@ -311,7 +348,7 @@
     "trust": {
       "secure": "Paiement sécurisé",
       "private": "Privé & sûr",
-      "delivery": "Livraison 24 h"
+      "delivery": "Livraison 24-48h"
     },
     "modal": {
       "title": "Paiement sécurisé",
@@ -323,7 +360,8 @@
       "emailInvalid": "Veuillez entrer une adresse email valide",
       "messageMin": "Le message doit contenir au moins 3 caractères",
       "messageMax": "Le message doit contenir au maximum 100 caractères",
-      "termsRequired": "Vous devez accepter les conditions"
+      "termsRequired": "Vous devez accepter les conditions",
+      "musicLinkInvalid": "Merci d'indiquer un lien valide (ex. https://...)"
     },
     "alerts": {
       "photoTooLarge": "La photo doit faire moins de 5 Mo",
@@ -450,11 +488,20 @@
     "creators": {
       "title": "Rencontrez nos créateurs 💃🕺",
       "images": {
-        "0": { "alt": "Notre équipe en action", "caption": "La magie au Kenya 🇰🇪" },
-        "1": { "alt": "Répétition de danse", "caption": "Nouvelles chorégraphies" },
-        "2": { "alt": "Célébration d'équipe", "caption": "Chaque étape compte" }
+        "0": {
+          "alt": "Notre équipe en action",
+          "caption": "La magie au Kenya 🇰🇪"
+        },
+        "1": {
+          "alt": "Répétition de danse",
+          "caption": "Nouvelles chorégraphies"
+        },
+        "2": {
+          "alt": "Célébration d'équipe",
+          "caption": "Chaque étape compte"
+        }
       },
-      "quote": "\u201cCe n'est pas juste un travail, c'est notre passion. Chaque vidéo porte une partie de notre cœur.\u201d",
+      "quote": "“Ce n'est pas juste un travail, c'est notre passion. Chaque vidéo porte une partie de notre cœur.”",
       "signature": "L'équipe AfroBirthday"
     },
     "impact": {
@@ -474,7 +521,8 @@
   "PaymentModal": {
     "title": "Finalisez Votre Paiement",
     "close": "Fermer",
-    "securePayment": "Paiement rapide et sécurisé avec Link",
+    "securePayment": "Paiement sécurisé",
+    "orPayWithCard": "ou payer autrement",
     "cardNumber": "Numéro de carte",
     "expiry": "Date d'expiration",
     "cvc": "Code de sécurité",
@@ -486,13 +534,35 @@
     "errors": {
       "termsRequired": "Vous devez accepter les conditions générales",
       "cardMissing": "Veuillez entrer vos informations de carte",
-      "generic": "Une erreur est survenue. Veuillez réessayer."
+      "generic": "Une erreur est survenue. Veuillez réessayer.",
+      "card_declined": "Votre carte a été refusée.",
+      "insufficient_funds": "Votre carte a un solde insuffisant.",
+      "expired_card": "Votre carte a expiré.",
+      "incorrect_cvc": "Le code de sécurité de votre carte est incorrect.",
+      "processing_error": "Impossible de traiter votre carte.",
+      "authentication_required": "Votre banque exige une authentification supplémentaire pour ce paiement.",
+      "rate_limit": "Trop de tentatives. Patientez un instant puis réessayez.",
+      "suffix": "Essayez Apple Pay ou Google Pay ci-dessus, ou une autre carte."
     },
     "badges": {
       "secure": "Transaction Sécurisée",
       "ssl": "Chiffrement SSL Sécurisé",
       "guaranteed": "Service Garanti"
-    }
+    },
+    "heroTitle": "Presque fini — payez en toute sécurité",
+    "heroSubtitle": "Votre paiement est chiffré et traité en toute sécurité par Stripe.",
+    "summaryLabel": "RÉSUMÉ",
+    "edit": "Modifier",
+    "deliveryEmailLabel": "EMAIL DE LIVRAISON",
+    "discountLabel": "Réduction ({code})",
+    "total": "Total",
+    "savings": "Vous économisez {amount} aujourd'hui",
+    "payButtonLabel": "Payer",
+    "connecting": "Connexion sécurisée au service de paiement…",
+    "encrypted": "Chiffré de bout en bout",
+    "retry": "Réessayer",
+    "retryWithCard": "Réessayer avec une autre carte",
+    "globalError": "Impossible de charger le formulaire de paiement. Réessaie."
   },
   "Chat": {
     "open": "Ouvrir le chat",

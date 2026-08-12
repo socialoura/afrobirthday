@@ -20,7 +20,7 @@
     "liveTag": "Echte video",
     "videoCaption": "Reactie van klant · 1,2M weergaven",
     "trust": {
-      "delivery": "Levering in 24u",
+      "delivery": "Levering in 24-48u",
       "guarantee": "Geld-terug-garantie",
       "rating": "Score 4,9/5",
       "payment": "Veilig betalen"
@@ -28,7 +28,14 @@
     "miniReview": {
       "text": "Beste cadeau ooit — ze huilde!",
       "name": "Marie L. · Brussel"
-    }
+    },
+    "recentOrders": {
+      "singular": "{count} bestelling deze week geleverd",
+      "plural": "{count} bestellingen deze week geleverd"
+    },
+    "soundOn": "Geluid aanzetten",
+    "soundOff": "Geluid uitzetten",
+    "scrollHint": "Scroll om te bestellen"
   },
   "Footer": {
     "brand": "We brengen authentieke Afrikaanse vreugde naar verjaardagen wereldwijd. Elke video is met liefde gemaakt.",
@@ -100,10 +107,22 @@
       "play": "{title} afspelen"
     },
     "videos": {
-      "0": { "title": "Verjaardag voor Sarah", "views": "2,1 mln weergaven" },
-      "1": { "title": "Uit Kenia met liefde", "views": "1,8 mln weergaven" },
-      "2": { "title": "Verrassing voor mama's 60e", "views": "956k weergaven" },
-      "3": { "title": "Bedrijfsfeest", "views": "723k weergaven" }
+      "0": {
+        "title": "Verjaardag voor Sarah",
+        "views": "2,1 mln weergaven"
+      },
+      "1": {
+        "title": "Uit Kenia met liefde",
+        "views": "1,8 mln weergaven"
+      },
+      "2": {
+        "title": "Verrassing voor mama's 60e",
+        "views": "956k weergaven"
+      },
+      "3": {
+        "title": "Bedrijfsfeest",
+        "views": "723k weergaven"
+      }
     }
   },
   "Testimonials": {
@@ -218,6 +237,16 @@
     "title": "Maak je verjaardagsvideo",
     "productName": "Gepersonaliseerde verjaardagsvideo",
     "subtitle": "Vul het formulier hieronder in en wij maken een gepersonaliseerde video voor je!",
+    "progress": "{completed} van {total} stappen voltooid",
+    "sections": {
+      "video": "Jouw video",
+      "customize": "Personaliseren",
+      "payment": "Betaling"
+    },
+    "nav": {
+      "back": "Terug",
+      "next": "Doorgaan"
+    },
     "photo": {
       "label": "Foto uploaden",
       "help": "Een duidelijke foto helpt ons om de video perfect te personaliseren.",
@@ -265,6 +294,10 @@
         "time": "12–24 uur"
       }
     },
+    "danceExtended": {
+      "title": "Verlengde dansversie",
+      "subtitle": "De video duurt langer dan 2 minuten."
+    },
     "payment": {
       "label": "Betaalmethode",
       "help": "Kies hoe je wilt betalen — elke transactie is versleuteld en veilig.",
@@ -274,14 +307,18 @@
       },
       "paypal": {
         "subtitle": "Betaal met je PayPal-saldo"
-      }
+      },
+      "preparing": "Veilige betaling wordt voorbereid…",
+      "setupError": "Betaling kon niet worden voorbereid. Probeer het opnieuw.",
+      "retry": "Opnieuw proberen"
     },
     "summary": {
       "title": "Overzicht",
       "items": {
         "base": "Verjaardagsvideo",
         "customSong": "Eigen nummer",
-        "express": "Express levering"
+        "express": "Express levering",
+        "danceExtended": "Verlengde dans"
       },
       "total": "Totaal",
       "chargedUsd": "Afgerond in USD bij betaling",
@@ -301,7 +338,7 @@
     "trust": {
       "secure": "Veilige betaling",
       "private": "Privé & veilig",
-      "delivery": "24u levering"
+      "delivery": "Levering in 24-48u"
     },
     "modal": {
       "title": "Veilige betaling",
@@ -313,7 +350,8 @@
       "emailInvalid": "Vul een geldig e-mailadres in",
       "messageMin": "Het bericht moet minimaal 3 tekens bevatten",
       "messageMax": "Het bericht mag maximaal 100 tekens bevatten",
-      "termsRequired": "Je moet akkoord gaan met de voorwaarden"
+      "termsRequired": "Je moet akkoord gaan met de voorwaarden",
+      "musicLinkInvalid": "Voer een geldige link in (bijv. https://...)"
     },
     "alerts": {
       "photoTooLarge": "De foto moet kleiner zijn dan 5 MB",
@@ -440,11 +478,20 @@
     "creators": {
       "title": "Ontmoet onze creators 💃🕺",
       "images": {
-        "0": { "alt": "Ons team in actie", "caption": "Magie uit Kenia 🇰🇪" },
-        "1": { "alt": "Dansrepetitie", "caption": "Nieuwe choreo's oefenen" },
-        "2": { "alt": "Teamviering", "caption": "Elke mijlpaal vieren" }
+        "0": {
+          "alt": "Ons team in actie",
+          "caption": "Magie uit Kenia 🇰🇪"
+        },
+        "1": {
+          "alt": "Dansrepetitie",
+          "caption": "Nieuwe choreo's oefenen"
+        },
+        "2": {
+          "alt": "Teamviering",
+          "caption": "Elke mijlpaal vieren"
+        }
       },
-      "quote": "\u201cDit is niet zomaar werk, het is onze passie. Elke video draagt een stukje van ons hart.\u201d",
+      "quote": "“Dit is niet zomaar werk, het is onze passie. Elke video draagt een stukje van ons hart.”",
       "signature": "Het AfroBirthday-team"
     },
     "impact": {
@@ -464,7 +511,8 @@
   "PaymentModal": {
     "title": "Voltooi Je Betaling",
     "close": "Sluiten",
-    "securePayment": "Snelle & veilige betaling met Link",
+    "securePayment": "Veilige betaling",
+    "orPayWithCard": "of betaal op een andere manier",
     "cardNumber": "Kaartnummer",
     "expiry": "Vervaldatum",
     "cvc": "Beveiligingscode",
@@ -476,13 +524,35 @@
     "errors": {
       "termsRequired": "Je moet de voorwaarden accepteren",
       "cardMissing": "Voer je kaartgegevens in",
-      "generic": "Er is een fout opgetreden. Probeer opnieuw."
+      "generic": "Er is een fout opgetreden. Probeer opnieuw.",
+      "card_declined": "Je kaart is geweigerd.",
+      "insufficient_funds": "Er staat onvoldoende saldo op je kaart.",
+      "expired_card": "Je kaart is verlopen.",
+      "incorrect_cvc": "De beveiligingscode van je kaart is onjuist.",
+      "processing_error": "We konden je kaart niet verwerken.",
+      "authentication_required": "Je bank vereist extra authenticatie voor deze betaling.",
+      "rate_limit": "Te veel pogingen. Wacht even en probeer het opnieuw.",
+      "suffix": "Probeer Apple Pay of Google Pay hierboven, of een andere kaart."
     },
     "badges": {
       "secure": "Veilige Transactie",
       "ssl": "SSL Versleuteld",
       "guaranteed": "Gegarandeerde Service"
-    }
+    },
+    "heroTitle": "Bijna klaar — betaal veilig",
+    "heroSubtitle": "Je betaling is versleuteld en wordt veilig verwerkt via Stripe.",
+    "summaryLabel": "OVERZICHT",
+    "edit": "Bewerken",
+    "deliveryEmailLabel": "BEZORG-E-MAIL",
+    "discountLabel": "Korting ({code})",
+    "total": "Totaal",
+    "savings": "Je bespaart vandaag {amount}",
+    "payButtonLabel": "Betalen",
+    "connecting": "Veilig verbinden met de betaalservice…",
+    "encrypted": "End-to-end versleuteld",
+    "retry": "Opnieuw proberen",
+    "retryWithCard": "Probeer een andere kaart",
+    "globalError": "Het betaalformulier kon niet worden geladen. Probeer het opnieuw."
   },
   "LegalMeta": {
     "privacy": {

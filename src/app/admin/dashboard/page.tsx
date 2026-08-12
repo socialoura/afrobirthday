@@ -26,7 +26,7 @@ import { SUPPORTED_CURRENCIES, CURRENCY_SYMBOLS } from "@/lib/utils";
 
 type OverrideForm = Record<
   string,
-  { base: string; customSong: string; expressDelivery: string }
+  { base: string; customSong: string; expressDelivery: string; danceExtended: string }
 >;
 
 type Order = {
@@ -40,7 +40,8 @@ type Order = {
   music_link: string | null;
   music_file_url: string | null;
   delivery_method: string;
-  photo_url: string;
+  dance_extended: boolean;
+  photo_url: string | null;
   total_usd: number;
   notes: string | null;
   cost: number;
@@ -115,6 +116,7 @@ export default function AdminDashboardPage() {
     base: 19.99,
     customSong: 9.99,
     expressDelivery: 7.99,
+    danceExtended: 20,
   });
   const [priceOverrides, setPriceOverrides] = useState<OverrideForm>({});
   const [newOverrideCurrency, setNewOverrideCurrency] = useState("");
@@ -220,11 +222,12 @@ export default function AdminDashboardPage() {
           base: typeof data.base === "number" ? data.base : 19.99,
           customSong: typeof data.customSong === "number" ? data.customSong : 9.99,
           expressDelivery: typeof data.expressDelivery === "number" ? data.expressDelivery : 7.99,
+          danceExtended: typeof data.danceExtended === "number" ? data.danceExtended : 20,
         });
 
         const rawOverrides = (data.overrides ?? {}) as Record<
           string,
-          Partial<{ base: number; customSong: number; expressDelivery: number }>
+          Partial<{ base: number; customSong: number; expressDelivery: number; danceExtended: number }>
         >;
         const form: OverrideForm = {};
         for (const [code, value] of Object.entries(rawOverrides)) {
@@ -232,6 +235,7 @@ export default function AdminDashboardPage() {
             base: value?.base != null ? String(value.base) : "",
             customSong: value?.customSong != null ? String(value.customSong) : "",
             expressDelivery: value?.expressDelivery != null ? String(value.expressDelivery) : "",
+            danceExtended: value?.danceExtended != null ? String(value.danceExtended) : "",
           };
         }
         setPriceOverrides(form);
@@ -494,7 +498,7 @@ export default function AdminDashboardPage() {
     const overrides: Record<string, Record<string, number>> = {};
     for (const [code, value] of Object.entries(priceOverrides)) {
       const entry: Record<string, number> = {};
-      (["base", "customSong", "expressDelivery"] as const).forEach((key) => {
+      (["base", "customSong", "expressDelivery", "danceExtended"] as const).forEach((key) => {
         const raw = value[key];
         if (raw === "" || raw == null) return;
         const num = Number.parseFloat(raw);
@@ -524,7 +528,7 @@ export default function AdminDashboardPage() {
     if (!code || priceOverrides[code]) return;
     setPriceOverrides((prev) => ({
       ...prev,
-      [code]: { base: "", customSong: "", expressDelivery: "" },
+      [code]: { base: "", customSong: "", expressDelivery: "", danceExtended: "" },
     }));
     setNewOverrideCurrency("");
   };
@@ -539,7 +543,7 @@ export default function AdminDashboardPage() {
 
   const setOverrideValue = (
     code: string,
-    key: "base" | "customSong" | "expressDelivery",
+    key: "base" | "customSong" | "expressDelivery" | "danceExtended",
     value: string
   ) => {
     setPriceOverrides((prev) => ({
@@ -1131,7 +1135,7 @@ export default function AdminDashboardPage() {
                 These prices are used server-side to calculate Stripe/PayPal amounts.
               </p>
               <div className="space-y-4">
-                <div className="grid sm:grid-cols-3 gap-4">
+                <div className="grid sm:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-sm text-white/60 mb-1">Base</label>
                     <input
@@ -1180,6 +1184,22 @@ export default function AdminDashboardPage() {
                       className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm text-white/60 mb-1">Dance extended</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={pricingSettings.danceExtended}
+                      onChange={(e) =>
+                        setPricingSettings((p) => ({
+                          ...p,
+                          danceExtended: Number.parseFloat(e.target.value || "0"),
+                        }))
+                      }
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                    />
+                  </div>
                 </div>
 
                 {/* Per-currency price overrides */}
@@ -1212,14 +1232,16 @@ export default function AdminDashboardPage() {
                             {CURRENCY_SYMBOLS[code as keyof typeof CURRENCY_SYMBOLS]}
                           </span>
                         </div>
-                        {(["base", "customSong", "expressDelivery"] as const).map((key) => (
+                        {(["base", "customSong", "expressDelivery", "danceExtended"] as const).map((key) => (
                           <div key={key} className="flex-1 min-w-[110px]">
                             <label className="block text-xs text-white/50 mb-1">
                               {key === "base"
                                 ? "Base"
                                 : key === "customSong"
                                 ? "Custom song"
-                                : "Express"}
+                                : key === "expressDelivery"
+                                ? "Express"
+                                : "Dance ext."}
                             </label>
                             <input
                               type="number"
@@ -1560,6 +1582,10 @@ export default function AdminDashboardPage() {
                   <p className="text-white/60 text-sm">Music</p>
                   <p className="text-white">{selectedOrder.music_option}</p>
                 </div>
+                <div>
+                  <p className="text-white/60 text-sm">Dance extended</p>
+                  <p className="text-white">{selectedOrder.dance_extended ? "Yes" : "No"}</p>
+                </div>
               </div>
               <div>
                 <p className="text-white/60 text-sm">Message</p>
@@ -1569,14 +1595,18 @@ export default function AdminDashboardPage() {
               </div>
               <div>
                 <p className="text-white/60 text-sm">Photo</p>
-                <a
-                  href={selectedOrder.photo_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 mt-1"
-                >
-                  View Photo <ExternalLink className="w-4 h-4" />
-                </a>
+                {selectedOrder.photo_url ? (
+                  <a
+                    href={selectedOrder.photo_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 mt-1"
+                  >
+                    View Photo <ExternalLink className="w-4 h-4" />
+                  </a>
+                ) : (
+                  <p className="text-white/40 text-sm mt-1 italic">Deleted (order completed 30+ days ago)</p>
+                )}
               </div>
               {selectedOrder.music_link && (
                 <div>

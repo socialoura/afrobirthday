@@ -20,7 +20,7 @@
     "liveTag": "Real video",
     "videoCaption": "Customer reaction · 1.2M views",
     "trust": {
-      "delivery": "24h delivery",
+      "delivery": "24-48 hour delivery",
       "guarantee": "Money-back guarantee",
       "rating": "4.9/5",
       "payment": "Secure payment"
@@ -28,7 +28,14 @@
     "miniReview": {
       "text": "Best gift ever — she cried!",
       "name": "Marie L. · Brussels"
-    }
+    },
+    "recentOrders": {
+      "singular": "{count} order delivered this week",
+      "plural": "{count} orders delivered this week"
+    },
+    "soundOn": "Unmute video",
+    "soundOff": "Mute video",
+    "scrollHint": "Scroll to order"
   },
   "Footer": {
     "brand": "Spreading authentic African joy to birthdays worldwide. Every video is crafted with love.",
@@ -100,10 +107,22 @@
       "play": "Play {title}"
     },
     "videos": {
-      "0": { "title": "Birthday for Sarah", "views": "2.1M views" },
-      "1": { "title": "From Kenya with love", "views": "1.8M views" },
-      "2": { "title": "Mom's 60th surprise", "views": "956K views" },
-      "3": { "title": "Corporate celebration", "views": "723K views" }
+      "0": {
+        "title": "Birthday for Sarah",
+        "views": "2.1M views"
+      },
+      "1": {
+        "title": "From Kenya with love",
+        "views": "1.8M views"
+      },
+      "2": {
+        "title": "Mom's 60th surprise",
+        "views": "956K views"
+      },
+      "3": {
+        "title": "Corporate celebration",
+        "views": "723K views"
+      }
     }
   },
   "Testimonials": {
@@ -218,6 +237,16 @@
     "title": "Create Your Birthday Video",
     "productName": "Personalized Birthday Video",
     "subtitle": "Fill out the form below and we'll create a personalized video just for you!",
+    "progress": "{completed} of {total} steps completed",
+    "sections": {
+      "video": "Your video",
+      "customize": "Customize",
+      "payment": "Payment"
+    },
+    "nav": {
+      "back": "Back",
+      "next": "Continue"
+    },
     "photo": {
       "label": "Upload Photo",
       "help": "A clear photo helps us personalize the video perfectly.",
@@ -265,6 +294,10 @@
         "time": "12-24 hours"
       }
     },
+    "danceExtended": {
+      "title": "Dance extended version",
+      "subtitle": "The video is more than 2 minutes long."
+    },
     "payment": {
       "label": "Payment method",
       "help": "Choose how you'd like to pay — every transaction is encrypted and secure.",
@@ -274,7 +307,10 @@
       },
       "paypal": {
         "subtitle": "Pay with your PayPal balance"
-      }
+      },
+      "preparing": "Preparing your secure payment…",
+      "setupError": "We couldn't set up payment. Please try again.",
+      "retry": "Try again"
     },
     "promo": {
       "label": "Promo code",
@@ -290,7 +326,8 @@
       "items": {
         "base": "Birthday Video",
         "customSong": "Custom Song",
-        "express": "Express Delivery"
+        "express": "Express Delivery",
+        "danceExtended": "Dance Extended"
       },
       "discount": "Discount ({code})",
       "total": "Total",
@@ -311,7 +348,7 @@
     "trust": {
       "secure": "Secure credit card",
       "private": "Private & safe",
-      "delivery": "24h delivery"
+      "delivery": "24-48 hour delivery"
     },
     "modal": {
       "title": "Secure Payment",
@@ -323,7 +360,8 @@
       "emailInvalid": "Please enter a valid email address",
       "messageMin": "Message must be at least 3 characters",
       "messageMax": "Message must be at most 100 characters",
-      "termsRequired": "You must accept the terms"
+      "termsRequired": "You must accept the terms",
+      "musicLinkInvalid": "Please enter a valid link (e.g. https://...)"
     },
     "alerts": {
       "photoTooLarge": "Photo must be less than 5MB",
@@ -450,11 +488,20 @@
     "creators": {
       "title": "Meet Our Creators 💃🕺",
       "images": {
-        "0": { "alt": "Our team in action", "caption": "Creating magic in Kenya 🇰🇪" },
-        "1": { "alt": "Dance rehearsal", "caption": "Rehearsing new choreography" },
-        "2": { "alt": "Team celebration", "caption": "Celebrating every milestone" }
+        "0": {
+          "alt": "Our team in action",
+          "caption": "Creating magic in Kenya 🇰🇪"
+        },
+        "1": {
+          "alt": "Dance rehearsal",
+          "caption": "Rehearsing new choreography"
+        },
+        "2": {
+          "alt": "Team celebration",
+          "caption": "Celebrating every milestone"
+        }
       },
-      "quote": "\u201cIt's not just a job, it's our passion. Every video we create carries a piece of our heart.\u201d",
+      "quote": "“It's not just a job, it's our passion. Every video we create carries a piece of our heart.”",
       "signature": "The AfroBirthday Team"
     },
     "impact": {
@@ -474,7 +521,8 @@
   "PaymentModal": {
     "title": "Complete Your Payment",
     "close": "Close",
-    "securePayment": "Fast & secure payment with Link",
+    "securePayment": "Secure payment",
+    "orPayWithCard": "or pay another way",
     "cardNumber": "Card number",
     "expiry": "Expiration date",
     "cvc": "Security code",
@@ -486,13 +534,35 @@
     "errors": {
       "termsRequired": "You must accept the terms and conditions",
       "cardMissing": "Please enter your card details",
-      "generic": "An error occurred. Please try again."
+      "generic": "An error occurred. Please try again.",
+      "card_declined": "Your card was declined.",
+      "insufficient_funds": "Your card has insufficient funds.",
+      "expired_card": "Your card has expired.",
+      "incorrect_cvc": "Your card's security code is incorrect.",
+      "processing_error": "We couldn't process your card.",
+      "authentication_required": "Your bank requires additional authentication for this payment.",
+      "rate_limit": "Too many attempts. Please wait a moment and try again.",
+      "suffix": "Try Apple Pay or Google Pay above, or another card."
     },
     "badges": {
       "secure": "Secure Transaction",
       "ssl": "SSL Encrypted",
       "guaranteed": "Guaranteed Service"
-    }
+    },
+    "heroTitle": "Almost there — pay securely",
+    "heroSubtitle": "Your payment is encrypted and processed securely by Stripe.",
+    "summaryLabel": "SUMMARY",
+    "edit": "Edit",
+    "deliveryEmailLabel": "DELIVERY EMAIL",
+    "discountLabel": "Discount ({code})",
+    "total": "Total",
+    "savings": "You're saving {amount} today",
+    "payButtonLabel": "Pay",
+    "connecting": "Connecting securely to the payment service…",
+    "encrypted": "End-to-end encrypted",
+    "retry": "Retry",
+    "retryWithCard": "Try another card",
+    "globalError": "We couldn't load the payment form. Please try again."
   },
   "Chat": {
     "open": "Open chat",

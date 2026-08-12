@@ -20,3 +20,16 @@ export function publicUrlFor(path: string): string {
   return getSupabaseAdmin().storage.from(STORAGE_BUCKET).getPublicUrl(path).data
     .publicUrl;
 }
+
+/** Reverses publicUrlFor: extracts the storage key from a public bucket URL. */
+export function keyFromPublicUrl(url: string): string | null {
+  const marker = `/public/${STORAGE_BUCKET}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  return decodeURIComponent(url.slice(idx + marker.length));
+}
+
+export async function deleteObject(key: string): Promise<void> {
+  const { error } = await getSupabaseAdmin().storage.from(STORAGE_BUCKET).remove([key]);
+  if (error) throw error;
+}

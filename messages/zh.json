@@ -20,7 +20,7 @@
     "liveTag": "真实视频",
     "videoCaption": "客户反应 · 120 万次观看",
     "trust": {
-      "delivery": "24 小时送达",
+      "delivery": "24-48 小时送达",
       "guarantee": "退款保证",
       "rating": "4.9/5",
       "payment": "安全支付"
@@ -28,7 +28,14 @@
     "miniReview": {
       "text": "最棒的礼物 — 她哭了！",
       "name": "李女士 · 上海"
-    }
+    },
+    "recentOrders": {
+      "singular": "本周已交付 {count} 个订单",
+      "plural": "本周已交付 {count} 个订单"
+    },
+    "soundOn": "开启声音",
+    "soundOff": "关闭声音",
+    "scrollHint": "向下滑动下单"
   },
   "Footer": {
     "brand": "把真实的非洲喜悦带到世界各地的生日。每个视频都用心制作。",
@@ -100,10 +107,22 @@
       "play": "播放 {title}"
     },
     "videos": {
-      "0": { "title": "给 Sarah 的生日祝福", "views": "210 万次观看" },
-      "1": { "title": "来自肯尼亚的爱", "views": "180 万次观看" },
-      "2": { "title": "妈妈 60 岁惊喜", "views": "95.6 万次观看" },
-      "3": { "title": "公司庆祝视频", "views": "72.3 万次观看" }
+      "0": {
+        "title": "给 Sarah 的生日祝福",
+        "views": "210 万次观看"
+      },
+      "1": {
+        "title": "来自肯尼亚的爱",
+        "views": "180 万次观看"
+      },
+      "2": {
+        "title": "妈妈 60 岁惊喜",
+        "views": "95.6 万次观看"
+      },
+      "3": {
+        "title": "公司庆祝视频",
+        "views": "72.3 万次观看"
+      }
     }
   },
   "Testimonials": {
@@ -218,6 +237,16 @@
     "title": "创建你的生日视频",
     "productName": "定制生日视频",
     "subtitle": "填写下方表单，我们将为你制作专属定制视频！",
+    "progress": "已完成 {total} 步中的 {completed} 步",
+    "sections": {
+      "video": "你的视频",
+      "customize": "个性化定制",
+      "payment": "支付"
+    },
+    "nav": {
+      "back": "返回",
+      "next": "继续"
+    },
     "photo": {
       "label": "上传照片",
       "help": "清晰的照片能帮助我们更好地定制视频。",
@@ -265,6 +294,10 @@
         "time": "12–24 小时"
       }
     },
+    "danceExtended": {
+      "title": "延长舞蹈版",
+      "subtitle": "视频时长超过2分钟。"
+    },
     "payment": {
       "label": "支付方式",
       "help": "选择您偏好的支付方式——每一笔交易都经过加密，安全可靠。",
@@ -274,14 +307,18 @@
       },
       "paypal": {
         "subtitle": "使用 PayPal 余额付款"
-      }
+      },
+      "preparing": "正在准备安全支付…",
+      "setupError": "无法准备支付，请重试。",
+      "retry": "重试"
     },
     "summary": {
       "title": "订单摘要",
       "items": {
         "base": "生日视频",
         "customSong": "自选音乐",
-        "express": "加急交付"
+        "express": "加急交付",
+        "danceExtended": "延长舞蹈"
       },
       "total": "合计",
       "chargedUsd": "结账时以 USD 扣款",
@@ -301,7 +338,7 @@
     "trust": {
       "secure": "安全支付",
       "private": "私密安全",
-      "delivery": "24 小时交付"
+      "delivery": "24-48 小时交付"
     },
     "modal": {
       "title": "安全支付",
@@ -313,7 +350,8 @@
       "emailInvalid": "请输入有效的邮箱地址",
       "messageMin": "祝福语至少需要 3 个字符",
       "messageMax": "祝福语最多 100 个字符",
-      "termsRequired": "你必须同意条款"
+      "termsRequired": "你必须同意条款",
+      "musicLinkInvalid": "请输入有效的链接（例如 https://...)"
     },
     "alerts": {
       "photoTooLarge": "照片必须小于 5MB",
@@ -440,11 +478,20 @@
     "creators": {
       "title": "认识我们的创作者 💃🕺",
       "images": {
-        "0": { "alt": "团队工作中", "caption": "来自肯尼亚的魔法 🇰🇪" },
-        "1": { "alt": "舞蹈排练", "caption": "练习新的编舞" },
-        "2": { "alt": "团队庆祝", "caption": "庆祝每一个里程碑" }
+        "0": {
+          "alt": "团队工作中",
+          "caption": "来自肯尼亚的魔法 🇰🇪"
+        },
+        "1": {
+          "alt": "舞蹈排练",
+          "caption": "练习新的编舞"
+        },
+        "2": {
+          "alt": "团队庆祝",
+          "caption": "庆祝每一个里程碑"
+        }
       },
-      "quote": "\u201c这不仅仅是工作，这是我们的热爱。每个视频都倾注了我们的心意。\u201d",
+      "quote": "“这不仅仅是工作，这是我们的热爱。每个视频都倾注了我们的心意。”",
       "signature": "AfroBirthday 团队"
     },
     "impact": {
@@ -464,7 +511,8 @@
   "PaymentModal": {
     "title": "完成支付",
     "close": "关闭",
-    "securePayment": "使用 Link 快速安全支付",
+    "securePayment": "安全支付",
+    "orPayWithCard": "或使用其他方式支付",
     "cardNumber": "卡号",
     "expiry": "有效期",
     "cvc": "安全码",
@@ -476,13 +524,35 @@
     "errors": {
       "termsRequired": "您必须同意条款和条件",
       "cardMissing": "请输入卡片信息",
-      "generic": "发生错误，请重试。"
+      "generic": "发生错误，请重试。",
+      "card_declined": "您的卡被拒绝。",
+      "insufficient_funds": "您的卡余额不足。",
+      "expired_card": "您的卡已过期。",
+      "incorrect_cvc": "您卡片的安全码不正确。",
+      "processing_error": "我们无法处理您的卡。",
+      "authentication_required": "您的银行要求对此付款进行额外身份验证。",
+      "rate_limit": "尝试次数过多,请稍候再试。",
+      "suffix": "请尝试上方的 Apple Pay 或 Google Pay,或使用其他卡。"
     },
     "badges": {
       "secure": "安全交易",
       "ssl": "SSL 加密",
       "guaranteed": "服务保障"
-    }
+    },
+    "heroTitle": "即将完成安全支付",
+    "heroSubtitle": "您的付款已加密,并通过 Stripe 安全处理。",
+    "summaryLabel": "订单摘要",
+    "edit": "编辑",
+    "deliveryEmailLabel": "送达邮箱",
+    "discountLabel": "折扣({code})",
+    "total": "总计",
+    "savings": "今天为您节省 {amount}",
+    "payButtonLabel": "支付",
+    "connecting": "正在安全连接支付服务…",
+    "encrypted": "端到端加密",
+    "retry": "重试",
+    "retryWithCard": "尝试其他卡",
+    "globalError": "无法加载支付表单,请重试。"
   },
   "Success": {
     "title": "支付成功！",

@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Checkout palette — derived from the site's own brand tokens
+     (tailwind.config.ts), not a generic template palette. checkout-pay-btn
+     and checkout-pay-amount are used by InlineStripePayment. */
+  --checkout-paper: #fcf8f9;
+  --checkout-paper-2: #f3f0ec;
+  --checkout-ink: #1f2121;
+  --checkout-ink-2: #5a5a62;
+  --checkout-ink-3: #94949c;
+  --checkout-primary: #ff6b35;
+  --checkout-green: #22c55e;
+  --checkout-line: #e7e2da;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -78,6 +92,113 @@
   .glow-accent {
     box-shadow: 0 0 60px rgba(43, 161, 153, 0.3);
   }
+
+  .checkout-card {
+    background: var(--checkout-paper);
+    border-radius: 22px;
+    border: 2px solid var(--checkout-primary);
+    padding: 24px;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .checkout-input-shell {
+    background: #fff;
+    border: 2px solid var(--checkout-line);
+    border-radius: 16px;
+    padding: 6px 8px 6px 16px;
+    display: flex;
+    align-items: center;
+    transition: border-color 0.25s, box-shadow 0.25s;
+  }
+  .checkout-input-shell:focus-within {
+    border-color: var(--checkout-primary);
+    box-shadow: 0 8px 22px -10px rgba(255, 107, 53, 0.35);
+  }
+  .checkout-input-shell input {
+    flex: 1;
+    border: 0;
+    outline: 0;
+    padding: 12px 4px;
+    font-size: 16px;
+    font-weight: 500;
+    background: transparent;
+    color: var(--checkout-ink);
+  }
+
+  .checkout-pay-btn {
+    position: relative;
+    width: 100%;
+    margin-top: 18px;
+    padding: 18px 26px;
+    border: none;
+    border-radius: 16px;
+    color: white;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: var(--checkout-primary);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset,
+      0 -2px 0 rgba(0, 0, 0, 0.12) inset, 0 10px 22px -8px rgba(0, 0, 0, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.25s ease, filter 0.2s ease;
+  }
+  .checkout-pay-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0) 55%
+    );
+  }
+  .checkout-pay-btn::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      110deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.35) 50%,
+      transparent 100%
+    );
+    transform: skewX(-20deg);
+    transition: left 0.65s ease;
+  }
+  .checkout-pay-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset,
+      0 -2px 0 rgba(0, 0, 0, 0.12) inset, 0 18px 32px -10px rgba(0, 0, 0, 0.45);
+    filter: saturate(1.1);
+  }
+  .checkout-pay-btn:hover:not(:disabled)::after {
+    left: 120%;
+  }
+  .checkout-pay-btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  .checkout-pay-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.75;
+  }
+
+  .checkout-pay-amount {
+    background: rgba(255, 255, 255, 0.18);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @layer utilities {
@@ -97,6 +218,14 @@
     background-size: 200% 200%;
     animation: gradient 8s ease infinite;
   }
+
+  .animate-promo-in {
+    animation: promo-in 0.45s cubic-bezier(0.16, 1.05, 0.56, 1.02);
+  }
+
+  .animate-card-slide-in {
+    animation: card-slide-in 0.45s ease-out;
+  }
 }
 
 @keyframes float {
@@ -108,6 +237,17 @@
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+@keyframes promo-in {
+  0% { opacity: 0; transform: translateY(-10px); }
+  60% { opacity: 1; transform: translateY(3px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes card-slide-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {

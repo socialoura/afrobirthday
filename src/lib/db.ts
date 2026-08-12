@@ -91,6 +91,11 @@ export async function ensureOrdersTable() {
     ADD COLUMN IF NOT EXISTS promo_code text,
     ADD COLUMN IF NOT EXISTS discount_amount numeric(10,2) DEFAULT 0
   `;
+
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS dance_extended boolean NOT NULL DEFAULT false
+  `;
 }
 
 export async function ensurePromoCodesTable() {
@@ -143,6 +148,8 @@ export type OrderCreateInput = {
   promoCode?: string;
   /** Discount amount in USD, matching the total_usd reference price. */
   discountAmount?: number;
+  /** Dance extended version add-on (video is more than 2 minutes long). */
+  danceExtended?: boolean;
 };
 
 export async function createOrder(input: OrderCreateInput) {
@@ -165,7 +172,8 @@ export async function createOrder(input: OrderCreateInput) {
       exchange_rate,
       device,
       promo_code,
-      discount_amount
+      discount_amount,
+      dance_extended
     ) VALUES (
       ${input.id}::uuid,
       ${input.email},
@@ -182,7 +190,8 @@ export async function createOrder(input: OrderCreateInput) {
       ${input.exchangeRate ?? 1},
       ${input.device ?? null},
       ${input.promoCode ?? null},
-      ${input.discountAmount ?? 0}
+      ${input.discountAmount ?? 0},
+      ${input.danceExtended ?? false}
     )
     ON CONFLICT (id) DO NOTHING
   `;
@@ -313,6 +322,12 @@ export async function initAdminTables() {
     ADD COLUMN IF NOT EXISTS referral_email_sent_at timestamptz
   `;
 
+  // photo_url was NOT NULL at table creation; the photo-cleanup cron nulls
+  // it out once purged from storage, so the constraint has to go.
+  await sql`
+    ALTER TABLE orders ALTER COLUMN photo_url DROP NOT NULL
+  `;
+
   // Referral codes: promo_codes.owner_email links a code back to the
   // customer it was generated for (NULL for regular admin-created codes).
   await sql`
@@ -346,7 +361,7 @@ export type Order = {
   music_link: string | null;
   music_file_url: string | null;
   delivery_method: string;
-  photo_url: string;
+  photo_url: string | null;
   total_usd: number;
   currency: string;
   total_local: number | null;
@@ -361,6 +376,7 @@ export type Order = {
   cost: number;
   promo_code: string | null;
   discount_amount: number;
+  dance_extended: boolean;
   country: string | null;
   final_video_url: string | null;
   final_video_sent_at: string | null;
@@ -400,6 +416,17 @@ export async function getAllOrders(): Promise<Order[]> {
     SELECT * FROM orders ORDER BY created_at DESC
   `;
   return rows as unknown as Order[];
+}
+
+/** Count of orders delivered (final video sent) in the last N days — used for the public "recent activity" trust badge. */
+export async function getRecentlyDeliveredOrdersCount(days: number): Promise<number> {
+  const sql = getSql();
+  const rows = await sql`
+    SELECT COUNT(*)::int AS count FROM orders
+    WHERE final_video_sent_at IS NOT NULL
+      AND final_video_sent_at >= now() - (${days} || ' days')::interval
+  `;
+  return rows.length > 0 ? Number(rows[0].count) : 0;
 }
 
 export async function updateOrderStatus(orderId: string, orderStatus: string) {
@@ -482,6 +509,13 @@ export async function deleteOrder(orderId: string) {
   `;
 }
 
+export async function clearOrderPhoto(orderId: string) {
+  const sql = getSql();
+  await sql`
+    UPDATE orders SET photo_url = NULL WHERE id = ${orderId}::uuid
+  `;
+}
+
 // ============================================
 // SETTINGS
 // ============================================
@@ -506,27 +540,32 @@ export type PricingSettings = {
   base: number;
   customSong: number;
   expressDelivery: number;
+  danceExtended: number;
 };
 
 export const DEFAULT_PRICING_SETTINGS: PricingSettings = {
   base: 19.99,
   customSong: 9.99,
   expressDelivery: 7.99,
+  danceExtended: 20,
 };
 
 export async function getPricingSettings(): Promise<PricingSettings> {
   const base = await getSetting('price_base');
   const customSong = await getSetting('price_custom_song');
   const expressDelivery = await getSetting('price_express_delivery');
+  const danceExtended = await getSetting('price_dance_extended');
 
   const parsedBase = base != null ? Number.parseFloat(base) : NaN;
   const parsedCustomSong = customSong != null ? Number.parseFloat(customSong) : NaN;
   const parsedExpress = expressDelivery != null ? Number.parseFloat(expressDelivery) : NaN;
+  const parsedDanceExtended = danceExtended != null ? Number.parseFloat(danceExtended) : NaN;
 
   return {
     base: Number.isFinite(parsedBase) ? parsedBase : DEFAULT_PRICING_SETTINGS.base,
     customSong: Number.isFinite(parsedCustomSong) ? parsedCustomSong : DEFAULT_PRICING_SETTINGS.customSong,
     expressDelivery: Number.isFinite(parsedExpress) ? parsedExpress : DEFAULT_PRICING_SETTINGS.expressDelivery,
+    danceExtended: Number.isFinite(parsedDanceExtended) ? parsedDanceExtended : DEFAULT_PRICING_SETTINGS.danceExtended,
   };
 }
 
@@ -536,11 +575,13 @@ export async function updatePricingSettings(input: Partial<PricingSettings>) {
     base: input.base ?? current.base,
     customSong: input.customSong ?? current.customSong,
     expressDelivery: input.expressDelivery ?? current.expressDelivery,
+    danceExtended: input.danceExtended ?? current.danceExtended,
   };
 
   await setSetting('price_base', String(next.base));
   await setSetting('price_custom_song', String(next.customSong));
   await setSetting('price_express_delivery', String(next.expressDelivery));
+  await setSetting('price_dance_extended', String(next.danceExtended));
 }
 
 /**
