@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       totalPrice,
       hasCustomSong,
       isExpress,
+      danceExtended,
       musicOption,
       musicLink,
       musicFileUrl,
@@ -61,10 +62,12 @@ export async function POST(request: NextRequest) {
     const pricing = await getPricingSettings();
     const resolvedMusicOption = musicOption ?? (hasCustomSong ? "custom" : "default");
     const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
+    const resolvedDanceExtended = danceExtended === true;
     const computedTotalUsd =
       pricing.base +
       (resolvedMusicOption === "custom" ? pricing.customSong : 0) +
-      (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0);
+      (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0) +
+      (resolvedDanceExtended ? pricing.danceExtended : 0);
 
     const country = request.headers.get("x-vercel-ip-country") ?? undefined;
     const device = deviceTypeFromUserAgent(request.headers.get("user-agent"));
@@ -80,6 +83,7 @@ export async function POST(request: NextRequest) {
       usdPricing: pricing,
       hasCustomSong: resolvedMusicOption === "custom",
       isExpress: resolvedDeliveryMethod === "express",
+      hasDanceExtended: resolvedDanceExtended,
       currency,
       rates,
       override: overrides[currency],
@@ -117,6 +121,7 @@ export async function POST(request: NextRequest) {
       exchangeRate: finalCharge.rate,
       promoCode: appliedPromoCode ?? undefined,
       discountAmount: discountUsd,
+      danceExtended: resolvedDanceExtended,
     });
 
     const session = await stripe.checkout.sessions.create({
@@ -129,7 +134,7 @@ export async function POST(request: NextRequest) {
             currency: finalCharge.currency.toLowerCase(),
             product_data: {
               name: "Personalized Birthday Video",
-              description: `Custom message: "${message}"${hasCustomSong ? " + Custom song" : ""}${isExpress ? " + Express delivery" : ""}`,
+              description: `Custom message: "${message}"${hasCustomSong ? " + Custom song" : ""}${isExpress ? " + Express delivery" : ""}${resolvedDanceExtended ? " + Dance extended version" : ""}`,
               images: [`${origin}/logo.png`],
             },
             unit_amount: finalCharge.stripeAmount,
@@ -145,6 +150,7 @@ export async function POST(request: NextRequest) {
         message,
         hasCustomSong: resolvedMusicOption === "custom" ? "true" : "false",
         isExpress: resolvedDeliveryMethod === "express" ? "true" : "false",
+        danceExtended: resolvedDanceExtended ? "true" : "false",
         currency: finalCharge.currency,
         totalUsd: computedTotalUsd.toFixed(2),
         exchangeRate: String(finalCharge.rate),

@@ -18,6 +18,7 @@ export function renderOrderConfirmationEmailHtml(order: Order) {
         <p style="margin:0 0 6px;"><strong>Delivery:</strong> ${delivery}</p>
         <p style="margin:0 0 6px;"><strong>Music:</strong> ${music}</p>
         ${order.music_link ? `<p style="margin:0 0 6px;"><strong>Music link:</strong> ${escapeHtml(order.music_link)}</p>` : ""}
+        ${order.dance_extended ? `<p style="margin:0 0 6px;"><strong>Dance extended version:</strong> Yes</p>` : ""}
         <p style="margin:12px 0 0;"><strong>Message:</strong><br/>${escapeHtml(order.message)}</p>
       </div>
 
@@ -104,6 +105,7 @@ export function renderOrderConfirmationEmailText(order: Order) {
     `Delivery: ${delivery}`,
     `Music: ${music}`,
     order.music_link ? `Music link: ${order.music_link}` : "",
+    order.dance_extended ? "Dance extended version: Yes" : "",
     "",
     "Message:",
     order.message,

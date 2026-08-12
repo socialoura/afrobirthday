@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { MessageCircle, X, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { STICKY_CTA_VISIBILITY_EVENT, type StickyCtaVisibilityDetail } from "@/lib/events";
 
 export default function ChatWidget() {
   const t = useTranslations("Chat");
   const [isOpen, setIsOpen] = useState(false);
+  const [stickyCtaVisible, setStickyCtaVisible] = useState(false);
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
   useEffect(() => {
@@ -19,15 +21,27 @@ export default function ChatWidget() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
 
+  // Move above the mobile sticky order CTA bar when it's showing, so the two
+  // fixed elements never overlap.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<StickyCtaVisibilityDetail>).detail;
+      setStickyCtaVisible(detail?.visible ?? false);
+    };
+    window.addEventListener(STICKY_CTA_VISIBILITY_EVENT, handler);
+    return () => window.removeEventListener(STICKY_CTA_VISIBILITY_EVENT, handler);
+  }, []);
+
   return (
     <>
       <button
         onClick={() => setIsOpen(true)}
         className={cn(
-          "fixed bottom-4 end-4 md:bottom-5 md:end-5 z-50 w-14 h-14 bg-primary rounded-full shadow-lg",
+          "fixed end-4 md:bottom-5 md:end-5 z-50 w-14 h-14 bg-primary rounded-full shadow-lg",
           "flex items-center justify-center text-white",
           "hover:bg-primary-600 transition-all duration-300",
           "touch-manipulation",
+          stickyCtaVisible ? "bottom-24" : "bottom-4",
           isOpen && "hidden"
         )}
         aria-label={t("open")}
@@ -42,7 +56,8 @@ export default function ChatWidget() {
         aria-modal="false"
         aria-label={t("title")}
         className={cn(
-          "fixed bottom-4 end-4 md:bottom-5 md:end-5 z-50",
+          "fixed end-4 md:bottom-5 md:end-5 z-50",
+          stickyCtaVisible ? "bottom-24" : "bottom-4",
           "w-[calc(100vw-32px)] md:w-[360px] max-w-[360px]",
           "bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden",
           "transition-all duration-300 transform",

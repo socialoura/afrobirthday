@@ -62,6 +62,14 @@ export default function OptimizedVideo({
     }
   }, [isVisible, autoPlay]);
 
+  // React doesn't reliably sync the `muted` DOM property on <video> after
+  // mount (a well-known media-element quirk), so set it imperatively too.
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = muted;
+    }
+  }, [muted]);
+
   // Generate WebM and MP4 sources from the original src
   const baseSrc = src.replace(/\.(MOV|mov|mp4|MP4)$/i, "");
   const webmSrc = `${baseSrc}.webm`;

@@ -11,19 +11,14 @@ import {
   Clock,
   Zap,
   ArrowRight,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import OptimizedVideo from "@/components/OptimizedVideo";
+import RecentOrdersBadge from "@/components/RecentOrdersBadge";
 import { type CurrencyCode, currencyFromLocale, PRICES } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
 import { useTranslations } from "next-intl";
-
-const AVATARS = [
-  "/showcase_1.jpg",
-  "/showcase_2.jpg",
-  "/showcase_3.jpg",
-  "/showcase_1.jpg",
-  "/showcase_2.jpg",
-];
 
 export default function HeroSection() {
   const tHero = useTranslations("Hero");
@@ -32,7 +27,10 @@ export default function HeroSection() {
   const [browserLocale, setBrowserLocale] = useState("en-US");
   const [basePriceUsd, setBasePriceUsd] = useState<number>(PRICES.base);
   const [baseOverrides, setBaseOverrides] = useState<Partial<Record<CurrencyCode, number>>>({});
-  const { rates } = useExchangeRates();
+  const [isMuted, setIsMuted] = useState(true);
+  const [pricingLoaded, setPricingLoaded] = useState(false);
+  const { rates, loading: ratesLoading } = useExchangeRates();
+  const priceReady = pricingLoaded && !ratesLoading;
 
   useEffect(() => {
     const nextLocale = navigator.language || "en-US";
@@ -66,6 +64,8 @@ export default function HeroSection() {
         }
       } catch {
         // ignore
+      } finally {
+        if (isMounted) setPricingLoaded(true);
       }
     };
 
@@ -114,17 +114,9 @@ export default function HeroSection() {
       <div className="relative z-10 section-container pt-28 pb-16 lg:pt-32 lg:pb-24">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* ───────── LEFT: Copy + CTAs + Social proof ───────── */}
-          <div className="lg:col-span-7 text-center lg:text-start">
-            {/* Top badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-6">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary" />
-              </span>
-              <span className="text-white/90 text-sm font-medium">
-                {tHero("badge")}
-              </span>
-            </div>
+          <div className="order-2 lg:order-1 lg:col-span-7 text-center lg:text-start">
+            {/* Top badge — real count of orders delivered this week */}
+            <RecentOrdersBadge />
 
             {/* Title */}
             <h1 className="font-display font-bold tracking-tight text-4xl sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] mb-5">
@@ -141,18 +133,27 @@ export default function HeroSection() {
 
             {/* Price block */}
             <div className="inline-flex items-center gap-3 mb-7 px-5 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-              <span className="text-white/60 line-through text-base">
-                {displayOriginalPrice}
-              </span>
-              <span className="text-3xl sm:text-4xl font-bold text-white">
-                {displayPrice}
-              </span>
-              <span className="px-2.5 py-1 rounded-full bg-gradient-to-r from-primary to-accent text-white text-xs font-bold">
-                -50%
-              </span>
+              {priceReady ? (
+                <>
+                  <span className="text-white/60 line-through text-base">
+                    {displayOriginalPrice}
+                  </span>
+                  <span className="text-3xl sm:text-4xl font-bold text-white">
+                    {displayPrice}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full bg-gradient-to-r from-primary to-accent text-white text-xs font-bold">
+                    -50%
+                  </span>
+                </>
+              ) : (
+                <span
+                  className="h-9 w-40 rounded-lg bg-white/10 animate-pulse"
+                  aria-hidden="true"
+                />
+              )}
             </div>
 
-            {localCurrency !== "USD" && (
+            {priceReady && localCurrency !== "USD" && (
               <p className="text-white/60 text-xs sm:text-sm mb-6 -mt-3">
                 {tHero("localCurrencyNote")}
               </p>
@@ -161,6 +162,7 @@ export default function HeroSection() {
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-3 mb-8 sm:items-center sm:justify-center lg:justify-start">
               <Link
+                id="hero-cta"
                 href="#order"
                 className="btn-primary text-base group min-h-[52px] flex items-center justify-center gap-2"
               >
@@ -189,25 +191,8 @@ export default function HeroSection() {
               </Link>
             </div>
 
-            {/* Social proof — avatar stack + rating */}
+            {/* Social proof — rating */}
             <div className="flex flex-col sm:flex-row items-center lg:items-center gap-4 mb-6 justify-center lg:justify-start">
-              <div className="flex -space-x-2 rtl:space-x-reverse">
-                {AVATARS.map((src, i) => (
-                  <div
-                    key={i}
-                    className="relative w-9 h-9 rounded-full ring-2 ring-dark overflow-hidden bg-white/10"
-                  >
-                    <Image
-                      src={src}
-                      alt=""
-                      fill
-                      sizes="36px"
-                      className="object-cover"
-                      aria-hidden="true"
-                    />
-                  </div>
-                ))}
-              </div>
               <div className="flex items-center gap-2">
                 <div className="flex" aria-hidden="true">
                   {[...Array(5)].map((_, i) => (
@@ -246,7 +231,7 @@ export default function HeroSection() {
           </div>
 
           {/* ───────── RIGHT: Video preview card + floating proof ───────── */}
-          <div className="lg:col-span-5 relative">
+          <div className="order-1 lg:order-2 lg:col-span-5 relative">
             <div className="relative max-w-[360px] mx-auto lg:max-w-none">
               {/* Glow halo behind card */}
               <div
@@ -260,6 +245,7 @@ export default function HeroSection() {
                   src="/blessing_video_principal.mp4"
                   poster="/showcase_1.jpg"
                   isHero
+                  muted={isMuted}
                   className="w-full h-full"
                 />
 
@@ -268,12 +254,6 @@ export default function HeroSection() {
                   className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none"
                   aria-hidden="true"
                 />
-
-                {/* Live tag */}
-                <div className="absolute top-4 start-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/90 backdrop-blur-sm text-white text-[11px] font-bold uppercase tracking-wider">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                  {tHero("liveTag")}
-                </div>
 
                 {/* Caption at bottom of card */}
                 <div className="absolute bottom-0 inset-x-0 p-5 text-white">
@@ -290,10 +270,19 @@ export default function HeroSection() {
                   </div>
                 </div>
 
-                {/* Sound indicator */}
-                <div className="absolute top-4 end-4 w-9 h-9 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white">
-                  <span className="text-base" aria-hidden="true">🔊</span>
-                </div>
+                {/* Sound toggle */}
+                <button
+                  type="button"
+                  onClick={() => setIsMuted((m) => !m)}
+                  className="absolute top-4 end-4 w-9 h-9 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-colors touch-manipulation"
+                  aria-label={isMuted ? tHero("soundOn") : tHero("soundOff")}
+                >
+                  {isMuted ? (
+                    <VolumeX size={16} aria-hidden="true" />
+                  ) : (
+                    <Volume2 size={16} aria-hidden="true" />
+                  )}
+                </button>
               </div>
 
               {/* Floating proof card — bottom: mini review */}

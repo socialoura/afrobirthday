@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /** localStorage key for the in-progress order form draft (email/message/options). */
-export const ORDER_DRAFT_STORAGE_KEY = "afrobirthday_order_draft_v1";
+export const ORDER_DRAFT_STORAGE_KEY = "afrobirthday_order_draft_v2";
 
 export type CurrencyCode =
   | "USD"
@@ -90,6 +90,7 @@ export const PRICES = {
   base: 19.99,
   customSong: 9.99,
   expressDelivery: 7.99,
+  danceExtended: 20,
 } as const;
 
 /**

@@ -12,7 +12,7 @@ import { SUPPORTED_CURRENCIES } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
-const COMPONENT_KEYS = ["base", "customSong", "expressDelivery"] as const;
+const COMPONENT_KEYS = ["base", "customSong", "expressDelivery", "danceExtended"] as const;
 
 export async function GET(request: Request) {
   const admin = verifyAdminRequest(request);
@@ -81,6 +81,7 @@ export async function PUT(request: Request) {
       base: number;
       customSong: number;
       expressDelivery: number;
+      danceExtended: number;
       overrides: unknown;
     }>;
 
@@ -106,6 +107,7 @@ export async function PUT(request: Request) {
       base: body.base,
       customSong: body.customSong,
       expressDelivery: body.expressDelivery,
+      danceExtended: body.danceExtended,
     });
     if (sanitizedOverrides !== undefined) {
       await updatePricingOverrides(sanitizedOverrides);

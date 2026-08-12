@@ -118,6 +118,7 @@ export default async function OurStoryPage({
                 src="/showcase_1.jpg"
                 alt={t("creators.images.0.alt")}
                 fill
+                sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-dark/70 to-transparent" />
@@ -128,6 +129,7 @@ export default async function OurStoryPage({
                 src="/showcase_2.jpg"
                 alt={t("creators.images.1.alt")}
                 fill
+                sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-dark/70 to-transparent" />
@@ -138,6 +140,7 @@ export default async function OurStoryPage({
                 src="/showcase_3.jpg"
                 alt={t("creators.images.2.alt")}
                 fill
+                sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-dark/70 to-transparent" />

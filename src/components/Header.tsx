@@ -55,7 +55,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -75,7 +75,7 @@ export default function Header() {
             </Link>
           </div>
 
-          <div className="md:hidden flex items-center gap-2">
+          <div className="lg:hidden flex items-center gap-2">
             <LocaleSwitcher />
             <button
               type="button"
@@ -93,7 +93,7 @@ export default function Header() {
         <div
           id="mobile-menu"
           className={cn(
-            "md:hidden overflow-hidden transition-all duration-500 ease-out",
+            "lg:hidden overflow-hidden transition-all duration-500 ease-out",
             mobileMenuOpen ? "max-h-96 opacity-100 mt-4" : "max-h-0 opacity-0"
           )}
         >

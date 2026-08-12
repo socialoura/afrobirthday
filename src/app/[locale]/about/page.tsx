@@ -64,13 +64,13 @@ export default async function AboutPage({
             <h2 className="heading-2 mb-4">{t("team.title")}</h2>
             <div className="grid md:grid-cols-3 gap-6 mb-6">
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden">
-                <Image src="/showcase_1.jpg" alt={t("team.images.0")} fill className="object-cover" />
+                <Image src="/showcase_1.jpg" alt={t("team.images.0")} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
               </div>
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden">
-                <Image src="/showcase_2.jpg" alt={t("team.images.1")} fill className="object-cover" />
+                <Image src="/showcase_2.jpg" alt={t("team.images.1")} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
               </div>
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden">
-                <Image src="/showcase_3.jpg" alt={t("team.images.2")} fill className="object-cover" />
+                <Image src="/showcase_3.jpg" alt={t("team.images.2")} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
               </div>
             </div>
             <p className="text-dark/80">{t("team.p1")}</p>

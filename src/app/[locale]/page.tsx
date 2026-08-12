@@ -5,6 +5,8 @@ import OrderFormSection from "@/components/sections/OrderFormSection";
 import FAQQuickSection from "@/components/sections/FAQQuickSection";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import StructuredData from "@/components/StructuredData";
+import StickyMobileCTA from "@/components/StickyMobileCTA";
+import ScrollToOrderHint from "@/components/ScrollToOrderHint";
 
 import type { Metadata } from "next";
 import { buildAlternates } from "@/lib/seo";
@@ -52,6 +54,8 @@ export default async function Home({
       <HowItWorksSection />
       <FAQQuickSection />
       <TestimonialsSection />
+      <StickyMobileCTA />
+      <ScrollToOrderHint />
     </>
   );
 }

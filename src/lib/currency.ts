@@ -62,6 +62,7 @@ export type PriceComponents = {
   base: number;
   customSong: number;
   expressDelivery: number;
+  danceExtended: number;
 };
 
 /** Per-currency manual price overrides; any subset of components may be set. */
@@ -90,11 +91,12 @@ export function resolveLocalCharge(params: {
   usdPricing: PriceComponents;
   hasCustomSong: boolean;
   isExpress: boolean;
+  hasDanceExtended: boolean;
   currency: CurrencyCode;
   rates: Record<CurrencyCode, number>;
   override?: CurrencyOverride;
 }): ResolvedCharge {
-  const { usdPricing, hasCustomSong, isExpress, currency, rates, override } = params;
+  const { usdPricing, hasCustomSong, isExpress, hasDanceExtended, currency, rates, override } = params;
   const rate = rates[currency] ?? CURRENCY_RATES[currency] ?? 1;
 
   const component = (key: keyof PriceComponents): number => {
@@ -106,6 +108,7 @@ export function resolveLocalCharge(params: {
   let local = component("base");
   if (hasCustomSong) local += component("customSong");
   if (isExpress) local += component("expressDelivery");
+  if (hasDanceExtended) local += component("danceExtended");
 
   const stripeAmount = toStripeMinor(local, currency);
   const localAmount = ZERO_DECIMAL_CURRENCIES.has(currency)

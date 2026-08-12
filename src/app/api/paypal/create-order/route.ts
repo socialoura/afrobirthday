@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       totalPrice,
       hasCustomSong,
       isExpress,
+      danceExtended,
       musicOption,
       musicLink,
       musicFileUrl,
@@ -50,10 +51,12 @@ export async function POST(request: NextRequest) {
     const pricing = await getPricingSettings();
     const resolvedMusicOption = musicOption ?? (hasCustomSong ? "custom" : "default");
     const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
+    const resolvedDanceExtended = danceExtended === true;
     const computedTotalUsd =
       pricing.base +
       (resolvedMusicOption === "custom" ? pricing.customSong : 0) +
-      (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0);
+      (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0) +
+      (resolvedDanceExtended ? pricing.danceExtended : 0);
 
     const country = request.headers.get("x-vercel-ip-country") ?? undefined;
     const device = deviceTypeFromUserAgent(request.headers.get("user-agent"));
@@ -90,6 +93,7 @@ export async function POST(request: NextRequest) {
       exchangeRate: 1,
       promoCode: appliedPromoCode ?? undefined,
       discountAmount: discountUsd,
+      danceExtended: resolvedDanceExtended,
     });
 
     const returnUrl = `${origin}/paypal/success?orderId=${encodeURIComponent(orderId)}`;
