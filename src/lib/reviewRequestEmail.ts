@@ -1,5 +1,6 @@
 import { type Order, markReviewEmailSent } from "@/lib/db";
 import { sendEmailWithResend } from "@/lib/resend";
+import { buildMarketingEmailHeaders } from "@/lib/emailOptOut";
 import {
   renderReviewRequestEmailHtml,
   renderReviewRequestEmailText,
@@ -12,11 +13,7 @@ export async function sendReviewRequestEmail(order: Order): Promise<void> {
     html: renderReviewRequestEmailHtml(order),
     text: renderReviewRequestEmailText(order),
     replyTo: "support@afrobirthday.com",
-    headers: {
-      "List-Unsubscribe": "<mailto:support@afrobirthday.com?subject=unsubscribe>",
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-      "X-Entity-Ref-ID": order.id,
-    },
+    headers: buildMarketingEmailHeaders(order.email, order.id),
   });
 
   await markReviewEmailSent(order.id);

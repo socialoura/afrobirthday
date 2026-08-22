@@ -205,6 +205,85 @@ Avant de laisser tourner en prod :
 
 ---
 
+## 🚫 Désabonnement des emails automatiques — action immédiate demandée
+
+Déclencheur : plainte client du 22/08/2026 (Tanja Schachner,
+`tanja.schachner@gmx.de`) — « The review is gonna be negative, if you won't
+stop sending me these emails! ». Les 5 emails automatiques n'avaient **aucun
+moyen de se désabonner** : l'en-tête `List-Unsubscribe` pointait vers un
+`mailto:support@`, donc même en cliquant « Se désabonner » dans Gmail, rien
+n'arrêtait les envois — et le pied de page n'avait aucun lien.
+
+Ce qui a été ajouté (code) :
+
+- Table `email_optouts` (liste de suppression) + endpoint public
+  `/api/unsubscribe` : lien dans le pied de page de chaque email automatique,
+  et désabonnement en un clic (RFC 8058) depuis le bouton natif de
+  Gmail/Outlook. L'adresse est signée (HMAC, même secret que l'admin), donc
+  personne ne peut désabonner l'adresse de quelqu'un d'autre.
+- Les 5 crons ignorent désormais les adresses désabonnées.
+- Un client avec 2 commandes ne reçoit plus 2 fois chaque email : la
+  suppression se fait par **adresse**, plus seulement par commande.
+- Les emails transactionnels (confirmation de commande, vidéo finale) ne sont
+  **pas** concernés : un client désabonné reçoit toujours ce qu'il a payé.
+
+**Cause racine trouvée le 22/08/2026, bien plus grave que la plainte** : la
+migration du commit a970267 n'avait **jamais tourné en production**. Les
+colonnes `*_email_sent_at` n'existaient pas dans la base Supabase. Comme
+`getAllOrders()` fait un `SELECT *`, `order.review_email_sent_at` valait
+`undefined` → le garde-fou anti-doublon passait toujours → **106 clients
+recevaient l'email Trustpilot tous les jours** depuis le déploiement (Tanja :
+~6 copies depuis le 17/08). `markReviewEmailSent()` plantait à chaque envoi,
+mais l'erreur était avalée par le `try/catch` du cron, donc rien de visible
+dans les logs à part une trace par commande.
+
+Pourquoi la migration n'avait pas tourné : `initAdminTables()` n'est appelée
+que par les routes `/api/admin/*`. Les crons ne l'appellent jamais. Tant que
+le dashboard admin n'est pas ouvert après un déploiement, les nouvelles
+colonnes n'existent pas — mais les crons, eux, tournent quand même.
+
+Fait directement en base de prod (Supabase, le 22/08/2026) :
+
+- Migration a970267 appliquée : les 5 colonnes `*_email_sent_at`,
+  `promo_codes.owner_email`, table `promo_code_redemptions`.
+- 163 commandes (les 106 adresses déjà spammées, toutes leurs commandes)
+  marquées `review_email_sent_at = now()` → le cron passe de 109 envois par
+  jour à **0**. Vérifié après coup. Réversible : remettre à NULL.
+- `tanja.schachner@gmx.de` ajoutée à `email_optouts`.
+
+Côté code, en plus du système de désabonnement : les 5 crons appellent
+maintenant `ensureAutomatedEmailColumns()` avant de lire les commandes, pour
+que le garde-fou ne puisse plus échouer en silence. Un bloc « Email opt-outs »
+a été ajouté dans l'onglet Settings du dashboard admin (ajout/retrait manuel
+d'une adresse, en plus du lien de désabonnement côté client).
+
+À faire toi-même :
+
+1. **Répondre à Tanja** — c'est la partie qui sauve l'avis, pas le code. Je ne
+   peux pas répondre depuis ta boîte Gmail ; brouillon fourni dans le chat.
+   Techniquement elle ne recevra plus rien, c'est déjà effectif (marquage en
+   base), même sans déploiement.
+2. **Déployer** (`git push`) : le marquage en base arrête l'hémorragie, mais
+   le lien de désabonnement dans les emails et le respect de la liste
+   `email_optouts` par les crons n'arrivent qu'avec le déploiement.
+3. **Vérifier `ADMIN_TOKEN_SECRET`** en prod : le lien de désabonnement est
+   signé avec (déjà utilisé par le login admin, donc normalement en place).
+4. **Vérifier le cron `delete-old-photos` demain** : `orders.photo_url` était
+   encore `NOT NULL` en prod alors que le code prévoit `DROP NOT NULL`
+   (commit bff5368) — `clearOrderPhoto()` plantait donc à chaque passage
+   depuis le déploiement, sur 64 commandes. Contrainte retirée en base le
+   22/08/2026. Attention : `deleteObject()` tournait *avant* l'`UPDATE` qui
+   échouait, donc ces 64 photos sont déjà supprimées du storage alors que la
+   colonne pointe encore dessus (URLs mortes dans le dashboard admin). Le
+   prochain passage du cron devrait nettoyer les lignes — sauf si Supabase
+   renvoie une erreur sur un objet déjà supprimé, auquel cas elles resteront
+   bloquées : à vérifier dans la sortie du cron.
+5. **Décision prise le 22/08/2026** : un email automatique donné n'est envoyé
+   qu'**une seule fois par adresse, à vie** — y compris le panier abandonné
+   (choix confirmé, comportement actuel du code).
+
+---
+
 ## 🌍 Moyens de paiement locaux par pays — selon la base de données (action Stripe Dashboard)
 
 Recap demandé le 2026-08-07, **vérifié directement dans la table `orders`**

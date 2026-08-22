@@ -1,5 +1,6 @@
 import { type Order, markCrossSellEmailSent } from "@/lib/db";
 import { sendEmailWithResend } from "@/lib/resend";
+import { buildMarketingEmailHeaders } from "@/lib/emailOptOut";
 import {
   renderCrossSellEmailHtml,
   renderCrossSellEmailText,
@@ -12,11 +13,7 @@ export async function sendCrossSellEmail(order: Order, promoCode: string): Promi
     html: renderCrossSellEmailHtml(order, promoCode),
     text: renderCrossSellEmailText(order, promoCode),
     replyTo: "support@afrobirthday.com",
-    headers: {
-      "List-Unsubscribe": "<mailto:support@afrobirthday.com?subject=unsubscribe>",
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-      "X-Entity-Ref-ID": order.id,
-    },
+    headers: buildMarketingEmailHeaders(order.email, order.id),
   });
 
   await markCrossSellEmailSent(order.id);

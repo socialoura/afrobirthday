@@ -3,10 +3,12 @@ import {
   createPromoCode,
   getPromoCodeByCode,
   getSetting,
+  isEmailOptedOut,
   markReferralEmailSent,
   recordPromoCodeRedemption,
 } from "@/lib/db";
 import { sendEmailWithResend } from "@/lib/resend";
+import { buildMarketingEmailHeaders } from "@/lib/emailOptOut";
 import {
   renderReferralCodeEmailHtml,
   renderReferralCodeEmailText,
@@ -45,11 +47,7 @@ export async function generateAndSendReferralCode(
     html: renderReferralCodeEmailHtml(order, code, discountType, discountValue),
     text: renderReferralCodeEmailText(order, code, discountType, discountValue),
     replyTo: "support@afrobirthday.com",
-    headers: {
-      "List-Unsubscribe": "<mailto:support@afrobirthday.com?subject=unsubscribe>",
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-      "X-Entity-Ref-ID": order.id,
-    },
+    headers: buildMarketingEmailHeaders(order.email, order.id),
   });
 
   await markReferralEmailSent(order.id);
@@ -74,6 +72,10 @@ export async function handlePossibleReferralRedemption(redeemedOrder: Order): Pr
     referredEmail: redeemedOrder.email,
   });
 
+  // The redemption still counts, but a referrer who opted out of marketing
+  // doesn't get a reward email — and a reward code they never see is useless.
+  if (await isEmailOptedOut(promoCode.owner_email)) return;
+
   const rewardType =
     ((await getSetting("referral_reward_type")) as "percentage" | "fixed") ?? "percentage";
   const rewardValue = Number.parseFloat((await getSetting("referral_reward_value")) ?? "15");
@@ -89,12 +91,9 @@ export async function handlePossibleReferralRedemption(redeemedOrder: Order): Pr
   await sendEmailWithResend({
     to: promoCode.owner_email,
     subject: "A friend used your referral code!",
-    html: renderReferralRewardEmailHtml(rewardCode, rewardType, rewardValue),
-    text: renderReferralRewardEmailText(rewardCode, rewardType, rewardValue),
+    html: renderReferralRewardEmailHtml(promoCode.owner_email, rewardCode, rewardType, rewardValue),
+    text: renderReferralRewardEmailText(promoCode.owner_email, rewardCode, rewardType, rewardValue),
     replyTo: "support@afrobirthday.com",
-    headers: {
-      "List-Unsubscribe": "<mailto:support@afrobirthday.com?subject=unsubscribe>",
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-    },
+    headers: buildMarketingEmailHeaders(promoCode.owner_email),
   });
 }

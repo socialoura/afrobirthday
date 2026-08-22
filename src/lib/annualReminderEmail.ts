@@ -1,5 +1,6 @@
 import { type Order, markAnnualReminderEmailSent } from "@/lib/db";
 import { sendEmailWithResend } from "@/lib/resend";
+import { buildMarketingEmailHeaders } from "@/lib/emailOptOut";
 import {
   renderAnnualReminderEmailHtml,
   renderAnnualReminderEmailText,
@@ -12,11 +13,7 @@ export async function sendAnnualReminderEmail(order: Order, promoCode: string): 
     html: renderAnnualReminderEmailHtml(order, promoCode),
     text: renderAnnualReminderEmailText(order, promoCode),
     replyTo: "support@afrobirthday.com",
-    headers: {
-      "List-Unsubscribe": "<mailto:support@afrobirthday.com?subject=unsubscribe>",
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-      "X-Entity-Ref-ID": order.id,
-    },
+    headers: buildMarketingEmailHeaders(order.email, order.id),
   });
 
   await markAnnualReminderEmailSent(order.id);

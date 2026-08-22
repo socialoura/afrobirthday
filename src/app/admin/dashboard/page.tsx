@@ -77,6 +77,12 @@ type GoogleAdsExpense = {
   amount: number;
 };
 
+type EmailOptOut = {
+  email: string;
+  created_at: string;
+  source: string;
+};
+
 type Tab = "orders" | "analytics" | "settings" | "promo";
 
 export default function AdminDashboardPage() {
@@ -124,6 +130,9 @@ export default function AdminDashboardPage() {
   // Automated emails state (review request, abandoned cart, cross-sell,
   // annual reminder, referral) — one merged settings object.
   const [emailSettings, setEmailSettings] = useState<Record<string, string>>({});
+  const [optOuts, setOptOuts] = useState<EmailOptOut[]>([]);
+  const [newOptOutEmail, setNewOptOutEmail] = useState("");
+  const [optOutError, setOptOutError] = useState<string | null>(null);
 
   // Google Ads state
   const [googleAdsExpenses, setGoogleAdsExpenses] = useState<GoogleAdsExpense[]>([]);
@@ -210,6 +219,21 @@ export default function AdminDashboardPage() {
     }
   }, [token]);
 
+  const fetchOptOuts = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch("/api/admin/email-optouts", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOptOuts(data.optOuts || []);
+      }
+    } catch (error) {
+      console.error("Fetch email opt-outs error:", error);
+    }
+  }, [token]);
+
   const fetchPricingSettings = useCallback(async () => {
     if (!token) return;
     try {
@@ -288,6 +312,7 @@ export default function AdminDashboardPage() {
     } else if (activeTab === "settings") {
       fetchPricingSettings();
       fetchEmailSettings();
+      fetchOptOuts();
     } else if (activeTab === "promo") {
       fetchPromoCodes();
       fetchPromoSettings();
@@ -300,6 +325,7 @@ export default function AdminDashboardPage() {
     fetchPromoSettings,
     fetchPricingSettings,
     fetchEmailSettings,
+    fetchOptOuts,
     fetchGoogleAdsExpenses,
     fetchTotalVisitors,
   ]);
@@ -450,6 +476,35 @@ export default function AdminDashboardPage() {
 
   const toggleEmailSetting = (key: string) => {
     updateEmailSetting(key, emailSettings[key] === "true" ? "false" : "true");
+  };
+
+  const addOptOut = async () => {
+    const email = newOptOutEmail.trim();
+    if (!email.includes("@")) {
+      setOptOutError("Enter a valid email address.");
+      return;
+    }
+    setOptOutError(null);
+    const res = await fetch("/api/admin/email-optouts", {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) {
+      setOptOutError("Could not add that address.");
+      return;
+    }
+    setNewOptOutEmail("");
+    fetchOptOuts();
+  };
+
+  const removeOptOut = async (email: string) => {
+    if (!confirm(`Let ${email} receive automated emails again?`)) return;
+    await fetch(`/api/admin/email-optouts?email=${encodeURIComponent(email)}`, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
+    fetchOptOuts();
   };
 
   const createPromoHandler = async () => {
@@ -1518,6 +1573,69 @@ export default function AdminDashboardPage() {
                   />
                 </button>
               </div>
+            </div>
+
+            {/* Email opt-outs */}
+            <div className="glass-card p-6 rounded-xl space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Email opt-outs</h3>
+                <p className="text-white/60 text-sm">
+                  Addresses on this list never receive the automated emails above. Order
+                  confirmations and final video emails are still delivered. Customers add
+                  themselves via the unsubscribe link; add one here when someone asks over
+                  support.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={newOptOutEmail}
+                  onChange={(e) => setNewOptOutEmail(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") addOptOut();
+                  }}
+                  placeholder="customer@example.com"
+                  className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                />
+                <button
+                  onClick={addOptOut}
+                  className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add
+                </button>
+              </div>
+
+              {optOutError && <p className="text-red-400 text-sm">{optOutError}</p>}
+
+              {optOuts.length === 0 ? (
+                <p className="text-white/40 text-sm">No opt-outs yet.</p>
+              ) : (
+                <div className="space-y-1">
+                  {optOuts.map((optOut) => (
+                    <div
+                      key={optOut.email}
+                      className="flex items-center justify-between gap-4 px-3 py-2 bg-white/5 rounded-lg"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-white text-sm truncate">{optOut.email}</p>
+                        <p className="text-white/40 text-xs">
+                          {optOut.source} &middot;{" "}
+                          {new Date(optOut.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => removeOptOut(optOut.email)}
+                        className="shrink-0 p-2 text-white/40 hover:text-red-400 transition-colors"
+                        title="Remove from the opt-out list"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

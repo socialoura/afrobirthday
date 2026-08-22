@@ -344,6 +344,8 @@ export async function initAdminTables() {
       redeemed_at timestamptz NOT NULL DEFAULT now()
     )
   `;
+
+  await ensureEmailOptOutsTable();
 }
 
 // ============================================
@@ -732,4 +734,94 @@ export async function setGoogleAdsExpense(month: string, amount: number) {
     INSERT INTO google_ads_expenses (month, amount) VALUES (${month}, ${amount})
     ON CONFLICT (month) DO UPDATE SET amount = ${amount}
   `;
+}
+
+// ============================================
+// EMAIL OPT-OUTS
+// ============================================
+// Suppression list for the automated marketing emails. Transactional mail
+// (order confirmation, final video delivery) ignores it — a customer who
+// opted out of marketing still has to receive the thing they paid for.
+
+export type EmailOptOut = {
+  email: string;
+  created_at: string;
+  source: string;
+};
+
+/**
+ * The automated-email crons run without ever touching initAdminTables, so on
+ * 2026-08-22 they ran against a production database where these columns had
+ * never been added: `order.review_email_sent_at` came back undefined, the
+ * idempotency guard silently passed, and 106 customers got the review request
+ * every single day. The guard has to be able to fail closed, so every cron
+ * ensures its own columns before reading orders.
+ */
+export async function ensureAutomatedEmailColumns() {
+  const sql = getSql();
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS review_email_sent_at timestamptz,
+    ADD COLUMN IF NOT EXISTS abandoned_cart_email_sent_at timestamptz,
+    ADD COLUMN IF NOT EXISTS cross_sell_email_sent_at timestamptz,
+    ADD COLUMN IF NOT EXISTS annual_reminder_email_sent_at timestamptz,
+    ADD COLUMN IF NOT EXISTS referral_email_sent_at timestamptz
+  `;
+}
+
+export async function ensureEmailOptOutsTable() {
+  const sql = getSql();
+  await sql`
+    CREATE TABLE IF NOT EXISTS email_optouts (
+      email text PRIMARY KEY,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      source text NOT NULL DEFAULT 'link'
+    )
+  `;
+}
+
+/** Lowercased + trimmed: the suppression list is keyed on this everywhere. */
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export async function addEmailOptOut(email: string, source = "link") {
+  await ensureEmailOptOutsTable();
+  const sql = getSql();
+  await sql`
+    INSERT INTO email_optouts (email, source)
+    VALUES (${normalizeEmail(email)}, ${source})
+    ON CONFLICT (email) DO NOTHING
+  `;
+}
+
+export async function removeEmailOptOut(email: string) {
+  await ensureEmailOptOutsTable();
+  const sql = getSql();
+  await sql`DELETE FROM email_optouts WHERE email = ${normalizeEmail(email)}`;
+}
+
+export async function isEmailOptedOut(email: string): Promise<boolean> {
+  await ensureEmailOptOutsTable();
+  const sql = getSql();
+  const rows = await sql`
+    SELECT 1 FROM email_optouts WHERE email = ${normalizeEmail(email)} LIMIT 1
+  `;
+  return rows.length > 0;
+}
+
+export async function getOptedOutEmails(): Promise<Set<string>> {
+  await ensureEmailOptOutsTable();
+  const sql = getSql();
+  const rows = await sql`SELECT email FROM email_optouts`;
+  return new Set(rows.map((r) => r.email as string));
+}
+
+export async function getAllEmailOptOuts(): Promise<EmailOptOut[]> {
+  await ensureEmailOptOutsTable();
+  const sql = getSql();
+  const rows = await sql`
+    SELECT email, created_at, source FROM email_optouts ORDER BY created_at DESC
+  `;
+  return rows as unknown as EmailOptOut[];
 }

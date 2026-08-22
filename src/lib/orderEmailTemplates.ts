@@ -1,4 +1,5 @@
 import type { Order } from "@/lib/db";
+import { buildUnsubscribeUrl } from "@/lib/emailOptOut";
 
 export function renderOrderConfirmationEmailHtml(order: Order) {
   const createdAt = order.created_at ? new Date(order.created_at).toLocaleString() : "";
@@ -144,7 +145,7 @@ function formatOrderTotal(order: Order) {
 }
 
 /** Shared wrapper (font/width/footer) for the automated post-order emails below. */
-function wrapEmailHtml(bodyHtml: string) {
+function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string) {
   return `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 560px; margin: 0 auto; padding: 16px;">
       ${bodyHtml}
@@ -154,13 +155,14 @@ function wrapEmailHtml(bodyHtml: string) {
       <p style="margin:0; font-size: 12px; color: #888;">
         AfroBirthday — Personalized birthday videos<br/>
         Support: <a href="mailto:support@afrobirthday.com" style="color: #888;">support@afrobirthday.com</a><br/>
-        You're receiving this email because you placed an order on afrobirthday.com.
+        You're receiving this email because you placed an order on afrobirthday.com.<br/>
+        <a href="${unsubscribeUrl}" style="color: #888; text-decoration: underline;">Unsubscribe from these emails</a>
       </p>
     </div>
   `;
 }
 
-function wrapEmailText(bodyLines: string[]) {
+function wrapEmailText(bodyLines: string[], unsubscribeUrl: string) {
   return [
     ...bodyLines,
     "",
@@ -168,6 +170,7 @@ function wrapEmailText(bodyLines: string[]) {
     "AfroBirthday — Personalized birthday videos",
     "Support: support@afrobirthday.com",
     "You're receiving this email because you placed an order on afrobirthday.com.",
+    `Unsubscribe from these emails: ${unsubscribeUrl}`,
   ].join("\n");
 }
 
@@ -175,7 +178,8 @@ function formatDiscountLabel(discountType: "percentage" | "fixed", discountValue
   return discountType === "percentage" ? `${discountValue}% off` : `$${discountValue} off`;
 }
 
-export function renderReviewRequestEmailHtml(_order: Order) {
+export function renderReviewRequestEmailHtml(order: Order) {
+  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
   return wrapEmailHtml(`
     <p style="margin:0 0 16px;">Hi,</p>
     <p style="margin:0 0 16px;">
@@ -191,10 +195,11 @@ export function renderReviewRequestEmailHtml(_order: Order) {
       Thank you for your support,<br/>
       The AfroBirthday team
     </p>
-  `);
+  `, unsubscribeUrl);
 }
 
-export function renderReviewRequestEmailText(_order: Order) {
+export function renderReviewRequestEmailText(order: Order) {
+  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
   return wrapEmailText([
     "Hi,",
     "",
@@ -204,10 +209,11 @@ export function renderReviewRequestEmailText(_order: Order) {
     "",
     "Thank you for your support,",
     "The AfroBirthday team",
-  ]);
+  ], unsubscribeUrl);
 }
 
-export function renderCrossSellEmailHtml(_order: Order, promoCode: string) {
+export function renderCrossSellEmailHtml(order: Order, promoCode: string) {
+  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
   return wrapEmailHtml(`
     <p style="margin:0 0 16px;">Hi,</p>
     <p style="margin:0 0 16px;">
@@ -221,10 +227,11 @@ export function renderCrossSellEmailHtml(_order: Order, promoCode: string) {
       Thanks for being an AfroBirthday customer,<br/>
       The AfroBirthday team
     </p>
-  `);
+  `, unsubscribeUrl);
 }
 
-export function renderCrossSellEmailText(_order: Order, promoCode: string) {
+export function renderCrossSellEmailText(order: Order, promoCode: string) {
+  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
   return wrapEmailText([
     "Hi,",
     "",
@@ -234,10 +241,11 @@ export function renderCrossSellEmailText(_order: Order, promoCode: string) {
     "",
     "Thanks for being an AfroBirthday customer,",
     "The AfroBirthday team",
-  ]);
+  ], unsubscribeUrl);
 }
 
-export function renderAnnualReminderEmailHtml(_order: Order, promoCode: string) {
+export function renderAnnualReminderEmailHtml(order: Order, promoCode: string) {
+  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
   return wrapEmailHtml(`
     <p style="margin:0 0 16px;">Hi,</p>
     <p style="margin:0 0 16px;">
@@ -251,10 +259,11 @@ export function renderAnnualReminderEmailHtml(_order: Order, promoCode: string) 
       Looking forward to making another one for you,<br/>
       The AfroBirthday team
     </p>
-  `);
+  `, unsubscribeUrl);
 }
 
-export function renderAnnualReminderEmailText(_order: Order, promoCode: string) {
+export function renderAnnualReminderEmailText(order: Order, promoCode: string) {
+  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
   return wrapEmailText([
     "Hi,",
     "",
@@ -264,10 +273,11 @@ export function renderAnnualReminderEmailText(_order: Order, promoCode: string) 
     "",
     "Looking forward to making another one for you,",
     "The AfroBirthday team",
-  ]);
+  ], unsubscribeUrl);
 }
 
-export function renderAbandonedCartEmailHtml(_order: Order, resumeUrl: string) {
+export function renderAbandonedCartEmailHtml(order: Order, resumeUrl: string) {
+  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
   const safeUrl = escapeHtml(resumeUrl);
   return wrapEmailHtml(`
     <p style="margin:0 0 16px;">Hi,</p>
@@ -283,10 +293,11 @@ export function renderAbandonedCartEmailHtml(_order: Order, resumeUrl: string) {
     <p style="margin:0 0 16px;">
       The AfroBirthday team
     </p>
-  `);
+  `, unsubscribeUrl);
 }
 
-export function renderAbandonedCartEmailText(_order: Order, resumeUrl: string) {
+export function renderAbandonedCartEmailText(order: Order, resumeUrl: string) {
+  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
   return wrapEmailText([
     "Hi,",
     "",
@@ -294,15 +305,16 @@ export function renderAbandonedCartEmailText(_order: Order, resumeUrl: string) {
     resumeUrl,
     "",
     "The AfroBirthday team",
-  ]);
+  ], unsubscribeUrl);
 }
 
 export function renderReferralCodeEmailHtml(
-  _order: Order,
+  order: Order,
   code: string,
   discountType: "percentage" | "fixed",
   discountValue: number
 ) {
+  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
   const discountLabel = formatDiscountLabel(discountType, discountValue);
   return wrapEmailHtml(`
     <p style="margin:0 0 16px;">Hi,</p>
@@ -318,15 +330,16 @@ export function renderReferralCodeEmailHtml(
       Thanks for spreading the word,<br/>
       The AfroBirthday team
     </p>
-  `);
+  `, unsubscribeUrl);
 }
 
 export function renderReferralCodeEmailText(
-  _order: Order,
+  order: Order,
   code: string,
   discountType: "percentage" | "fixed",
   discountValue: number
 ) {
+  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
   const discountLabel = formatDiscountLabel(discountType, discountValue);
   return wrapEmailText([
     "Hi,",
@@ -337,14 +350,16 @@ export function renderReferralCodeEmailText(
     "",
     "Thanks for spreading the word,",
     "The AfroBirthday team",
-  ]);
+  ], unsubscribeUrl);
 }
 
 export function renderReferralRewardEmailHtml(
+  recipientEmail: string,
   rewardCode: string,
   discountType: "percentage" | "fixed",
   discountValue: number
 ) {
+  const unsubscribeUrl = buildUnsubscribeUrl(recipientEmail);
   const discountLabel = formatDiscountLabel(discountType, discountValue);
   return wrapEmailHtml(`
     <p style="margin:0 0 16px;">Hi,</p>
@@ -359,14 +374,16 @@ export function renderReferralRewardEmailHtml(
       Thanks for spreading the word,<br/>
       The AfroBirthday team
     </p>
-  `);
+  `, unsubscribeUrl);
 }
 
 export function renderReferralRewardEmailText(
+  recipientEmail: string,
   rewardCode: string,
   discountType: "percentage" | "fixed",
   discountValue: number
 ) {
+  const unsubscribeUrl = buildUnsubscribeUrl(recipientEmail);
   const discountLabel = formatDiscountLabel(discountType, discountValue);
   return wrapEmailText([
     "Hi,",
@@ -377,7 +394,7 @@ export function renderReferralRewardEmailText(
     "",
     "Thanks for spreading the word,",
     "The AfroBirthday team",
-  ]);
+  ], unsubscribeUrl);
 }
 
 function escapeHtml(input: string) {

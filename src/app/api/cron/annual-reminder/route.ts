@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAllOrders, getSetting } from "@/lib/db";
+import { ensureAutomatedEmailColumns, getAllOrders, getSetting } from "@/lib/db";
+import { dedupeByEmail, getSuppressedEmails, isSuppressed } from "@/lib/emailOptOut";
 import { sendAnnualReminderEmail } from "@/lib/annualReminderEmail";
 
 export async function GET(request: Request) {
@@ -26,17 +27,22 @@ export async function GET(request: Request) {
       10
     );
     const cutoff = Date.now() - delayDays * 24 * 60 * 60 * 1000;
+    await ensureAutomatedEmailColumns();
     const allOrders = await getAllOrders();
+    const suppressed = await getSuppressedEmails(allOrders, "annual_reminder_email_sent_at");
 
     const eligible = allOrders.filter((o) => {
       if (!o.email) return false;
+      if (isSuppressed(suppressed, o.email)) return false;
       if (o.status !== "paid") return false;
       if (o.annual_reminder_email_sent_at) return false;
       return new Date(o.created_at).getTime() <= cutoff;
     });
 
+    const recipients = dedupeByEmail(eligible);
+
     let sent = 0;
-    for (const order of eligible) {
+    for (const order of recipients) {
       try {
         await sendAnnualReminderEmail(order, promoCode);
         sent++;
@@ -45,7 +51,7 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({ ok: true, checked: allOrders.length, eligible: eligible.length, sent });
+    return NextResponse.json({ ok: true, checked: allOrders.length, eligible: eligible.length, recipients: recipients.length, sent });
   } catch (err) {
     console.error("Cron annual-reminder error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

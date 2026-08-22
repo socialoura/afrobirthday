@@ -139,3 +139,24 @@ export function compareStringsConstantTime(a: string, b: string): boolean {
   if (aBuf.length !== bBuf.length) return false;
   return timingSafeEqual(aBuf, bBuf);
 }
+
+// --- Unsubscribe token ------------------------------------------------------
+// Signs an email address so an unsubscribe link can't be used to opt somebody
+// else out. No expiry on purpose: an unsubscribe link has to keep working for
+// as long as the email sits in the recipient's mailbox.
+
+function normalizeEmailForToken(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export function createUnsubscribeToken(email: string): string {
+  return sign(`unsub:${normalizeEmailForToken(email)}`);
+}
+
+export function verifyUnsubscribeToken(email: string, token: string): boolean {
+  try {
+    return compareStringsConstantTime(createUnsubscribeToken(email), token);
+  } catch {
+    return false;
+  }
+}

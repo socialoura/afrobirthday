@@ -1,5 +1,6 @@
 import { type Order, markAbandonedCartEmailSent } from "@/lib/db";
 import { sendEmailWithResend } from "@/lib/resend";
+import { buildMarketingEmailHeaders } from "@/lib/emailOptOut";
 import {
   renderAbandonedCartEmailHtml,
   renderAbandonedCartEmailText,
@@ -15,11 +16,7 @@ export async function sendAbandonedCartEmail(order: Order): Promise<void> {
     html: renderAbandonedCartEmailHtml(order, resumeUrl),
     text: renderAbandonedCartEmailText(order, resumeUrl),
     replyTo: "support@afrobirthday.com",
-    headers: {
-      "List-Unsubscribe": "<mailto:support@afrobirthday.com?subject=unsubscribe>",
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-      "X-Entity-Ref-ID": order.id,
-    },
+    headers: buildMarketingEmailHeaders(order.email, order.id),
   });
 
   await markAbandonedCartEmailSent(order.id);
