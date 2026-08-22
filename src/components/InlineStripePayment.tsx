@@ -75,8 +75,12 @@ function InnerPaymentForm({
   const [hasExpressOptions, setHasExpressOptions] = useState(false);
   const [methodType, setMethodType] = useState("card");
 
+  // Redirect methods come back here instead of resuming in page, so the order
+  // id has to survive the round trip for the conversion tracking on /success.
   const returnUrl =
-    typeof window !== "undefined" ? `${window.location.origin}/success` : undefined;
+    typeof window !== "undefined"
+      ? `${window.location.origin}/success${orderId ? `?orderId=${encodeURIComponent(orderId)}` : ""}`
+      : undefined;
 
   const humanizeStripeError = (stripeError: StripeError | undefined) => {
     const code = stripeError?.code;

@@ -32,9 +32,6 @@ export async function POST(request: NextRequest) {
     if (!paymentIntentId || typeof paymentIntentId !== "string") {
       return NextResponse.json({ error: "Missing paymentIntentId" }, { status: 400 });
     }
-    if (!orderId || typeof orderId !== "string") {
-      return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
-    }
 
     // Verify payment status directly with Stripe
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
@@ -46,14 +43,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if orderId matches the one in metadata (security check)
-    if (paymentIntent.metadata?.orderId !== orderId) {
+    // A redirect payment method (Revolut Pay, Klarna, Amazon Pay...) sends the
+    // customer back with only Stripe's own query parameters, so the caller may
+    // not know the order id. Stripe's own metadata is authoritative here —
+    // safer than trusting a client-supplied id anyway.
+    const resolvedOrderId = paymentIntent.metadata?.orderId;
+
+    if (!resolvedOrderId) {
+      return NextResponse.json({ error: "Payment intent has no order" }, { status: 400 });
+    }
+    if (typeof orderId === "string" && orderId && orderId !== resolvedOrderId) {
       return NextResponse.json({ error: "Order ID mismatch" }, { status: 400 });
     }
 
     await ensureOrdersTable();
 
-    const existingOrder = await getOrderById(orderId);
+    const existingOrder = await getOrderById(resolvedOrderId);
     const wasAlreadyPaid = existingOrder?.status === "paid";
 
     if (wasAlreadyPaid) {
@@ -62,10 +67,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark order as paid
-    await markOrderPaid(orderId, paymentIntentId);
+    await markOrderPaid(resolvedOrderId, paymentIntentId);
 
     // Get updated order for email
-    const order = (await getOrderById(orderId)) ?? existingOrder;
+    const order = (await getOrderById(resolvedOrderId)) ?? existingOrder;
 
     if (order?.promo_code) {
       await incrementPromoCodeUsage(order.promo_code).catch((err) =>

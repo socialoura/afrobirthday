@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
+import ConfirmRedirectPayment from "@/app/success/ConfirmRedirectPayment";
 import GoogleAdsPurchaseConversion from "@/app/success/GoogleAdsPurchaseConversion";
 import PostHogPurchaseCompleted from "@/app/success/PostHogPurchaseCompleted";
 
@@ -27,6 +28,7 @@ export default async function SuccessPage({
   return (
     <main className="pt-24 pb-20 min-h-screen bg-dark relative overflow-hidden">
       <Suspense fallback={null}>
+        <ConfirmRedirectPayment />
         <GoogleAdsPurchaseConversion />
         <PostHogPurchaseCompleted />
       </Suspense>
