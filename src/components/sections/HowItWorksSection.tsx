@@ -1,5 +1,5 @@
 import { Upload, Film, PartyPopper, ArrowRight } from "lucide-react";
-import { Link } from "@/i18n/navigation";
+import OrderCtaLink from "@/components/OrderCtaLink";
 import { useTranslations } from "next-intl";
 
 export default function HowItWorksSection() {
@@ -76,13 +76,10 @@ export default function HowItWorksSection() {
 
         {/* CTA */}
         <div className="text-center px-4">
-          <Link
-            href="/#order"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold hover:opacity-90 transition group min-h-[48px] w-full sm:w-auto"
-          >
+          <OrderCtaLink className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold hover:opacity-90 transition group min-h-[48px] w-full sm:w-auto">
             {t("cta")}
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
+          </OrderCtaLink>
           <p className="text-white/70 text-xs md:text-sm mt-4">{t("note")}</p>
         </div>
       </div>

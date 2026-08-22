@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Mail, Instagram, Heart, ArrowUpRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import OrderCtaLink from "@/components/OrderCtaLink";
 
 const navHrefs = [
   { href: "/how-to-order", key: "Header.nav.howItWorks" },
@@ -143,12 +144,9 @@ export default async function Footer() {
               <p className="text-white/80 text-xs md:text-sm mb-3">
                 {tFooter("ctaLine")}
               </p>
-              <Link
-                href="/#order"
-                className="btn-primary w-full text-center text-sm py-3 min-h-[44px] flex items-center justify-center"
-              >
+              <OrderCtaLink className="btn-primary w-full text-center text-sm py-3 min-h-[44px] flex items-center justify-center">
                 {tFooter("ctaButton")}
-              </Link>
+              </OrderCtaLink>
             </div>
           </div>
         </div>

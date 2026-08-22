@@ -6,6 +6,7 @@ import { Menu, X, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import OrderCtaLink from "@/components/OrderCtaLink";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 
 export default function Header() {
@@ -66,13 +67,10 @@ export default function Header() {
               </Link>
             ))}
             <LocaleSwitcher className="ms-2" />
-            <Link
-              href="/#order"
-              className="ms-2 btn-primary flex items-center gap-2 text-sm"
-            >
+            <OrderCtaLink className="ms-2 btn-primary flex items-center gap-2 text-sm">
               <Sparkles size={16} aria-hidden="true" />
               {tHeader("cta")}
-            </Link>
+            </OrderCtaLink>
           </div>
 
           <div className="lg:hidden flex items-center gap-2">
@@ -108,14 +106,13 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/#order"
+            <OrderCtaLink
               className="btn-primary w-full text-center flex items-center justify-center gap-2 mt-4"
-              onClick={() => setMobileMenuOpen(false)}
+              onNavigate={() => setMobileMenuOpen(false)}
             >
               <Sparkles size={16} aria-hidden="true" />
               {tHeader("cta")}
-            </Link>
+            </OrderCtaLink>
           </div>
         </div>
       </nav>
