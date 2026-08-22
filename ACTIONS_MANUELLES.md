@@ -268,16 +268,21 @@ d'une adresse, en plus du lien de désabonnement côté client).
    `email_optouts` par les crons n'arrivent qu'avec le déploiement.
 3. **Vérifier `ADMIN_TOKEN_SECRET`** en prod : le lien de désabonnement est
    signé avec (déjà utilisé par le login admin, donc normalement en place).
-4. **Vérifier le cron `delete-old-photos` demain** : `orders.photo_url` était
-   encore `NOT NULL` en prod alors que le code prévoit `DROP NOT NULL`
-   (commit bff5368) — `clearOrderPhoto()` plantait donc à chaque passage
-   depuis le déploiement, sur 64 commandes. Contrainte retirée en base le
-   22/08/2026. Attention : `deleteObject()` tournait *avant* l'`UPDATE` qui
-   échouait, donc ces 64 photos sont déjà supprimées du storage alors que la
-   colonne pointe encore dessus (URLs mortes dans le dashboard admin). Le
-   prochain passage du cron devrait nettoyer les lignes — sauf si Supabase
-   renvoie une erreur sur un objet déjà supprimé, auquel cas elles resteront
-   bloquées : à vérifier dans la sortie du cron.
+4. **Vérifier la sortie du cron `delete-old-photos` après 15h00 UTC** : il
+   devrait rapporter `deleted: 25, unmapped: 0`. Historique de ce bug, corrigé
+   le 22/08/2026 : `orders.photo_url` était encore `NOT NULL` en prod alors
+   que le code prévoit `DROP NOT NULL` (bff5368), donc `clearOrderPhoto()`
+   plantait. Mais surtout, `keyFromPublicUrl()` ne reconnaît que les URLs
+   Supabase Storage — **105 photos sont encore sur Vercel Blob** (l'ancien
+   stockage) et n'étaient supprimées par rien du tout. Une fois la contrainte
+   retirée, le cron aurait vidé `photo_url` pour 23 d'entre elles sans
+   supprimer le fichier : photos publiquement accessibles à vie, sans pointeur
+   pour les retrouver, rétention 30 jours silencieusement non tenue. Corrigé
+   par `deletePhotoByUrl()` qui gère les deux stockages et refuse d'effacer un
+   pointeur qu'il ne sait pas supprimer. Dépendance ajoutée : `@vercel/blob`
+   (nécessite `BLOB_READ_WRITE_TOKEN` côté Vercel — vérifié valide en local,
+   pas vérifiable en prod d'ici).
+
 5. **Décision prise le 22/08/2026** : un email automatique donné n'est envoyé
    qu'**une seule fois par adresse, à vie** — y compris le panier abandonné
    (choix confirmé, comportement actuel du code).
