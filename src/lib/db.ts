@@ -27,7 +27,25 @@ export function getSql() {
   return cachedSql;
 }
 
-export async function ensureOrdersTable() {
+// Both schema guards below sit on the checkout path and used to replay their
+// DDL on every single request — 8 statements for orders, 1 per settings read.
+// The statements are all IF NOT EXISTS, so running them once per process is
+// enough; a cold start still re-runs them, and a failure clears the cache so
+// the next request retries.
+let ordersTableReady: Promise<void> | null = null;
+let settingsTableReady: Promise<void> | null = null;
+
+export function ensureOrdersTable(): Promise<void> {
+  if (!ordersTableReady) {
+    ordersTableReady = runEnsureOrdersTable().catch((err) => {
+      ordersTableReady = null;
+      throw err;
+    });
+  }
+  return ordersTableReady;
+}
+
+async function runEnsureOrdersTable() {
   const sql = getSql();
 
   await sql`
@@ -115,7 +133,17 @@ export async function ensurePromoCodesTable() {
   `;
 }
 
-export async function ensureSettingsTable() {
+export function ensureSettingsTable(): Promise<void> {
+  if (!settingsTableReady) {
+    settingsTableReady = runEnsureSettingsTable().catch((err) => {
+      settingsTableReady = null;
+      throw err;
+    });
+  }
+  return settingsTableReady;
+}
+
+async function runEnsureSettingsTable() {
   const sql = getSql();
   await sql`
     CREATE TABLE IF NOT EXISTS settings (
@@ -553,10 +581,17 @@ export const DEFAULT_PRICING_SETTINGS: PricingSettings = {
 };
 
 export async function getPricingSettings(): Promise<PricingSettings> {
-  const base = await getSetting('price_base');
-  const customSong = await getSetting('price_custom_song');
-  const expressDelivery = await getSetting('price_express_delivery');
-  const danceExtended = await getSetting('price_dance_extended');
+  await ensureSettingsTable();
+  const sql = getSql();
+  const rows = await sql`
+    SELECT key, value FROM settings
+    WHERE key IN ('price_base', 'price_custom_song', 'price_express_delivery', 'price_dance_extended')
+  `;
+  const values = new Map(rows.map((r) => [r.key as string, r.value as string]));
+  const base = values.get('price_base') ?? null;
+  const customSong = values.get('price_custom_song') ?? null;
+  const expressDelivery = values.get('price_express_delivery') ?? null;
+  const danceExtended = values.get('price_dance_extended') ?? null;
 
   const parsedBase = base != null ? Number.parseFloat(base) : NaN;
   const parsedCustomSong = customSong != null ? Number.parseFloat(customSong) : NaN;

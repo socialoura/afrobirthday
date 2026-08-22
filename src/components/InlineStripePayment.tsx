@@ -24,6 +24,16 @@ function getStripe() {
   return stripePromise;
 }
 
+/**
+ * Starts fetching Stripe.js (~1 MB) before the payment step is reached.
+ * Without this the download only begins once a client secret exists, i.e.
+ * after the photo upload and the PaymentIntent round trip have both finished,
+ * putting a megabyte of script on the critical path at the worst moment.
+ */
+export function preloadStripe() {
+  getStripe();
+}
+
 const STRIPE_ERROR_KEYS = new Set([
   "card_declined",
   "insufficient_funds",

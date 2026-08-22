@@ -414,6 +414,10 @@ export default function OrderFormSection() {
   // re-upload files that are already sitting in storage from a prior attempt.
   const photoUrlRef = useRef<string | null>(null);
   const musicFileUrlRef = useRef<string | null>(null);
+  const photoUploadRef = useRef<Promise<string> | null>(null);
+  const musicUploadRef = useRef<Promise<string> | null>(null);
+  const photoUploadSeqRef = useRef(0);
+  const musicUploadSeqRef = useRef(0);
   const paymentSetupInFlightRef = useRef(false);
 
   const isFirstMusicOptionRender = useRef(true);
@@ -552,6 +556,61 @@ export default function OrderFormSection() {
     }
   }, []);
 
+  const uploadToStorage = useCallback(async (file: File, folder: string) => {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("folder", folder);
+    const res = await fetch("/api/upload", { method: "POST", body: form });
+    if (!res.ok) throw new Error(`Upload failed (${folder})`);
+    const { url } = (await res.json()) as { url?: string };
+    if (!url) throw new Error(`Missing upload URL (${folder})`);
+    return url;
+  }, []);
+
+  // Uploading at step 3 put the whole file transfer between the customer and
+  // the payment form — several seconds on a phone uplink. Start it the moment
+  // the file is picked instead: by the time they reach step 3 it is usually
+  // already done, and setupCardPayment just awaits the promise.
+  const beginPhotoUpload = useCallback(
+    (file: File) => {
+      const seq = ++photoUploadSeqRef.current;
+      const upload = uploadToStorage(file, "orders/photos").then((url) => {
+        // A newer photo may have been picked while this was in flight.
+        if (photoUploadSeqRef.current === seq) photoUrlRef.current = url;
+        return url;
+      });
+      upload.catch(() => {
+        if (photoUploadSeqRef.current === seq) photoUploadRef.current = null;
+      });
+      photoUploadRef.current = upload;
+    },
+    [uploadToStorage]
+  );
+
+  const beginMusicUpload = useCallback(
+    (file: File) => {
+      const seq = ++musicUploadSeqRef.current;
+      const upload = uploadToStorage(file, "orders/music").then((url) => {
+        if (musicUploadSeqRef.current === seq) musicFileUrlRef.current = url;
+        return url;
+      });
+      upload.catch(() => {
+        if (musicUploadSeqRef.current === seq) musicUploadRef.current = null;
+      });
+      musicUploadRef.current = upload;
+    },
+    [uploadToStorage]
+  );
+
+  // Stripe.js is a ~1 MB script and InlineStripePayment is a lazy chunk, both
+  // of which used to start downloading only once the client secret arrived.
+  // Warm them as soon as the customer commits to an order.
+  const preloadPaymentAssets = useCallback(() => {
+    import("@/components/InlineStripePayment")
+      .then((mod) => mod.preloadStripe())
+      .catch(() => {});
+  }, []);
+
   const handlePhotoSelect = async (file: File) => {
     trackOrderStarted();
     if (file.size > 5 * 1024 * 1024) {
@@ -566,6 +625,8 @@ export default function OrderFormSection() {
     setPhotoError(null);
     photoUrlRef.current = null;
     setStripeClientSecret(null);
+    beginPhotoUpload(finalFile);
+    preloadPaymentAssets();
     posthog.capture("photo_selected", { file_size_kb: Math.round(finalFile.size / 1024) });
     const reader = new FileReader();
     reader.onload = (e) => setPhotoPreview(e.target?.result as string);
@@ -747,32 +808,25 @@ export default function OrderFormSection() {
     setPaymentSetupError(null);
 
     try {
-      let photoUrl = photoUrlRef.current;
-      if (!photoUrl) {
-        const photoForm = new FormData();
-        photoForm.append("file", photo);
-        photoForm.append("folder", "orders/photos");
-        const photoUploadRes = await fetch("/api/upload", { method: "POST", body: photoForm });
-        if (!photoUploadRes.ok) throw new Error("Photo upload failed");
-        const uploaded = (await photoUploadRes.json()) as { url?: string };
-        if (!uploaded.url) throw new Error("Missing photo URL");
-        photoUrl = uploaded.url;
-        photoUrlRef.current = photoUrl;
-      }
+      // Both files started uploading the moment they were picked, so this
+      // usually resolves instantly. Only a failed background upload gets
+      // retried here, and photo and music no longer wait on each other.
+      const pendingPhoto: Promise<string> = photoUrlRef.current
+        ? Promise.resolve(photoUrlRef.current)
+        : (photoUploadRef.current ?? uploadToStorage(photo, "orders/photos"));
 
-      let musicFileUrl = musicFileUrlRef.current ?? undefined;
-      if (musicFile && !musicFileUrl) {
-        const musicForm = new FormData();
-        musicForm.append("file", musicFile);
-        musicForm.append("folder", "orders/music");
-        const musicUploadRes = await fetch("/api/upload", { method: "POST", body: musicForm });
-        if (!musicUploadRes.ok) throw new Error("Music upload failed");
-        const uploaded = (await musicUploadRes.json()) as { url?: string };
-        if (uploaded.url) {
-          musicFileUrl = uploaded.url;
-          musicFileUrlRef.current = uploaded.url;
-        }
-      }
+      const pendingMusic: Promise<string | undefined> =
+        musicFile && !musicFileUrlRef.current
+          ? (musicUploadRef.current ?? uploadToStorage(musicFile, "orders/music"))
+          : Promise.resolve(musicFileUrlRef.current ?? undefined);
+
+      const [photoUrl, musicFileUrl] = await Promise.all([
+        pendingPhoto.catch(() => uploadToStorage(photo, "orders/photos")),
+        pendingMusic,
+      ]);
+
+      photoUrlRef.current = photoUrl;
+      if (musicFileUrl) musicFileUrlRef.current = musicFileUrl;
 
       const orderId = crypto.randomUUID();
       const response = await fetch("/api/create-payment-intent", {
@@ -824,6 +878,7 @@ export default function OrderFormSection() {
       paymentSetupInFlightRef.current = false;
     }
   }, [
+    uploadToStorage,
     photo,
     musicFile,
     email,
@@ -1140,6 +1195,7 @@ export default function OrderFormSection() {
                             setMusicFile(file);
                             musicFileUrlRef.current = null;
                             setStripeClientSecret(null);
+                            beginMusicUpload(file);
                           }
                         }}
                         className="hidden"

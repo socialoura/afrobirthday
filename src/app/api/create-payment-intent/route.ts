@@ -49,9 +49,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing photoUrl" }, { status: 400 });
     }
 
-    await ensureOrdersTable();
+    // These four are independent; running them in series added a full round
+    // trip each to the wait before the payment form can even start rendering.
+    const [, pricing, rates, overrides] = await Promise.all([
+      ensureOrdersTable(),
+      getPricingSettings(),
+      getServerExchangeRates(),
+      getPricingOverrides(),
+    ]);
 
-    const pricing = await getPricingSettings();
     const resolvedMusicOption = musicOption ?? (hasCustomSong ? "custom" : "default");
     const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
     const resolvedDanceExtended = danceExtended === true;
@@ -70,8 +76,6 @@ export async function POST(request: NextRequest) {
     const currency = isSupportedCurrency(requestedCurrency)
       ? requestedCurrency
       : "USD";
-    const rates = await getServerExchangeRates();
-    const overrides = await getPricingOverrides();
     const charge = resolveLocalCharge({
       usdPricing: pricing,
       hasCustomSong: resolvedMusicOption === "custom",
