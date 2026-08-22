@@ -1,3 +1,4 @@
+import { del as deleteBlob } from "@vercel/blob";
 import { createClient } from "@supabase/supabase-js";
 
 export const STORAGE_BUCKET = "orders";
@@ -32,4 +33,28 @@ export function keyFromPublicUrl(url: string): string | null {
 export async function deleteObject(key: string): Promise<void> {
   const { error } = await getSupabaseAdmin().storage.from(STORAGE_BUCKET).remove([key]);
   if (error) throw error;
+}
+
+/**
+ * Deletes a stored photo whatever backend it lives on, and reports whether it
+ * could. Photos uploaded before the move to Supabase Storage are still on
+ * Vercel Blob, so a public URL can be either shape; the caller must not clear
+ * the database pointer when this returns false, or the file becomes an
+ * unreachable orphan that stays publicly readable.
+ */
+export async function deletePhotoByUrl(url: string): Promise<boolean> {
+  const key = keyFromPublicUrl(url);
+  if (key) {
+    await deleteObject(key);
+    return true;
+  }
+
+  if (url.includes(".blob.vercel-storage.com/")) {
+    // Throws when BLOB_READ_WRITE_TOKEN is missing, which is what we want:
+    // the caller leaves the row alone and retries on the next run.
+    await deleteBlob(url, { token: process.env.BLOB_READ_WRITE_TOKEN });
+    return true;
+  }
+
+  return false;
 }

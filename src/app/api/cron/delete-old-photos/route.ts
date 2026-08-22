@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAllOrders, clearOrderPhoto } from "@/lib/db";
-import { keyFromPublicUrl, deleteObject } from "@/lib/storage";
+import { deletePhotoByUrl } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -26,21 +26,16 @@ export async function GET(request: Request) {
     });
 
     let deleted = 0;
-    // Photos uploaded before the move to Supabase Storage still live on Vercel
-    // Blob, whose URLs keyFromPublicUrl can't map to a bucket key. Clearing
-    // photo_url for those would erase the only pointer to a file we never
-    // deleted: the photo would stay publicly readable forever, unfindable, and
-    // the 30-day retention promise would be silently broken. So skip them —
-    // better a row that keeps retrying than an orphaned photo.
+    // Never clear photo_url for a URL we couldn't delete: that would erase the
+    // only pointer to a file left publicly readable, and silently break the
+    // 30-day retention promise. Better a row that keeps retrying.
     let unmapped = 0;
     for (const order of eligible) {
       try {
-        const key = keyFromPublicUrl(order.photo_url!);
-        if (!key) {
+        if (!(await deletePhotoByUrl(order.photo_url!))) {
           unmapped++;
           continue;
         }
-        await deleteObject(key);
         await clearOrderPhoto(order.id);
         deleted++;
       } catch (err) {
@@ -49,7 +44,7 @@ export async function GET(request: Request) {
     }
 
     if (unmapped > 0) {
-      console.warn(`Photo cleanup: ${unmapped} order(s) hold a photo URL this cron cannot delete (legacy Vercel Blob storage) — left untouched.`);
+      console.warn(`Photo cleanup: ${unmapped} order(s) hold a photo URL this cron cannot delete (unrecognized storage URL) — left untouched.`);
     }
 
     return NextResponse.json({ ok: true, checked: allOrders.length, eligible: eligible.length, deleted, unmapped });
