@@ -5,9 +5,10 @@ import {
   renderAbandonedCartEmailHtml,
   renderAbandonedCartEmailText,
 } from "@/lib/orderEmailTemplates";
+import { SITE_URL } from "@/lib/siteUrl";
 
 export async function sendAbandonedCartEmail(order: Order): Promise<void> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://afrobirthday.com";
+  const siteUrl = SITE_URL;
   const resumeUrl = siteUrl.replace(/\/$/, "");
 
   await sendEmailWithResend({

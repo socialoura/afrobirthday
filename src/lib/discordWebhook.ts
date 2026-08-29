@@ -2,6 +2,7 @@ import type { Order } from "@/lib/db";
 import type { VoiceoverResult } from "@/lib/voiceover";
 import { deviceLabel } from "@/lib/device";
 import { createUploadToken } from "@/lib/auth";
+import { resolveNotificationUrl } from "@/lib/siteUrl";
 
 // Discord notifications are disabled — Telegram is used instead.
 const DISCORD_DISABLED = true;
@@ -108,21 +109,6 @@ function truncate(value: string, max: number): string {
   return value.length > max ? `${value.slice(0, max - 1)}…` : value;
 }
 
-// Resolves the public base URL for building customer/admin links. Prefers an
-// explicit NEXT_PUBLIC_SITE_URL (but ignores localhost, which is useless in a
-// Discord notification opened on a phone), then falls back to the Vercel-
-// provided production domain, then a sane default.
-function resolveSiteUrl(): string {
-  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (explicit && !/localhost|127\.0\.0\.1/.test(explicit)) {
-    return explicit.replace(/\/$/, "");
-  }
-  const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  if (vercelProd) return `https://${vercelProd}`;
-  const vercel = process.env.VERCEL_URL;
-  if (vercel) return `https://${vercel}`;
-  return "https://afrobirthday.com";
-}
 
 /**
  * Sends a rich "paid order" notification to Discord including the customer's
@@ -211,7 +197,7 @@ export async function sendOrderPaidDiscord(params: {
   // One-tap magic link to the mobile page where the final video is uploaded and
   // delivered for this exact order — no admin login or order search needed.
   try {
-    const siteUrl = resolveSiteUrl();
+    const siteUrl = resolveNotificationUrl();
     const uploadToken = createUploadToken(String(order.id));
     fields.push({
       name: "🎬 Uploader la vidéo finale",

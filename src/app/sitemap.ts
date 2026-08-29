@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 import { locales } from "@/i18n/config";
+import { SITE_URL } from "@/lib/siteUrl";
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://afrobirthday.com";
+const SITE = SITE_URL;
 
 const STATIC_PATHS = [
   "",

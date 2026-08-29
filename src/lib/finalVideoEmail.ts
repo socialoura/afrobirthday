@@ -8,6 +8,7 @@ import {
   renderFinalVideoEmailHtml,
   renderFinalVideoEmailText,
 } from "@/lib/orderEmailTemplates";
+import { SITE_URL } from "@/lib/siteUrl";
 
 /**
  * Persists the final video URL (if changed), emails the customer their delivery
@@ -34,7 +35,7 @@ export async function deliverFinalVideoEmail(
   }
 
   const shortRef = order.id.slice(0, 8);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://afrobirthday.com";
+  const siteUrl = SITE_URL;
   const emailVideoUrl = `${siteUrl.replace(/\/$/, "")}/v/${order.id}`;
 
   await sendEmailWithResend({

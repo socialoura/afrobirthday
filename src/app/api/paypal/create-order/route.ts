@@ -9,12 +9,13 @@ import {
 import { discountedUsdTotal, usdDiscountAmount } from "@/lib/promo";
 import { createPayPalOrder } from "@/lib/paypal";
 import { deviceTypeFromUserAgent } from "@/lib/device";
+import { SITE_URL } from "@/lib/siteUrl";
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
-    const origin = request.headers.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL;
+    const origin = request.headers.get("origin") ?? SITE_URL;
     if (!origin) {
       return NextResponse.json(
         { error: "Missing site URL configuration" },

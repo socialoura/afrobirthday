@@ -2,6 +2,7 @@ import type { Order } from "@/lib/db";
 import type { VoiceoverResult } from "@/lib/voiceover";
 import { describeVoiceoverFailure } from "@/lib/voiceover";
 import { createUploadToken } from "@/lib/auth";
+import { resolveNotificationUrl } from "@/lib/siteUrl";
 
 const TELEGRAM_API = "https://api.telegram.org/bot";
 
@@ -13,17 +14,6 @@ function getChatId(): string | null {
   return process.env.TELEGRAM_CHAT_ID || null;
 }
 
-function resolveSiteUrl(): string {
-  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (explicit && !/localhost|127\.0\.0\.1/.test(explicit)) {
-    return explicit.replace(/\/$/, "");
-  }
-  const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  if (vercelProd) return `https://${vercelProd}`;
-  const vercel = process.env.VERCEL_URL;
-  if (vercel) return `https://${vercel}`;
-  return "https://afrobirthday.com";
-}
 
 async function telegramRequest(method: string, body: Record<string, unknown>) {
   const token = getBotToken();
@@ -119,7 +109,7 @@ export async function sendNewOrderNotification(params: {
   const { order, provider, amountLabel, voiceover, downloadedMusicUrl } = params;
   const voiceoverUrl = voiceover.ok ? voiceover.url : null;
 
-  const siteUrl = resolveSiteUrl();
+  const siteUrl = resolveNotificationUrl();
   let uploadLink = "";
   let recapLink = "";
   try {
@@ -239,7 +229,7 @@ export function buildOrdersListMessage(orders: Order[]): string {
     return "✅ <b>Aucune commande en attente !</b>\n\nToutes les commandes sont livrées 🎉";
   }
 
-  const siteUrl = resolveSiteUrl();
+  const siteUrl = resolveNotificationUrl();
   let message = `📋 <b>Queue de production (${orders.length})</b>\n\n`;
 
   for (const order of orders.slice(0, 15)) {

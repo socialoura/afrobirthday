@@ -1,5 +1,6 @@
 import { createUnsubscribeToken } from "@/lib/auth";
 import { type Order, getOptedOutEmails, normalizeEmail } from "@/lib/db";
+import { SITE_URL } from "@/lib/siteUrl";
 
 /**
  * Opt-out plumbing shared by every automated marketing email: the signed
@@ -7,7 +8,7 @@ import { type Order, getOptedOutEmails, normalizeEmail } from "@/lib/db";
  * cron jobs use to decide who is still allowed to receive one.
  */
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://afrobirthday.com";
+
 
 /** The nullable "sent_at" column each automated email uses as its guard. */
 export type MarketingEmailField =
@@ -73,6 +74,22 @@ export async function getSuppressedEmails(
 /** Membership test that applies the same normalization the set was built with. */
 export function isSuppressed(suppressed: Set<string>, email: string): boolean {
   return suppressed.has(normalizeEmail(email));
+}
+
+/**
+ * Addresses that have completed a purchase. A customer who abandons the card
+ * form and then pays with PayPal a minute later leaves the first attempt behind
+ * as a "pending" order, so order status alone would tell the abandoned-cart cron
+ * to chase someone who already bought.
+ */
+export function getPaidEmails(orders: Order[]): Set<string> {
+  const paid = new Set<string>();
+  for (const order of orders) {
+    if (order.email && order.status === "paid") {
+      paid.add(normalizeEmail(order.email));
+    }
+  }
+  return paid;
 }
 
 /**

@@ -6,8 +6,9 @@ import { getLocale } from "next-intl/server";
 import Script from "next/script";
 import { DM_Sans, Space_Grotesk } from "next/font/google";
 import { getTextDirection } from "@/i18n/config";
+import { SITE_URL } from "@/lib/siteUrl";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://afrobirthday.com";
+const siteUrl = SITE_URL;
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -107,7 +108,6 @@ export default async function RootLayout({
 function gtag(){dataLayer.push(arguments);}
 window.gtag = window.gtag || gtag;
 gtag('js', new Date());
-gtag('config', 'AW-17929280297');
 gtag('config', 'G-8HTHEF5B04');`}
         </Script>
         <Script
