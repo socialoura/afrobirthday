@@ -15,7 +15,8 @@
     "check:attribution": "node --env-file=.env.local --experimental-strip-types --import ./scripts/alias-loader-register.mjs scripts/check-attribution.mjs",
     "check:seo-urls": "node --experimental-strip-types --import ./scripts/alias-loader-register.mjs scripts/check-seo-urls.mjs",
     "measure:speed": "node scripts/measure-speed.mjs",
-    "check:redaction": "node --experimental-strip-types --import ./scripts/alias-loader-register.mjs scripts/check-redaction.mjs"
+    "check:redaction": "node --experimental-strip-types --import ./scripts/alias-loader-register.mjs scripts/check-redaction.mjs",
+    "check:faq": "node --experimental-strip-types --import ./scripts/alias-loader-register.mjs scripts/check-faq.mjs"
   },
   "dependencies": {
     "@anthropic-ai/bedrock-sdk": "^0.31.0",

@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { PRICES } from "@/lib/utils";
 import { SITE_URL } from "@/lib/siteUrl";
+import { getPublishedFaq, mergeFaq } from "@/lib/faqContent";
 
 const SITE = SITE_URL;
 
@@ -140,7 +141,11 @@ export default async function StructuredData({ type, locale, pageName, path }: S
 
   if (type === "faq") {
     const t = await getTranslations({ locale, namespace: "FAQPage" });
-    const items = (t.raw("items") as Array<{ question: string; answer: string }>) ?? [];
+    // Published entries first, template questions after. The read never
+    // throws, so a database problem degrades to the template rather than
+    // stripping the schema off the page.
+    const templateItems = (t.raw("items") as Array<{ question: string; answer: string }>) ?? [];
+    const items = mergeFaq(templateItems, await getPublishedFaq(locale));
     const faq = {
       "@context": "https://schema.org",
       "@type": "FAQPage",

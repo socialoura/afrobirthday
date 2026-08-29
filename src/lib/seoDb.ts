@@ -100,6 +100,14 @@ async function runEnsureSeoTables() {
     )
   `;
 
+  // Added after the table shipped with Perplexity only. The two assistants
+  // answer differently — on the same question ChatGPT cited this site first
+  // and Perplexity not at all — so the provider has to be part of the key.
+  await sql`
+    ALTER TABLE seo_citations
+    ADD COLUMN IF NOT EXISTS provider text NOT NULL DEFAULT 'perplexity'
+  `;
+
   await sql`
     CREATE INDEX IF NOT EXISTS seo_citations_asked_idx
       ON seo_citations (asked_at DESC)
@@ -107,6 +115,7 @@ async function runEnsureSeoTables() {
 }
 
 export type CitationRow = {
+  provider: string;
   question: string;
   locale: string;
   cited: boolean;
@@ -119,11 +128,69 @@ export async function recordCitationResults(rows: CitationRow[]) {
   const sql = getSql();
   for (const r of rows) {
     await sql`
-      INSERT INTO seo_citations (question, locale, cited, position, sources)
-      VALUES (${r.question}, ${r.locale}, ${r.cited}, ${r.position},
+      INSERT INTO seo_citations (provider, question, locale, cited, position, sources)
+      VALUES (${r.provider}, ${r.question}, ${r.locale}, ${r.cited}, ${r.position},
               ${JSON.stringify(r.sources)}::jsonb)
     `;
   }
+}
+
+export type CitationDrift = {
+  provider: string;
+  question: string;
+  locale: string;
+  from: boolean;
+  to: boolean;
+};
+
+/**
+ * Questions where the answer flipped between the two most recent passes.
+ *
+ * Drift, not absolute state: "we are cited on 3 of 10" is a standing figure
+ * and belongs on a dashboard. "We stopped being cited on this question
+ * overnight" is an event, and it is the only thing worth interrupting someone
+ * for. An alert that fires every night stops being read within three days.
+ */
+export async function getCitationDrift(): Promise<CitationDrift[]> {
+  await ensureSeoTables();
+  const sql = getSql();
+
+  const rows = await sql<
+    { provider: string; question: string; locale: string; cited: boolean; rn: number }[]
+  >`
+    SELECT provider, question, locale, cited, rn FROM (
+      SELECT provider, question, locale, cited,
+             row_number() OVER (PARTITION BY provider, question ORDER BY asked_at DESC) AS rn
+      FROM seo_citations
+    ) ranked
+    WHERE rn <= 2
+  `;
+
+  const byKey = new Map<string, { latest?: typeof rows[number]; previous?: typeof rows[number] }>();
+  for (const r of rows) {
+    const key = `${r.provider}::${r.question}`;
+    const entry = byKey.get(key) ?? {};
+    if (Number(r.rn) === 1) entry.latest = r;
+    else entry.previous = r;
+    byKey.set(key, entry);
+  }
+
+  const drift: CitationDrift[] = [];
+  for (const { latest, previous } of byKey.values()) {
+    // A question asked only once has nothing to compare against, and a first
+    // reading is not a change.
+    if (!latest || !previous) continue;
+    if (latest.cited !== previous.cited) {
+      drift.push({
+        provider: latest.provider,
+        question: latest.question,
+        locale: latest.locale,
+        from: previous.cited,
+        to: latest.cited,
+      });
+    }
+  }
+  return drift;
 }
 
 /** Latest result per question, plus the domains cited instead of ours. */
@@ -132,13 +199,13 @@ export async function getCitationSummary(days = 30) {
   const sql = getSql();
 
   const latest = await sql<
-    { question: string; locale: string; cited: boolean; position: number | null; sources: unknown; asked_at: Date }[]
+    { provider: string; question: string; locale: string; cited: boolean; position: number | null; sources: unknown; asked_at: Date }[]
   >`
-    SELECT DISTINCT ON (question)
-      question, locale, cited, position, sources, asked_at
+    SELECT DISTINCT ON (provider, question)
+      provider, question, locale, cited, position, sources, asked_at
     FROM seo_citations
     WHERE asked_at >= now() - make_interval(days => ${days})
-    ORDER BY question, asked_at DESC
+    ORDER BY provider, question, asked_at DESC
   `;
 
   // postgres.js hands jsonb back as a string unless a transform is configured,

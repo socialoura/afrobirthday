@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import FAQPageClient from "@/app/faq/FAQPageClient";
 import StructuredData from "@/components/StructuredData";
 import { buildAlternates } from "@/lib/seo";
+import { getPublishedFaq } from "@/lib/faqContent";
 
 export async function generateMetadata({
   params,
@@ -39,10 +40,12 @@ export default async function FAQPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  // Read at request time so publishing a question needs no deployment.
+  const published = await getPublishedFaq(locale);
   return (
     <>
       <StructuredData type="faq" locale={locale} />
-      <FAQPageClient />
+      <FAQPageClient extraItems={published} />
     </>
   );
 }

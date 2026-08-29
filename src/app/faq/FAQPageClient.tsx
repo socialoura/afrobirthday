@@ -38,9 +38,12 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
   );
 }
 
-export default function FAQPageClient() {
+export default function FAQPageClient({ extraItems = [] }: { extraItems?: FAQItemContent[] }) {
   const t = useTranslations("FAQPage");
-  const faqs = t.raw("items") as FAQItemContent[];
+  // Published entries first: they are the deliberate additions.
+  const templateFaqs = t.raw("items") as FAQItemContent[];
+  const seen = new Set(extraItems.map((e) => e.question.trim().toLowerCase()));
+  const faqs = [...extraItems, ...templateFaqs.filter((f) => !seen.has(f.question.trim().toLowerCase()))];
 
   return (
     <main className="pt-24 pb-20 bg-dark relative overflow-hidden">
