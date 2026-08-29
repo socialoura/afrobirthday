@@ -38,6 +38,11 @@ type Signals = {
       inspected_at: string;
     }>;
   };
+  citations?: {
+    citedCount: number;
+    questions: Array<{ question: string; locale: string; cited: boolean; position: number | null; asked_at: string }>;
+    topCompetitors: Array<{ host: string; count: number }>;
+  };
 };
 
 // Google's wording, and what it actually asks you to do about it. The
@@ -352,6 +357,56 @@ export default function SeoSignalsPage() {
                     ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {signals?.citations && signals.citations.questions.length > 0 && (
+          <div className="glass-card rounded-xl p-4">
+            <div className="flex items-baseline justify-between mb-1">
+              <h2 className="text-white font-semibold">Citations par les assistants</h2>
+              <span className="text-white/50 text-sm">
+                cite sur {signals.citations.citedCount}/{signals.citations.questions.length} questions
+              </span>
+            </div>
+            <p className="text-white/40 text-xs mb-4">
+              Questions posees a Perplexity, en rotation chaque nuit. La colonne de
+              droite est la plus utile : ce sont les sites qui possedent la reponse
+              aujourd&apos;hui.
+            </p>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                {signals.citations.questions.map((q) => (
+                  <div key={q.question} className="flex items-start gap-2 text-sm">
+                    <span
+                      className={
+                        q.cited
+                          ? "text-green-400 text-xs font-mono shrink-0 mt-0.5"
+                          : "text-white/30 text-xs font-mono shrink-0 mt-0.5"
+                      }
+                    >
+                      {q.cited ? `#${q.position}` : "—"}
+                    </span>
+                    <span className="text-white/40 text-xs uppercase shrink-0 mt-0.5">{q.locale}</span>
+                    <span className="text-white/70 text-xs">{q.question}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <p className="text-white/50 text-xs uppercase tracking-wide mb-2">
+                  Cites a notre place
+                </p>
+                <div className="space-y-1">
+                  {signals.citations.topCompetitors.map((c) => (
+                    <div key={c.host} className="flex items-baseline gap-3 text-sm">
+                      <span className="text-white/40 font-mono w-8 text-right text-xs">{c.count}x</span>
+                      <span className="text-white/70 text-xs">{c.host}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}

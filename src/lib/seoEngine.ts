@@ -1,6 +1,7 @@
 import { ingestAiReferrals } from "@/lib/aiVisibility";
 import { runIndexationProbe } from "@/lib/indexationProbe";
 import { runFunnelProbe } from "@/lib/funnelProbe";
+import { runCitationProbe } from "@/lib/citationProbe";
 import { getSetting } from "@/lib/db";
 import { recordJobRun, stepRanToday, stepRanWithinDays } from "@/lib/seoDb";
 
@@ -8,15 +9,16 @@ import { recordJobRun, stepRanToday, stepRanWithinDays } from "@/lib/seoDb";
 // individually runnable (from the admin "run now" endpoint) and individually
 // idempotent, so a retry, a manual re-run, or a partial pass never doubles up.
 
-export type SeoStep = "ai-referrals" | "indexation" | "funnel";
+export type SeoStep = "ai-referrals" | "indexation" | "funnel" | "citations";
 
-export const SEO_STEPS: SeoStep[] = ["ai-referrals", "indexation", "funnel"];
+export const SEO_STEPS: SeoStep[] = ["ai-referrals", "indexation", "funnel", "citations"];
 
 /** How often each step is allowed to run. Enforced by runSeoStep, not by the schedule. */
 const STEP_CADENCE_DAYS: Record<SeoStep, number> = {
   "ai-referrals": 1,
   indexation: 1,
   funnel: 7,
+  citations: 1,
 };
 
 export function isSeoStep(value: string): value is SeoStep {
@@ -87,6 +89,10 @@ async function execute(
     }
     case "funnel": {
       const stats = await runFunnelProbe();
+      return { ok: true, ...stats };
+    }
+    case "citations": {
+      const stats = await runCitationProbe();
       return { ok: true, ...stats };
     }
   }

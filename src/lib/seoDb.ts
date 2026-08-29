@@ -83,6 +83,96 @@ async function runEnsureSeoTables() {
     CREATE INDEX IF NOT EXISTS seo_url_inspections_inspected_idx
       ON seo_url_inspections (inspected_at ASC)
   `;
+
+  // One row per question per pass. Kept as a series rather than overwritten:
+  // whether an assistant starts or stops citing the site is the whole point,
+  // and that only shows up over time. `sources` keeps the domains cited
+  // instead — the competitive half of the answer.
+  await sql`
+    CREATE TABLE IF NOT EXISTS seo_citations (
+      id bigserial PRIMARY KEY,
+      asked_at timestamptz NOT NULL DEFAULT now(),
+      question text NOT NULL,
+      locale text NOT NULL,
+      cited boolean NOT NULL,
+      position integer,
+      sources jsonb NOT NULL DEFAULT '[]'::jsonb
+    )
+  `;
+
+  await sql`
+    CREATE INDEX IF NOT EXISTS seo_citations_asked_idx
+      ON seo_citations (asked_at DESC)
+  `;
+}
+
+export type CitationRow = {
+  question: string;
+  locale: string;
+  cited: boolean;
+  position: number | null;
+  sources: string[];
+};
+
+export async function recordCitationResults(rows: CitationRow[]) {
+  await ensureSeoTables();
+  const sql = getSql();
+  for (const r of rows) {
+    await sql`
+      INSERT INTO seo_citations (question, locale, cited, position, sources)
+      VALUES (${r.question}, ${r.locale}, ${r.cited}, ${r.position},
+              ${JSON.stringify(r.sources)}::jsonb)
+    `;
+  }
+}
+
+/** Latest result per question, plus the domains cited instead of ours. */
+export async function getCitationSummary(days = 30) {
+  await ensureSeoTables();
+  const sql = getSql();
+
+  const latest = await sql<
+    { question: string; locale: string; cited: boolean; position: number | null; sources: unknown; asked_at: Date }[]
+  >`
+    SELECT DISTINCT ON (question)
+      question, locale, cited, position, sources, asked_at
+    FROM seo_citations
+    WHERE asked_at >= now() - make_interval(days => ${days})
+    ORDER BY question, asked_at DESC
+  `;
+
+  // postgres.js hands jsonb back as a string unless a transform is configured,
+  // so iterating it directly counts characters, not hosts. Parsed here rather
+  // than assuming, since the driver could reasonably do either.
+  const asHosts = (value: unknown): string[] => {
+    if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === "string") : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
+  const competitors = new Map<string, number>();
+  for (const row of latest) {
+    for (const host of asHosts(row.sources)) {
+      if (host.endsWith("afrobirthday.com")) continue;
+      competitors.set(host, (competitors.get(host) ?? 0) + 1);
+    }
+  }
+
+  return {
+    questions: latest.map((r) => ({ ...r, sources: asHosts(r.sources) })),
+    citedCount: latest.filter((r) => r.cited).length,
+    topCompetitors: [...competitors.entries()]
+      .map(([host, count]) => ({ host, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 15),
+  };
 }
 
 export type UrlInspectionRow = {

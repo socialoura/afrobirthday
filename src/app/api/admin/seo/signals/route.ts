@@ -4,6 +4,7 @@ import {
   getAiReferralsByLanding,
   getAiReferralsBySource,
   getAiReferralsDaily,
+  getCitationSummary,
   getUrlInspections,
 } from "@/lib/seoDb";
 
@@ -23,11 +24,12 @@ export async function GET(request: Request) {
       : 60;
 
   try {
-    const [daily, bySource, byLanding, inspections] = await Promise.all([
+    const [daily, bySource, byLanding, inspections, citations] = await Promise.all([
       getAiReferralsDaily(days),
       getAiReferralsBySource(days),
       getAiReferralsByLanding(days),
       getUrlInspections(),
+      getCitationSummary(),
     ]);
 
     // Google's own wording is grouped as-is rather than normalised: "URL is
@@ -60,6 +62,7 @@ export async function GET(request: Request) {
           .sort((a, b) => b.count - a.count),
         urls: inspections,
       },
+      citations,
     });
   } catch (err) {
     console.error("SEO signals query failed:", err);
