@@ -261,6 +261,26 @@ export async function recordJobRun(
 }
 
 /** True when `step` already completed successfully today (UTC). */
+/**
+ * Has this step run successfully within the last `days` days?
+ *
+ * Used by steps whose natural cadence is not daily. The funnel is weekly: at
+ * this volume a day measures noise, so it is checked against a seven-day
+ * window rather than "today".
+ */
+export async function stepRanWithinDays(step: string, days: number): Promise<boolean> {
+  await ensureSeoTables();
+  const sql = getSql();
+  const rows = await sql`
+    SELECT 1 FROM seo_job_runs
+    WHERE step = ${step}
+      AND ok = true
+      AND started_at >= now() - make_interval(days => ${days})
+    LIMIT 1
+  `;
+  return rows.length > 0;
+}
+
 export async function stepRanToday(step: string): Promise<boolean> {
   await ensureSeoTables();
   const sql = getSql();

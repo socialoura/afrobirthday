@@ -5,7 +5,9 @@ export const runtime = "nodejs";
 export const maxDuration = 800;
 
 // Steps that run on every daily pass, in order.
-const DAILY_STEPS: SeoStep[] = ["ai-referrals", "indexation"];
+// Every step is attempted daily; each one enforces its own cadence, so the
+// weekly funnel simply skips on the six days it should not run.
+const DAILY_STEPS: SeoStep[] = ["ai-referrals", "indexation", "funnel"];
 
 export async function GET(request: Request) {
   // Fails CLOSED, unlike the older crons in this directory. Those use

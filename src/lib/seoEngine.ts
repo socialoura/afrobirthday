@@ -2,7 +2,7 @@ import { ingestAiReferrals } from "@/lib/aiVisibility";
 import { runIndexationProbe } from "@/lib/indexationProbe";
 import { runFunnelProbe } from "@/lib/funnelProbe";
 import { getSetting } from "@/lib/db";
-import { recordJobRun, stepRanToday } from "@/lib/seoDb";
+import { recordJobRun, stepRanToday, stepRanWithinDays } from "@/lib/seoDb";
 
 // The engine is a small step registry rather than one cron per job. Steps are
 // individually runnable (from the admin "run now" endpoint) and individually
@@ -11,6 +11,13 @@ import { recordJobRun, stepRanToday } from "@/lib/seoDb";
 export type SeoStep = "ai-referrals" | "indexation" | "funnel";
 
 export const SEO_STEPS: SeoStep[] = ["ai-referrals", "indexation", "funnel"];
+
+/** How often each step is allowed to run. Enforced by runSeoStep, not by the schedule. */
+const STEP_CADENCE_DAYS: Record<SeoStep, number> = {
+  "ai-referrals": 1,
+  indexation: 1,
+  funnel: 7,
+};
 
 export function isSeoStep(value: string): value is SeoStep {
   return (SEO_STEPS as string[]).includes(value);
@@ -40,8 +47,15 @@ export async function runSeoStep(
     return { ok: true, skipped: "seo_engine_enabled is false" };
   }
 
-  if (!opts.force && (await stepRanToday(step))) {
-    return { ok: true, skipped: "already ran today" };
+  // Cadence per step. The funnel is weekly — running it daily would compare a
+  // week against itself minus one day, and report noise as change.
+  const everyDays = STEP_CADENCE_DAYS[step];
+  if (!opts.force) {
+    const alreadyRan =
+      everyDays > 1 ? await stepRanWithinDays(step, everyDays) : await stepRanToday(step);
+    if (alreadyRan) {
+      return { ok: true, skipped: everyDays > 1 ? `already ran in the last ${everyDays} days` : "already ran today" };
+    }
   }
 
   let result: StepResult;
