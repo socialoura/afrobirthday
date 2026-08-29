@@ -351,7 +351,8 @@
       "messageMin": "Het bericht moet minimaal 3 tekens bevatten",
       "messageMax": "Het bericht mag maximaal 100 tekens bevatten",
       "termsRequired": "Je moet akkoord gaan met de voorwaarden",
-      "musicLinkInvalid": "Voer een geldige link in (bijv. https://...)"
+      "musicLinkInvalid": "Voer een geldige link in (bijv. https://...)",
+      "photoUploadFailed": "We konden je foto niet uploaden. Selecteer hem opnieuw."
     },
     "alerts": {
       "photoTooLarge": "De foto moet kleiner zijn dan 5 MB",

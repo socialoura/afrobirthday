@@ -6,10 +6,10 @@ import { useSearchParams } from "next/navigation";
 /**
  * Finishes a payment that completed away from the site.
  *
- * Card payments confirm in place, and InlineStripePayment posts to
- * /api/confirm-payment itself. Redirect methods (Revolut Pay, Klarna, Amazon
- * Pay, bank redirects) send the customer to the provider instead, so that code
- * never resumes — leaving the Stripe webhook as the only thing that could mark
+ * Card payments confirm in place, and CustomPaymentModal posts to
+ * /api/confirm-payment itself. Anything that redirects — a 3-D Secure
+ * challenge, or a redirect method should one be enabled again — sends the
+ * customer away instead, so that code never resumes — leaving the Stripe webhook as the only thing that could mark
  * the order paid. When that webhook doesn't arrive, the customer is charged and
  * the order sits unpaid forever: no video, no confirmation, nothing in the
  * queue. That happened on 2026-08-21.

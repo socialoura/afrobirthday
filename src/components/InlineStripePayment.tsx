@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import posthog from "posthog-js";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -44,6 +45,20 @@ const STRIPE_ERROR_KEYS = new Set([
   "rate_limit",
 ]);
 
+/**
+ * Methods that always send the customer to the provider's own page. Stripe
+ * navigates away itself, so anything we want recorded for them has to be
+ * captured before confirmPayment, not after it resolves.
+ */
+const REDIRECT_METHOD_TYPES = new Set([
+  "klarna",
+  "revolut_pay",
+  "satispay",
+  "amazon_pay",
+  "bancontact",
+  "eps",
+]);
+
 function prettifyMethodType(type: string) {
   return type
     .split("_")
@@ -54,6 +69,11 @@ function prettifyMethodType(type: string) {
 interface InlineStripePaymentProps {
   clientSecret: string;
   amount: string;
+  /** Raw amount and currency, for analytics — `amount` is already formatted. */
+  value: number;
+  /** Same amount converted to USD, so revenue stays summable across currencies. */
+  valueUsd: number;
+  currency: string;
   orderId: string | null;
   termsAccepted: boolean;
   onTermsRequired: () => void;
@@ -62,6 +82,9 @@ interface InlineStripePaymentProps {
 
 function InnerPaymentForm({
   amount,
+  value,
+  valueUsd,
+  currency,
   orderId,
   termsAccepted,
   onTermsRequired,
@@ -75,11 +98,46 @@ function InnerPaymentForm({
   const [hasExpressOptions, setHasExpressOptions] = useState(false);
   const [methodType, setMethodType] = useState("card");
 
-  // Redirect methods come back here instead of resuming in page, so the order
-  // id has to survive the round trip for the conversion tracking on /success.
+  // Everything below the payment button used to be invisible in analytics: the
+  // funnel jumped straight from "PaymentIntent created" to "/success reached",
+  // with no way to tell a declined card from a form that never rendered.
+  const mountedAtRef = useRef<number>(0);
+  const lastMethodTypeRef = useRef("card");
+  if (mountedAtRef.current === 0 && typeof performance !== "undefined") {
+    mountedAtRef.current = performance.now();
+  }
+
+  const track = useCallback(
+    (event: string, props: Record<string, unknown> = {}) => {
+      posthog.capture(event, {
+        order_id: orderId,
+        value,
+        value_usd: valueUsd,
+        currency,
+        ...props,
+      });
+    },
+    [orderId, value, valueUsd, currency]
+  );
+
+  // Fires even when Stripe.js never calls onReady, which is the case we most
+  // need to see: a payment form that silently fails to render.
+  useEffect(() => {
+    track("payment_form_mounted");
+  }, [track]);
+
+  // Redirect methods come back here instead of resuming in page, so the whole
+  // conversion payload has to survive the round trip. Carrying only the order
+  // id meant a Klarna or Revolut sale landed on /success with no amount, and
+  // order_completed defaulted its value to 1.0.
   const returnUrl =
     typeof window !== "undefined"
-      ? `${window.location.origin}/success${orderId ? `?orderId=${encodeURIComponent(orderId)}` : ""}`
+      ? `${window.location.origin}/success?${new URLSearchParams({
+          ...(orderId ? { orderId } : {}),
+          value: String(value),
+          valueUsd: String(valueUsd),
+          currency,
+        }).toString()}`
       : undefined;
 
   const humanizeStripeError = (stripeError: StripeError | undefined) => {
@@ -88,8 +146,11 @@ function InnerPaymentForm({
     return `${t(`errors.${key}`)} ${t("errors.suffix")}`;
   };
 
-  const confirmPayment = async () => {
+  const confirmPayment = async (submittedType: string = methodType) => {
     if (!termsAccepted) {
+      // Not an abandonment — the customer did try to pay, the checkbox stopped
+      // them. Worth separating in the funnel.
+      track("payment_blocked_terms", { payment_method_type: submittedType });
       onTermsRequired();
       return;
     }
@@ -97,11 +158,28 @@ function InnerPaymentForm({
     setIsProcessing(true);
     setError(null);
 
+    track("payment_submitted", { payment_method_type: submittedType });
+
     const { error: submitError } = await elements.submit();
     if (submitError) {
+      track("payment_failed", {
+        stage: "validation",
+        payment_method_type: submittedType,
+        error_code: submitError.code ?? null,
+        error_type: submitError.type ?? null,
+      });
       setError(`${submitError.message ?? t("errors.generic")} ${t("errors.suffix")}`);
       setIsProcessing(false);
       return;
+    }
+
+    if (REDIRECT_METHOD_TYPES.has(submittedType)) {
+      // Stripe navigates away inside confirmPayment, so nothing after this call
+      // is guaranteed to run for these methods.
+      track("payment_redirect_started", {
+        provider: submittedType,
+        payment_method_type: submittedType,
+      });
     }
 
     const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
@@ -111,12 +189,25 @@ function InnerPaymentForm({
     });
 
     if (stripeError) {
+      track("payment_failed", {
+        stage: "confirm",
+        payment_method_type: submittedType,
+        error_code: stripeError.code ?? null,
+        decline_code: stripeError.decline_code ?? null,
+        error_type: stripeError.type ?? null,
+      });
       setError(humanizeStripeError(stripeError));
       setIsProcessing(false);
       return;
     }
 
     if (paymentIntent?.status === "succeeded") {
+      // Recorded here rather than only on /success, so a customer who closes
+      // the tab on the redirect back still counts as a sale.
+      track("payment_succeeded", {
+        payment_method_type: submittedType,
+        payment_intent_id: paymentIntent.id,
+      });
       if (orderId && paymentIntent.id) {
         try {
           await fetch("/api/confirm-payment", {
@@ -132,11 +223,17 @@ function InnerPaymentForm({
       return;
     }
 
+    // Neither an error nor a completed payment — 3-D Secure pending, or a
+    // method still awaiting the customer elsewhere.
+    track("payment_incomplete", {
+      payment_method_type: submittedType,
+      payment_intent_status: paymentIntent?.status ?? null,
+    });
     setIsProcessing(false);
   };
 
-  const handleExpressConfirm = async (_event: StripeExpressCheckoutElementConfirmEvent) => {
-    await confirmPayment();
+  const handleExpressConfirm = async (event: StripeExpressCheckoutElementConfirmEvent) => {
+    await confirmPayment(event.expressPaymentType ?? "express");
   };
 
   return (
@@ -150,9 +247,16 @@ function InnerPaymentForm({
         </p>
         <ExpressCheckoutElement
           onConfirm={handleExpressConfirm}
-          onReady={({ availablePaymentMethods }) =>
-            setHasExpressOptions(Boolean(availablePaymentMethods))
-          }
+          onReady={({ availablePaymentMethods }) => {
+            setHasExpressOptions(Boolean(availablePaymentMethods));
+            track("express_checkout_ready", {
+              available_methods: availablePaymentMethods
+                ? Object.keys(availablePaymentMethods).filter(
+                    (key) => availablePaymentMethods[key as keyof typeof availablePaymentMethods]
+                  )
+                : [],
+            });
+          }}
           options={{
             buttonHeight: 48,
             buttonTheme: { applePay: "white", googlePay: "white" },
@@ -182,7 +286,33 @@ function InnerPaymentForm({
             paymentMethodOrder: ["card", "klarna", "revolut_pay", "satispay"],
             wallets: { applePay: "never", googlePay: "never" },
           }}
-          onChange={(e) => setMethodType(e.value.type)}
+          onReady={() =>
+            track("payment_element_ready", {
+              ms_to_ready:
+                mountedAtRef.current > 0
+                  ? Math.round(performance.now() - mountedAtRef.current)
+                  : null,
+              default_method_type: lastMethodTypeRef.current,
+            })
+          }
+          onLoadError={({ error: loadError }) =>
+            track("payment_element_load_failed", {
+              error_code: loadError?.code ?? null,
+              error_type: loadError?.type ?? null,
+            })
+          }
+          onChange={(e) => {
+            setMethodType(e.value.type);
+            // onChange also fires on every keystroke; only a real switch of
+            // payment method is worth an event.
+            if (e.value.type !== lastMethodTypeRef.current) {
+              track("payment_method_selected", {
+                payment_method_type: e.value.type,
+                previous_method_type: lastMethodTypeRef.current,
+              });
+              lastMethodTypeRef.current = e.value.type;
+            }
+          }}
         />
       </div>
 
@@ -213,7 +343,7 @@ function InnerPaymentForm({
       {/* Pay button */}
       <button
         type="button"
-        onClick={confirmPayment}
+        onClick={() => confirmPayment()}
         disabled={isProcessing || !stripe || !elements}
         className="checkout-pay-btn"
       >
@@ -242,6 +372,9 @@ function InnerPaymentForm({
 export default function InlineStripePayment({
   clientSecret,
   amount,
+  value,
+  valueUsd,
+  currency,
   orderId,
   termsAccepted,
   onTermsRequired,
@@ -249,6 +382,14 @@ export default function InlineStripePayment({
 }: InlineStripePaymentProps) {
   const t = useTranslations("PaymentModal");
   const stripe = getStripe();
+
+  // Missing publishable key: no payment form can ever render, and until now
+  // that produced nothing but a support ticket.
+  useEffect(() => {
+    if (!stripe) {
+      posthog.capture("stripe_unavailable", { order_id: orderId, value, value_usd: valueUsd, currency });
+    }
+  }, [stripe, orderId, value, valueUsd, currency]);
 
   if (!stripe) {
     return (
@@ -323,6 +464,9 @@ export default function InlineStripePayment({
     >
       <InnerPaymentForm
         amount={amount}
+        value={value}
+        valueUsd={valueUsd}
+        currency={currency}
         orderId={orderId}
         termsAccepted={termsAccepted}
         onTermsRequired={onTermsRequired}

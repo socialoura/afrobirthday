@@ -351,7 +351,8 @@
       "messageMin": "El mensaje debe tener al menos 3 caracteres",
       "messageMax": "El mensaje debe tener como máximo 100 caracteres",
       "termsRequired": "Debes aceptar los términos",
-      "musicLinkInvalid": "Introduce un enlace válido (p. ej. https://...)"
+      "musicLinkInvalid": "Introduce un enlace válido (p. ej. https://...)",
+      "photoUploadFailed": "No pudimos subir tu foto. Vuelve a seleccionarla, por favor."
     },
     "alerts": {
       "photoTooLarge": "La foto debe pesar menos de 5 MB",

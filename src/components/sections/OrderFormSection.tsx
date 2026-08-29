@@ -12,7 +12,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import dynamic from "next/dynamic";
 
-const InlineStripePayment = dynamic(() => import("@/components/InlineStripePayment"), { ssr: false });
+const CustomPaymentModal = dynamic(() => import("@/components/CustomPaymentModal"), { ssr: false });
 
 type MusicEmbed = { platform: "youtube" | "spotify" | "soundcloud"; embedUrl: string };
 
@@ -245,6 +245,7 @@ export default function OrderFormSection() {
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
+  const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
   const [isPreparingPayment, setIsPreparingPayment] = useState(false);
   const [paymentSetupError, setPaymentSetupError] = useState<string | null>(null);
@@ -470,6 +471,16 @@ export default function OrderFormSection() {
 
   const finalTotal = Math.max(0, localTotal - discountLocal);
 
+  // Every analytics event carries this alongside the local amount. Without it,
+  // summing purchase value in PostHog adds dollars to pounds to Australian
+  // dollars, because a currency override means the local figure is not a
+  // conversion of the USD price.
+  const finalTotalUsd = useMemo(() => {
+    const rate = localCurrency === "USD" ? 1 : rates[localCurrency] ?? 1;
+    if (!Number.isFinite(rate) || rate <= 0) return Math.round(finalTotal * 100) / 100;
+    return Math.round((finalTotal / rate) * 100) / 100;
+  }, [finalTotal, localCurrency, rates]);
+
   // True when at least one component of the displayed total is auto-converted
   // (no manual override) — i.e. the live exchange rate actually applies.
   const usesLiveRate = useMemo(() => {
@@ -579,12 +590,21 @@ export default function OrderFormSection() {
         if (photoUploadSeqRef.current === seq) photoUrlRef.current = url;
         return url;
       });
-      upload.catch(() => {
-        if (photoUploadSeqRef.current === seq) photoUploadRef.current = null;
+      upload.catch((err) => {
+        if (photoUploadSeqRef.current !== seq) return;
+        photoUploadRef.current = null;
+        // The preview comes from a local FileReader, so it shows even when the
+        // upload failed. Saying nothing here meant the customer only found out
+        // at the payment step, as a generic payment error.
+        setPhotoError(t("errors.photoUploadFailed"));
+        posthog.capture("photo_upload_failed", {
+          reason: err instanceof Error ? err.message : String(err),
+          file_size_kb: Math.round(file.size / 1024),
+        });
       });
       photoUploadRef.current = upload;
     },
-    [uploadToStorage]
+    [uploadToStorage, t]
   );
 
   const beginMusicUpload = useCallback(
@@ -602,11 +622,11 @@ export default function OrderFormSection() {
     [uploadToStorage]
   );
 
-  // Stripe.js is a ~1 MB script and InlineStripePayment is a lazy chunk, both
-  // of which used to start downloading only once the client secret arrived.
-  // Warm them as soon as the customer commits to an order.
+  // Stripe.js is a ~1 MB script and the payment modal is a lazy chunk, both of
+  // which used to start downloading only once the client secret arrived. Warm
+  // them as soon as the customer commits to an order.
   const preloadPaymentAssets = useCallback(() => {
-    import("@/components/InlineStripePayment")
+    import("@/components/CustomPaymentModal")
       .then((mod) => mod.preloadStripe())
       .catch(() => {});
   }, []);
@@ -683,6 +703,18 @@ export default function OrderFormSection() {
       }
     }
     posthog.capture("order_form_step_completed", { step: 2 });
+    // The true denominator for the payment step. checkout_initiated can't play
+    // that role: on the card path it only fires once the PaymentIntent exists,
+    // so everyone lost during the upload + round trip is invisible to it.
+    posthog.capture("payment_step_viewed", {
+      payment_method: paymentMethod,
+      music_option: musicOption,
+      delivery_method: deliveryMethod,
+      total_price: totalPrice,
+      total_price_local: finalTotal,
+      total_price_usd: finalTotalUsd,
+      currency: localCurrency,
+    });
     setCurrentStep(3);
     scrollToOrderTop();
   };
@@ -717,6 +749,8 @@ export default function OrderFormSection() {
       music_option: musicOption,
       delivery_method: deliveryMethod,
       total_price: totalPrice,
+      total_price_local: finalTotal,
+      total_price_usd: finalTotalUsd,
       currency: localCurrency,
       ...(appliedPromo ? { promo_code: appliedPromo.code } : {}),
     });
@@ -787,10 +821,29 @@ export default function OrderFormSection() {
 
       const payload = (await response.json()) as { url?: string };
       if (payload.url) {
+        // Last event we can record on our own domain — everything after this
+        // happens on PayPal's.
+        posthog.capture("payment_redirect_started", {
+          payment_method: "paypal",
+          provider: "paypal",
+          order_id: orderId,
+          total_price: totalPrice,
+          total_price_local: finalTotal,
+          total_price_usd: finalTotalUsd,
+          currency: localCurrency,
+        });
         window.location.href = payload.url;
       }
     } catch (error) {
       console.error("Checkout error:", error);
+      posthog.capture("payment_setup_failed", {
+        payment_method: "paypal",
+        reason: error instanceof Error ? error.message : String(error),
+        total_price: totalPrice,
+        total_price_local: finalTotal,
+        total_price_usd: finalTotalUsd,
+        currency: localCurrency,
+      });
       alert(t("alerts.genericError"));
     } finally {
       setIsSubmitting(false);
@@ -858,20 +911,27 @@ export default function OrderFormSection() {
       const payload = (await response.json()) as { clientSecret?: string };
       if (!payload.clientSecret) throw new Error("Missing payment client secret");
 
-      posthog.capture("checkout_initiated", {
-        payment_method: "card",
-        music_option: musicOption,
-        delivery_method: deliveryMethod,
-        total_price: totalPrice,
-        currency: localCurrency,
-        ...(appliedPromo ? { promo_code: appliedPromo.code } : {}),
-      });
+      // checkout_initiated deliberately does NOT fire here. This setup runs on
+      // its own the moment step 3 is reached, so firing it here would count
+      // people who never chose to pay — which is exactly what made the
+      // conversion rate look like it collapsed when the payment step changed.
+      // It fires on the pay click instead, in openCardPayment.
       posthog.identify(email, { email });
 
       setCurrentOrderId(orderId);
       setStripeClientSecret(payload.clientSecret);
     } catch (err) {
       console.error("Payment setup error:", err);
+      // A customer who never gets a payment form can't fail at paying, so this
+      // has to be told apart from an abandonment.
+      posthog.capture("payment_setup_failed", {
+        payment_method: "card",
+        reason: err instanceof Error ? err.message : String(err),
+        total_price: totalPrice,
+        total_price_local: finalTotal,
+        total_price_usd: finalTotalUsd,
+        currency: localCurrency,
+      });
       setPaymentSetupError(t("payment.setupError"));
     } finally {
       setIsPreparingPayment(false);
@@ -888,6 +948,8 @@ export default function OrderFormSection() {
     deliveryMethod,
     danceExtended,
     totalPrice,
+    finalTotal,
+    finalTotalUsd,
     localCurrency,
     appliedPromo,
     t,
@@ -901,6 +963,30 @@ export default function OrderFormSection() {
     setupCardPayment();
   }, [currentStep, paymentMethod, photo, stripeClientSecret, paymentSetupError, setupCardPayment]);
 
+  // Card pays through the modal. The click is the moment the customer commits,
+  // so it's where checkout_initiated belongs.
+  const openCardPayment = () => {
+    if (termsAccepted !== true) {
+      setHasAttemptedSubmit(true);
+      setError("termsAccepted", { type: "manual", message: t("errors.termsRequired") });
+      document.getElementById("order-terms")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    if (!stripeClientSecret) return;
+
+    posthog.capture("checkout_initiated", {
+      payment_method: "card",
+      music_option: musicOption,
+      delivery_method: deliveryMethod,
+      total_price: totalPrice,
+      total_price_local: finalTotal,
+      total_price_usd: finalTotalUsd,
+      currency: localCurrency,
+      ...(appliedPromo ? { promo_code: appliedPromo.code } : {}),
+    });
+    setIsStripeModalOpen(true);
+  };
+
   const handlePaymentSuccess = useCallback(() => {
     const orderId = currentOrderId;
     const value = finalTotal;
@@ -909,8 +995,11 @@ export default function OrderFormSection() {
     if (orderId) qs.set("orderId", orderId);
     if (Number.isFinite(value)) qs.set("value", String(value));
     if (currency) qs.set("currency", currency);
+    // Carried through the redirect so the success page can report a revenue
+    // figure that is comparable across currencies.
+    if (Number.isFinite(finalTotalUsd)) qs.set("valueUsd", String(finalTotalUsd));
     window.location.href = `/${activeLocale}/success?${qs.toString()}`;
-  }, [currentOrderId, finalTotal, localCurrency, activeLocale]);
+  }, [currentOrderId, finalTotal, finalTotalUsd, localCurrency, activeLocale]);
 
   return (
     <section id="order" className="py-24 bg-dark relative overflow-hidden">
@@ -1432,45 +1521,23 @@ export default function OrderFormSection() {
                   </label>
                 </div>
 
-                {/* Inline Stripe payment — appears the moment the order/
-                    PaymentIntent is ready, right here in step 3, styled to
-                    match the rest of the form (no popup). */}
-                {paymentMethod === "card" && (
-                  <>
-                    {paymentSetupError ? (
-                      <div className="mt-5 pt-5 border-t border-white/10 text-center flex flex-col items-center gap-3">
-                        <AlertTriangle size={22} className="text-primary" aria-hidden="true" />
-                        <p className="text-sm text-white/80">{paymentSetupError}</p>
-                        <button
-                          type="button"
-                          onClick={setupCardPayment}
-                          className="btn-secondary py-2.5 px-5 text-sm"
-                        >
-                          {t("payment.retry")}
-                        </button>
-                      </div>
-                    ) : !stripeClientSecret ? (
-                      <div className="mt-5 pt-5 border-t border-white/10 flex items-center justify-center gap-3 text-white/60 text-sm">
-                        <Loader2 size={18} className="animate-spin text-primary" />
-                        {t("payment.preparing")}
-                      </div>
-                    ) : (
-                      <InlineStripePayment
-                        clientSecret={stripeClientSecret}
-                        amount={formatMoney(finalTotal)}
-                        orderId={currentOrderId}
-                        termsAccepted={termsAccepted === true}
-                        onTermsRequired={() => {
-                          setHasAttemptedSubmit(true);
-                          setError("termsAccepted", { type: "manual", message: t("errors.termsRequired") });
-                          document
-                            .getElementById("order-terms")
-                            ?.scrollIntoView({ behavior: "smooth", block: "center" });
-                        }}
-                        onSuccess={handlePaymentSuccess}
-                      />
-                    )}
-                  </>
+                {/* The card form itself lives in the payment modal, opened by
+                    the pay button below. Only the setup state shows here: the
+                    order + PaymentIntent are still prepared as soon as step 3
+                    is reached, so the modal opens with nothing left to wait
+                    for. */}
+                {paymentMethod === "card" && paymentSetupError && (
+                  <div className="mt-5 pt-5 border-t border-white/10 text-center flex flex-col items-center gap-3">
+                    <AlertTriangle size={22} className="text-primary" aria-hidden="true" />
+                    <p className="text-sm text-white/80">{paymentSetupError}</p>
+                    <button
+                      type="button"
+                      onClick={setupCardPayment}
+                      className="btn-secondary py-2.5 px-5 text-sm"
+                    >
+                      {t("payment.retry")}
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -1502,8 +1569,9 @@ export default function OrderFormSection() {
               </>
               )}
 
-              {/* Step navigation */}
-              <div className="flex gap-3 pt-2">
+              {/* Step navigation. data-cta-avoid keeps the chat bubble from
+                  parking on top of these buttons — see ChatWidget. */}
+              <div className="flex gap-3 pt-2" data-cta-avoid>
                 {currentStep > 1 && (
                   <button
                     type="button"
@@ -1524,29 +1592,47 @@ export default function OrderFormSection() {
                     {t("nav.next")}
                     <ArrowRight size={18} />
                   </button>
+                ) : paymentMethod === "paypal" ? (
+                  // PayPal is an external redirect, so it goes through the
+                  // form's own submit.
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="btn-primary flex-1 py-4 text-base md:text-lg flex items-center justify-center gap-2 min-h-[56px]"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 size={20} className="animate-spin" />
+                        {t("submit.processing")}
+                      </>
+                    ) : (
+                      <>
+                        <Wallet size={18} />
+                        {t("submit.paypal")}
+                      </>
+                    )}
+                  </button>
                 ) : (
-                  // Card pays inline above (InlineStripePayment carries its own
-                  // pay button); only PayPal — an external redirect — still
-                  // needs this generic submit.
-                  paymentMethod === "paypal" && (
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="btn-primary flex-1 py-4 text-base md:text-lg flex items-center justify-center gap-2 min-h-[56px]"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 size={20} className="animate-spin" />
-                          {t("submit.processing")}
-                        </>
-                      ) : (
-                        <>
-                          <Wallet size={18} />
-                          {t("submit.paypal")}
-                        </>
-                      )}
-                    </button>
-                  )
+                  // Card opens the payment modal. Disabled only while the
+                  // PaymentIntent is still being prepared in the background.
+                  <button
+                    type="button"
+                    onClick={openCardPayment}
+                    disabled={!stripeClientSecret || isPreparingPayment}
+                    className="btn-primary flex-1 py-4 text-base md:text-lg flex items-center justify-center gap-2 min-h-[56px] disabled:opacity-60"
+                  >
+                    {!stripeClientSecret ? (
+                      <>
+                        <Loader2 size={20} className="animate-spin" />
+                        {t("payment.preparing")}
+                      </>
+                    ) : (
+                      <>
+                        <Lock size={18} />
+                        {t("submit.pay", { amount: formatMoney(finalTotal) })}
+                      </>
+                    )}
+                  </button>
                 )}
               </div>
             </div>
@@ -1633,6 +1719,21 @@ export default function OrderFormSection() {
           </form>
         </div>
       </div>
+
+      {stripeClientSecret && (
+        <CustomPaymentModal
+          isOpen={isStripeModalOpen}
+          onClose={() => setIsStripeModalOpen(false)}
+          clientSecret={stripeClientSecret}
+          amount={formatMoney(finalTotal)}
+          productName={t("productName")}
+          orderId={currentOrderId}
+          value={finalTotal}
+          valueUsd={finalTotalUsd}
+          currency={localCurrency}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </section>
   );
 }

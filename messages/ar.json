@@ -351,7 +351,8 @@
       "messageMin": "الرسالة يجب أن تكون 3 أحرف على الأقل",
       "messageMax": "الرسالة يجب ألا تتجاوز 100 حرف",
       "termsRequired": "يجب الموافقة على الشروط",
-      "musicLinkInvalid": "يرجى إدخال رابط صالح (مثال: https://...)"
+      "musicLinkInvalid": "يرجى إدخال رابط صالح (مثال: https://...)",
+      "photoUploadFailed": "تعذّر رفع صورتك. يرجى اختيارها مرة أخرى."
     },
     "alerts": {
       "photoTooLarge": "يجب أن تكون الصورة أقل من 5MB",

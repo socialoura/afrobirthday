@@ -351,7 +351,8 @@
       "messageMin": "Die Nachricht muss mindestens 3 Zeichen haben",
       "messageMax": "Die Nachricht darf maximal 100 Zeichen haben",
       "termsRequired": "Du musst die Bedingungen akzeptieren",
-      "musicLinkInvalid": "Bitte gib einen gültigen Link ein (z. B. https://...)"
+      "musicLinkInvalid": "Bitte gib einen gültigen Link ein (z. B. https://...)",
+      "photoUploadFailed": "Dein Foto konnte nicht hochgeladen werden. Bitte wähle es erneut aus."
     },
     "alerts": {
       "photoTooLarge": "Das Foto muss kleiner als 5 MB sein",

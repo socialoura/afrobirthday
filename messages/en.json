@@ -361,7 +361,8 @@
       "messageMin": "Message must be at least 3 characters",
       "messageMax": "Message must be at most 100 characters",
       "termsRequired": "You must accept the terms",
-      "musicLinkInvalid": "Please enter a valid link (e.g. https://...)"
+      "musicLinkInvalid": "Please enter a valid link (e.g. https://...)",
+      "photoUploadFailed": "We couldn't upload your photo. Please select it again."
     },
     "alerts": {
       "photoTooLarge": "Photo must be less than 5MB",
