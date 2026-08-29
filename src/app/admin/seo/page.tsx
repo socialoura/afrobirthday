@@ -26,6 +26,28 @@ type Signals = {
   daily: Array<{ date: string; sessions: number; orders: number }>;
   bySource: Array<{ source: string; sessions: number; orders: number }>;
   byLanding: Array<{ landing_path: string; sessions: number; orders: number }>;
+  indexation?: {
+    inspected: number;
+    indexed: number;
+    byCoverage: Array<{ state: string; count: number }>;
+    urls: Array<{
+      url: string;
+      verdict: string | null;
+      coverage_state: string | null;
+      last_crawl_time: string | null;
+      inspected_at: string;
+    }>;
+  };
+};
+
+// Google's wording, and what it actually asks you to do about it. The
+// distinction is the whole point of keeping the raw string: a page nobody
+// linked to needs a path, a page judged thin needs text.
+const COVERAGE_REMEDY: Record<string, string> = {
+  "URL is unknown to Google": "jamais decouverte — il lui manque un lien, pas du texte",
+  "Crawled - currently not indexed": "vue puis ecartee — contenu juge trop mince",
+  "Discovered - currently not indexed": "connue mais pas encore exploree",
+  "Alternate page with proper canonical tag": "canonical pointe ailleurs",
 };
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -278,6 +300,61 @@ export default function SeoSignalsPage() {
             />
           </div>
         </div>
+
+        {signals?.indexation && signals.indexation.inspected > 0 && (
+          <div className="glass-card rounded-xl p-4">
+            <div className="flex items-baseline justify-between mb-3">
+              <h2 className="text-white font-semibold">Indexation Google</h2>
+              <span className="text-white/50 text-sm">
+                {signals.indexation.indexed}/{signals.indexation.inspected} dans l&apos;index
+              </span>
+            </div>
+
+            <div className="space-y-1.5 mb-4">
+              {signals.indexation.byCoverage.map((c) => (
+                <div key={c.state} className="flex items-baseline gap-3 text-sm">
+                  <span className="text-white/40 font-mono w-8 text-right">{c.count}</span>
+                  <span className="text-white/80">{c.state}</span>
+                  {COVERAGE_REMEDY[c.state] && (
+                    <span className="text-white/40 text-xs">
+                      — {COVERAGE_REMEDY[c.state]}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-white/50 text-xs uppercase tracking-wide">
+                    <th className="text-left py-2 pr-3 font-medium">URL</th>
+                    <th className="text-left py-2 pr-3 font-medium">Etat</th>
+                    <th className="text-left py-2 font-medium">Derniere exploration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {signals.indexation.urls
+                    .filter((u) => u.verdict !== "PASS")
+                    .slice(0, 25)
+                    .map((u) => (
+                      <tr key={u.url} className="border-t border-white/5">
+                        <td className="py-2 pr-3 text-white/70 font-mono text-xs">
+                          {u.url.replace(/^https?:\/\/[^/]+/, "")}
+                        </td>
+                        <td className="py-2 pr-3 text-white/60 text-xs">
+                          {u.coverage_state ?? u.verdict ?? "—"}
+                        </td>
+                        <td className="py-2 text-white/40 text-xs">
+                          {u.last_crawl_time ? u.last_crawl_time.slice(0, 10) : "jamais"}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         <div className="glass-card rounded-xl p-4 flex gap-3">
           <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />

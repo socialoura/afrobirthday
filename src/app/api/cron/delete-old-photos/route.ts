@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAllOrders, clearOrderPhoto } from "@/lib/db";
 import { deletePhotoByUrl } from "@/lib/storage";
+import { withCronRun } from "@/lib/cronRun";
 
 export const runtime = "nodejs";
 
@@ -15,14 +16,15 @@ export async function GET(request: Request) {
   }
 
   try {
-    const cutoff = Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000;
-    const allOrders = await getAllOrders();
+    return await withCronRun("delete-old-photos", async () => {
+      const cutoff = Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000;
+      const allOrders = await getAllOrders();
 
-    const eligible = allOrders.filter((o) => {
-      if (!o.photo_url) return false;
-      if (o.order_status !== "completed") return false;
-      if (!o.final_video_sent_at) return false;
-      return new Date(o.final_video_sent_at).getTime() <= cutoff;
+      const eligible = allOrders.filter((o) => {
+        if (!o.photo_url) return false;
+        if (o.order_status !== "completed") return false;
+        if (!o.final_video_sent_at) return false;
+        return new Date(o.final_video_sent_at).getTime() <= cutoff;
     });
 
     let deleted = 0;
@@ -48,6 +50,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ ok: true, checked: allOrders.length, eligible: eligible.length, deleted, unmapped });
+    });
   } catch (err) {
     console.error("Cron delete-old-photos error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAllOrders } from "@/lib/db";
 import { getOverdueOrders, sendOverdueAlerts } from "@/lib/telegramBot";
+import { withCronRun } from "@/lib/cronRun";
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -11,17 +12,19 @@ export async function GET(request: Request) {
   }
 
   try {
-    const allOrders = await getAllOrders();
-    const overdue = getOverdueOrders(allOrders);
+    return await withCronRun("check-overdue", async () => {
+      const allOrders = await getAllOrders();
+      const overdue = getOverdueOrders(allOrders);
 
-    if (overdue.length > 0) {
-      await sendOverdueAlerts(overdue);
-    }
+      if (overdue.length > 0) {
+        await sendOverdueAlerts(overdue);
+      }
 
-    return NextResponse.json({
-      ok: true,
-      checked: allOrders.length,
-      overdue: overdue.length,
+      return NextResponse.json({
+        ok: true,
+        checked: allOrders.length,
+        overdue: overdue.length,
+    });
     });
   } catch (err) {
     console.error("Cron check-overdue error:", err);

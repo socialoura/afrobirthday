@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 export const maxDuration = 800;
 
 // Steps that run on every daily pass, in order.
-const DAILY_STEPS: SeoStep[] = ["ai-referrals"];
+const DAILY_STEPS: SeoStep[] = ["ai-referrals", "indexation"];
 
 export async function GET(request: Request) {
   // Fails CLOSED, unlike the older crons in this directory. Those use

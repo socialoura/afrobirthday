@@ -4,6 +4,7 @@ import {
   getAiReferralsByLanding,
   getAiReferralsBySource,
   getAiReferralsDaily,
+  getUrlInspections,
 } from "@/lib/seoDb";
 
 export const runtime = "nodejs";
@@ -22,11 +23,21 @@ export async function GET(request: Request) {
       : 60;
 
   try {
-    const [daily, bySource, byLanding] = await Promise.all([
+    const [daily, bySource, byLanding, inspections] = await Promise.all([
       getAiReferralsDaily(days),
       getAiReferralsBySource(days),
       getAiReferralsByLanding(days),
+      getUrlInspections(),
     ]);
+
+    // Google's own wording is grouped as-is rather than normalised: "URL is
+    // unknown to Google" needs a link, "Crawled - currently not indexed" needs
+    // content. Collapsing them into one "not indexed" bucket would hide which.
+    const byCoverage = new Map<string, number>();
+    for (const row of inspections) {
+      const key = row.coverage_state ?? row.verdict ?? "unknown";
+      byCoverage.set(key, (byCoverage.get(key) ?? 0) + 1);
+    }
 
     const sessions = bySource.reduce((n, r) => n + r.sessions, 0);
     const orders = bySource.reduce((n, r) => n + r.orders, 0);
@@ -41,6 +52,14 @@ export async function GET(request: Request) {
       daily,
       bySource,
       byLanding,
+      indexation: {
+        inspected: inspections.length,
+        indexed: inspections.filter((r) => r.verdict === "PASS").length,
+        byCoverage: [...byCoverage.entries()]
+          .map(([state, count]) => ({ state, count }))
+          .sort((a, b) => b.count - a.count),
+        urls: inspections,
+      },
     });
   } catch (err) {
     console.error("SEO signals query failed:", err);

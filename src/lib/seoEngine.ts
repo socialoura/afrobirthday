@@ -1,4 +1,6 @@
 import { ingestAiReferrals } from "@/lib/aiVisibility";
+import { runIndexationProbe } from "@/lib/indexationProbe";
+import { runFunnelProbe } from "@/lib/funnelProbe";
 import { getSetting } from "@/lib/db";
 import { recordJobRun, stepRanToday } from "@/lib/seoDb";
 
@@ -6,9 +8,9 @@ import { recordJobRun, stepRanToday } from "@/lib/seoDb";
 // individually runnable (from the admin "run now" endpoint) and individually
 // idempotent, so a retry, a manual re-run, or a partial pass never doubles up.
 
-export type SeoStep = "ai-referrals";
+export type SeoStep = "ai-referrals" | "indexation" | "funnel";
 
-export const SEO_STEPS: SeoStep[] = ["ai-referrals"];
+export const SEO_STEPS: SeoStep[] = ["ai-referrals", "indexation", "funnel"];
 
 export function isSeoStep(value: string): value is SeoStep {
   return (SEO_STEPS as string[]).includes(value);
@@ -63,6 +65,14 @@ async function execute(
   switch (step) {
     case "ai-referrals": {
       const stats = await ingestAiReferrals(opts.days ?? 7);
+      return { ok: true, ...stats };
+    }
+    case "indexation": {
+      const stats = await runIndexationProbe();
+      return { ok: true, ...stats };
+    }
+    case "funnel": {
+      const stats = await runFunnelProbe();
       return { ok: true, ...stats };
     }
   }

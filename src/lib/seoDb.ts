@@ -58,6 +58,113 @@ async function runEnsureSeoTables() {
     CREATE INDEX IF NOT EXISTS seo_job_runs_step_started_idx
       ON seo_job_runs (step, started_at DESC)
   `;
+
+  // One row per URL, overwritten on each inspection. coverage_state holds
+  // Google's own words rather than a normalised enum of our own: it is what
+  // separates a page judged thin from a page never crawled, and those two are
+  // not fixed the same way.
+  await sql`
+    CREATE TABLE IF NOT EXISTS seo_url_inspections (
+      url text PRIMARY KEY,
+      verdict text,
+      coverage_state text,
+      robots_txt_state text,
+      indexing_state text,
+      page_fetch_state text,
+      google_canonical text,
+      user_canonical text,
+      last_crawl_time timestamptz,
+      inspected_at timestamptz NOT NULL DEFAULT now()
+    )
+  `;
+
+  // The rotating batch reads oldest-inspected first.
+  await sql`
+    CREATE INDEX IF NOT EXISTS seo_url_inspections_inspected_idx
+      ON seo_url_inspections (inspected_at ASC)
+  `;
+}
+
+export type UrlInspectionRow = {
+  url: string;
+  verdict: string | null;
+  coverageState: string | null;
+  robotsTxtState: string | null;
+  indexingState: string | null;
+  pageFetchState: string | null;
+  googleCanonical: string | null;
+  userCanonical: string | null;
+  lastCrawlTime: string | null;
+};
+
+export async function upsertUrlInspection(row: UrlInspectionRow) {
+  await ensureSeoTables();
+  const sql = getSql();
+  await sql`
+    INSERT INTO seo_url_inspections (
+      url, verdict, coverage_state, robots_txt_state, indexing_state,
+      page_fetch_state, google_canonical, user_canonical, last_crawl_time, inspected_at
+    ) VALUES (
+      ${row.url}, ${row.verdict}, ${row.coverageState}, ${row.robotsTxtState},
+      ${row.indexingState}, ${row.pageFetchState}, ${row.googleCanonical},
+      ${row.userCanonical}, ${row.lastCrawlTime}, now()
+    )
+    ON CONFLICT (url) DO UPDATE SET
+      verdict = EXCLUDED.verdict,
+      coverage_state = EXCLUDED.coverage_state,
+      robots_txt_state = EXCLUDED.robots_txt_state,
+      indexing_state = EXCLUDED.indexing_state,
+      page_fetch_state = EXCLUDED.page_fetch_state,
+      google_canonical = EXCLUDED.google_canonical,
+      user_canonical = EXCLUDED.user_canonical,
+      last_crawl_time = EXCLUDED.last_crawl_time,
+      inspected_at = now()
+  `;
+}
+
+/**
+ * The next URLs to inspect: never-seen ones first, then least recently seen.
+ *
+ * The daily quota would allow inspecting everything at once, but a rotating
+ * batch keeps the load flat and means one failed day leaves no hole in the
+ * series.
+ */
+export async function pickUrlsToInspect(candidates: string[], limit: number): Promise<string[]> {
+  await ensureSeoTables();
+  const sql = getSql();
+  if (candidates.length === 0) return [];
+
+  const seen = await sql<{ url: string; inspected_at: Date }[]>`
+    SELECT url, inspected_at FROM seo_url_inspections WHERE url IN ${sql(candidates)}
+  `;
+  const lastSeen = new Map(seen.map((r) => [r.url, r.inspected_at.getTime()]));
+
+  return [...candidates]
+    .sort((a, b) => (lastSeen.get(a) ?? 0) - (lastSeen.get(b) ?? 0))
+    .slice(0, limit);
+}
+
+export type StoredUrlInspection = {
+  url: string;
+  verdict: string | null;
+  coverage_state: string | null;
+  robots_txt_state: string | null;
+  indexing_state: string | null;
+  page_fetch_state: string | null;
+  google_canonical: string | null;
+  user_canonical: string | null;
+  last_crawl_time: Date | null;
+  inspected_at: Date;
+};
+
+export async function getUrlInspections(limit = 200): Promise<StoredUrlInspection[]> {
+  await ensureSeoTables();
+  const sql = getSql();
+  return sql<StoredUrlInspection[]>`
+    SELECT * FROM seo_url_inspections
+    ORDER BY (verdict = 'PASS') ASC, inspected_at DESC
+    LIMIT ${limit}
+  `;
 }
 
 export type AiReferralRow = {
