@@ -14,7 +14,7 @@
   "dependencies": {
     "@anthropic-ai/bedrock-sdk": "^0.31.0",
     "@hookform/resolvers": "^3.9.0",
-    "@stripe/react-stripe-js": "^2.7.3",
+    "@stripe/react-stripe-js": "^6.8.0",
     "@stripe/stripe-js": "^4.1.0",
     "@supabase/supabase-js": "^2.110.7",
     "@vercel/analytics": "^1.6.1",
