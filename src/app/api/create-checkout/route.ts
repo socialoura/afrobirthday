@@ -15,6 +15,7 @@ import {
 } from "@/lib/currency";
 import { applyPromoToCharge, usdDiscountAmount } from "@/lib/promo";
 import { deviceTypeFromUserAgent } from "@/lib/device";
+import { SITE_URL } from "@/lib/siteUrl";
 
 export const runtime = "nodejs";
 
@@ -24,7 +25,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   try {
-    const origin = request.headers.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL;
+    const origin = request.headers.get("origin") ?? SITE_URL;
     if (!origin) {
       return NextResponse.json(
         { error: "Missing site URL configuration" },
@@ -63,11 +64,6 @@ export async function POST(request: NextRequest) {
     const resolvedMusicOption = musicOption ?? (hasCustomSong ? "custom" : "default");
     const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
     const resolvedDanceExtended = danceExtended === true;
-    const computedTotalUsd =
-      pricing.base +
-      (resolvedMusicOption === "custom" ? pricing.customSong : 0) +
-      (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0) +
-      (resolvedDanceExtended ? pricing.danceExtended : 0);
 
     const country = request.headers.get("x-vercel-ip-country") ?? undefined;
     const device = deviceTypeFromUserAgent(request.headers.get("user-agent"));
@@ -89,6 +85,11 @@ export async function POST(request: NextRequest) {
       override: overrides[currency],
     });
 
+    // total_usd has to be what the charge is worth, not the USD list price:
+    // the list price understates every sale in a currency carrying a manual
+    // override (a £19.99 base pinned against $19.99 is really a ~$27 sale).
+    const referenceUsd = charge.usdEquivalent;
+
     // Never trust a client-sent discount: re-validate the code server-side
     // and recompute the charge from scratch.
     let finalCharge = charge;
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
       }
       finalCharge = applyPromoToCharge(charge, promo);
       appliedPromoCode = promo.code;
-      discountUsd = usdDiscountAmount(computedTotalUsd, promo);
+      discountUsd = usdDiscountAmount(referenceUsd, promo);
     }
 
     await createOrder({
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
       musicFileUrl,
       deliveryMethod: resolvedDeliveryMethod,
       photoUrl,
-      totalUsd: computedTotalUsd,
+      totalUsd: referenceUsd,
       country,
       device,
       currency: finalCharge.currency,
@@ -152,7 +153,7 @@ export async function POST(request: NextRequest) {
         isExpress: resolvedDeliveryMethod === "express" ? "true" : "false",
         danceExtended: resolvedDanceExtended ? "true" : "false",
         currency: finalCharge.currency,
-        totalUsd: computedTotalUsd.toFixed(2),
+        totalUsd: referenceUsd.toFixed(2),
         exchangeRate: String(finalCharge.rate),
         ...(appliedPromoCode ? { promoCode: appliedPromoCode, discountUsd: discountUsd.toFixed(2) } : {}),
       },

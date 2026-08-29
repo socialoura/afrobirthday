@@ -1,5 +1,10 @@
 import type { PromoCode } from "@/lib/db";
-import { ZERO_DECIMAL_CURRENCIES, toStripeMinor, type ResolvedCharge } from "@/lib/currency";
+import {
+  ZERO_DECIMAL_CURRENCIES,
+  toStripeMinor,
+  toUsdEquivalent,
+  type ResolvedCharge,
+} from "@/lib/currency";
 
 type PromoDiscount = Pick<PromoCode, "discount_type" | "discount_value">;
 
@@ -34,5 +39,12 @@ export function applyPromoToCharge(charge: ResolvedCharge, promo: PromoDiscount)
     ? stripeAmount
     : stripeAmount / 100;
 
-  return { ...charge, localAmount, stripeAmount };
+  // Recomputed rather than carried over: the spread would otherwise keep the
+  // pre-discount USD figure on a discounted charge.
+  return {
+    ...charge,
+    localAmount,
+    stripeAmount,
+    usdEquivalent: toUsdEquivalent(localAmount, charge.rate),
+  };
 }

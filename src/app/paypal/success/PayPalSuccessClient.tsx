@@ -31,13 +31,14 @@ export default function PayPalSuccessClient() {
         }
 
         const data = (await res.json().catch(() => null)) as
-          | { value?: number | null; currency?: string }
+          | { value?: number | null; valueUsd?: number | null; currency?: string }
           | null;
 
         const qs = new URLSearchParams();
         qs.set("orderId", orderId);
         qs.set("value", data?.value != null ? String(data.value) : "1.0");
         qs.set("currency", data?.currency ?? "USD");
+        if (data?.valueUsd != null) qs.set("valueUsd", String(data.valueUsd));
         router.replace(`/success?${qs.toString()}`);
       } catch (e) {
         setError(e instanceof Error ? e.message : "PayPal capture failed");

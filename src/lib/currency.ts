@@ -77,7 +77,21 @@ export type ResolvedCharge = {
   localAmount: number;
   /** Integer amount in the currency's smallest unit, ready for Stripe. */
   stripeAmount: number;
+  /**
+   * What `localAmount` is actually worth in USD.
+   *
+   * Not the same as the USD list price whenever a currency override is in play:
+   * a £19.99 override against a $19.99 base is a ~$27 sale, not a $19.99 one.
+   * This is the figure revenue reporting must use.
+   */
+  usdEquivalent: number;
 };
+
+/** Converts a local amount back to USD at the rate that was used to charge it. */
+export function toUsdEquivalent(localAmount: number, rate: number): number {
+  if (!Number.isFinite(rate) || rate <= 0) return Math.round(localAmount * 100) / 100;
+  return Math.round((localAmount / rate) * 100) / 100;
+}
 
 /**
  * Resolves the amount to charge in the customer's local currency.
@@ -115,7 +129,13 @@ export function resolveLocalCharge(params: {
     ? stripeAmount
     : stripeAmount / 100;
 
-  return { currency, rate, localAmount, stripeAmount };
+  return {
+    currency,
+    rate,
+    localAmount,
+    stripeAmount,
+    usdEquivalent: toUsdEquivalent(localAmount, rate),
+  };
 }
 
 /** Formats a Stripe (smallest-unit) amount back to a decimal string for display. */

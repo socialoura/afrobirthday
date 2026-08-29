@@ -86,6 +86,9 @@ export async function POST(request: NextRequest) {
       // total_local reflects the actual amount charged (after any promo
       // discount); total_usd is the pre-discount reference price.
       value: order?.total_local ?? order?.total_usd ?? null,
+      // PayPal always charges in USD, so the two match — sent explicitly so the
+      // success page reports value_usd on this path too.
+      valueUsd: order?.total_local ?? order?.total_usd ?? null,
       currency: "USD",
     });
   } catch (error) {
