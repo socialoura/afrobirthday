@@ -30,6 +30,14 @@ yarn-error.log*
 # secrets / agent prompt with credentials — never commit
 AGENT-PROMPT.md
 
+# Google Cloud credentials (OAuth clients, service account keys)
+# Google's default download names are client_secret_*.json for OAuth clients
+# and <project>-<keyhash>.json for service account keys.
+client_secret*.json
+*-service-account*.json
+gcp-*.json
+afrobirthday-*.json
+
 # vercel
 .vercel
 

@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/seo",
+      "schedule": "30 8 * * *"
+    },
+    {
       "path": "/api/cron/check-overdue",
       "schedule": "0 9 * * *"
     },
