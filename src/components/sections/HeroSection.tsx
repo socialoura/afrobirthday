@@ -243,7 +243,7 @@ export default function HeroSection() {
               <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 bg-black aspect-[9/16] lg:rotate-2 transition-transform duration-500 hover:rotate-0">
                 <OptimizedVideo
                   src="/blessing_video_principal.mp4"
-                  poster="/showcase_1.jpg"
+                  poster="/showcase_1-poster.webp"
                   isHero
                   muted={isMuted}
                   className="w-full h-full"
@@ -274,7 +274,7 @@ export default function HeroSection() {
                 <button
                   type="button"
                   onClick={() => setIsMuted((m) => !m)}
-                  className="absolute top-4 end-4 w-9 h-9 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-colors touch-manipulation"
+                  className="absolute top-4 end-4 w-11 h-11 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-colors touch-manipulation"
                   aria-label={isMuted ? tHero("soundOn") : tHero("soundOff")}
                 >
                   {isMuted ? (

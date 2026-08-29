@@ -19,12 +19,12 @@ const legalHrefs = [
 
 const socialLinks = [
   {
-    href: "https://instagram.com/afrobirthday",
+    href: "https://www.instagram.com/afrobirthday",
     label: "Instagram",
     icon: Instagram,
   },
   {
-    href: "https://tiktok.com/@afrobirthday",
+    href: "https://www.tiktok.com/@afrobirthday",
     label: "TikTok",
     icon: () => (
       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -96,7 +96,7 @@ export default async function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-white/70 hover:text-white text-xs md:text-sm transition-colors duration-200 flex items-center gap-1 group py-1"
+                    className="text-white/70 hover:text-white text-xs md:text-sm transition-colors duration-200 flex items-center gap-1 group py-2.5 min-h-[44px]"
                   >
                     {navLabel(link.key)}
                     <ArrowUpRight
@@ -119,7 +119,7 @@ export default async function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-white/70 hover:text-white text-xs md:text-sm transition-colors duration-200 py-1 inline-block"
+                    className="text-white/70 hover:text-white text-xs md:text-sm transition-colors duration-200 py-2.5 min-h-[44px] inline-flex items-center"
                   >
                     {legalLabel(link.key)}
                   </Link>

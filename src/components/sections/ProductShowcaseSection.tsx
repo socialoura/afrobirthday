@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 const videos = [
   {
     src: "/blessing_video1.mp4",
-    poster: "/showcase_1.jpg",
+    poster: "/showcase_1-poster.webp",
     titleKey: "videos.0.title",
     viewsKey: "videos.0.views",
   },
@@ -26,7 +26,7 @@ const videos = [
   },
   {
     src: "/blessing_video4.mp4",
-    poster: "/showcase_1.jpg",
+    poster: "/showcase_1-poster.webp",
     titleKey: "videos.3.title",
     viewsKey: "videos.3.views",
   },

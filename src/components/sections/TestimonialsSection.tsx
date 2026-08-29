@@ -122,16 +122,22 @@ export default function TestimonialsSection() {
           </button>
 
           {/* Dots */}
-          <div className="flex justify-center gap-3 mt-6">
+          {/* The dot stays 12px; the button around it is a full 44px target.
+              At 12px square the dots were far below a usable tap size. */}
+          <div className="flex justify-center mt-6">
             {testimonials.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
                 aria-label={t("aria.goTo", { index: index + 1 })}
-                className={`w-3 h-3 rounded-full transition-colors touch-manipulation ${
-                  index === currentIndex ? "bg-primary" : "bg-white/20"
-                }`}
-              />
+                className="w-11 h-11 grid place-items-center touch-manipulation"
+              >
+                <span
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    index === currentIndex ? "bg-primary" : "bg-white/20"
+                  }`}
+                />
+              </button>
             ))}
           </div>
         </div>

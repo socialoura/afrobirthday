@@ -88,7 +88,7 @@ export default async function AboutPage({
                   support@afrobirthday.com
                 </a>
                 <a
-                  href="https://instagram.com/afrobirthday"
+                  href="https://www.instagram.com/afrobirthday"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-dark/80 hover:text-primary transition-colors"
