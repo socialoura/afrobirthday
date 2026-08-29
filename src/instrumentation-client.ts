@@ -1,4 +1,5 @@
 import posthog from "posthog-js";
+import { trackAttributedWebVitals } from "@/lib/webVitalsAttribution";
 
 const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 
@@ -15,4 +16,6 @@ if (token) {
       if (process.env.NODE_ENV === "development") ph.debug();
     },
   });
+
+  trackAttributedWebVitals();
 }
