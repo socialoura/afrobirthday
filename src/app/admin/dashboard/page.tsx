@@ -19,6 +19,7 @@ import {
   Send,
   Video,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 import { uploadFileWithProgress } from "@/lib/clientUpload";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
@@ -913,6 +914,27 @@ export default function AdminDashboardPage() {
         {/* Analytics Tab */}
         {activeTab === "analytics" && (
           <div className="space-y-6">
+            {/* AI referral signals live on their own page: they are sourced
+                from PostHog rather than the orders table, so they don't share
+                this tab's data model. */}
+            <button
+              onClick={() => router.push("/admin/seo")}
+              className="glass-card p-4 rounded-xl w-full flex items-center justify-between hover:bg-white/5 transition text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-lg bg-purple-500/20">
+                  <Sparkles className="w-6 h-6 text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-white font-semibold">AI &amp; SEO signals</p>
+                  <p className="text-white/60 text-sm">
+                    Which assistants send traffic, and what they buy
+                  </p>
+                </div>
+              </div>
+              <ExternalLink className="w-5 h-5 text-white/40" />
+            </button>
+
             {/* Google Ads Input */}
             <div className="glass-card p-6 rounded-xl">
               <h3 className="text-lg font-semibold text-white mb-4">
@@ -1399,17 +1421,35 @@ export default function AdminDashboardPage() {
                 <div>
                   <p className="text-white font-medium">Abandoned cart reminder</p>
                   <p className="text-white/60 text-sm">
-                    Sent this many hours after an order is left unpaid.
+                    Sent this many hours after an order is left unpaid, and only while the cart is
+                    newer than the cut-off. Customers who already bought are never reminded.
                   </p>
-                  <input
-                    type="number"
-                    min="0"
-                    value={emailSettings.abandoned_cart_email_delay_hours ?? "3"}
-                    onChange={(e) =>
-                      updateEmailSetting("abandoned_cart_email_delay_hours", e.target.value)
-                    }
-                    className="mt-2 w-24 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-                  />
+                  <div className="mt-2 flex flex-wrap gap-4">
+                    <label className="flex flex-col gap-1">
+                      <span className="text-white/50 text-xs">Wait (hours)</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={emailSettings.abandoned_cart_email_delay_hours ?? "3"}
+                        onChange={(e) =>
+                          updateEmailSetting("abandoned_cart_email_delay_hours", e.target.value)
+                        }
+                        className="w-24 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-white/50 text-xs">Stop after (days)</span>
+                      <input
+                        type="number"
+                        min="1"
+                        value={emailSettings.abandoned_cart_email_max_age_days ?? "7"}
+                        onChange={(e) =>
+                          updateEmailSetting("abandoned_cart_email_max_age_days", e.target.value)
+                        }
+                        className="w-24 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                      />
+                    </label>
+                  </div>
                 </div>
                 <button
                   onClick={() => toggleEmailSetting("abandoned_cart_email_enabled")}

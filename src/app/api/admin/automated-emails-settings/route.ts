@@ -15,6 +15,7 @@ const BOOLEAN_KEYS = [
 const TEXT_KEYS = [
   "review_email_delay_days",
   "abandoned_cart_email_delay_hours",
+  "abandoned_cart_email_max_age_days",
   "cross_sell_email_delay_days",
   "annual_reminder_email_delay_days",
   "winback_promo_code",
@@ -34,6 +35,7 @@ const DEFAULTS: Record<(typeof BOOLEAN_KEYS)[number] | (typeof TEXT_KEYS)[number
   referral_email_enabled: "false",
   review_email_delay_days: "3",
   abandoned_cart_email_delay_hours: "3",
+  abandoned_cart_email_max_age_days: "7",
   cross_sell_email_delay_days: "7",
   annual_reminder_email_delay_days: "365",
   winback_promo_code: "",
