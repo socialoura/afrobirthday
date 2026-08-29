@@ -5,11 +5,11 @@ import {
   renderAbandonedCartEmailHtml,
   renderAbandonedCartEmailText,
 } from "@/lib/orderEmailTemplates";
-import { SITE_URL } from "@/lib/siteUrl";
+import { EMAIL_CAMPAIGNS, withCampaign } from "@/lib/campaign";
+import { trackEmailSent } from "@/lib/analyticsServer";
 
 export async function sendAbandonedCartEmail(order: Order): Promise<void> {
-  const siteUrl = SITE_URL;
-  const resumeUrl = siteUrl.replace(/\/$/, "");
+  const resumeUrl = withCampaign("/#order", EMAIL_CAMPAIGNS.ABANDONED_CART);
 
   await sendEmailWithResend({
     to: order.email,
@@ -19,6 +19,8 @@ export async function sendAbandonedCartEmail(order: Order): Promise<void> {
     replyTo: "support@afrobirthday.com",
     headers: buildMarketingEmailHeaders(order.email, order.id),
   });
+
+  await trackEmailSent(EMAIL_CAMPAIGNS.ABANDONED_CART, order.email, { order_id: order.id });
 
   await markAbandonedCartEmailSent(order.id);
 }

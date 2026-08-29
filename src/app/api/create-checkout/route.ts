@@ -6,6 +6,7 @@ import {
   ensureOrdersTable,
   getPricingOverrides,
   getPricingSettings,
+  sanitizeAttribution,
   validatePromoCode,
 } from "@/lib/db";
 import {
@@ -49,6 +50,7 @@ export async function POST(request: NextRequest) {
       photoUrl,
       currency: requestedCurrency,
       promoCode: requestedPromoCode,
+      attribution: rawAttribution,
     } = body;
 
     if (!orderId || typeof orderId !== "string") {
@@ -123,6 +125,7 @@ export async function POST(request: NextRequest) {
       promoCode: appliedPromoCode ?? undefined,
       discountAmount: discountUsd,
       danceExtended: resolvedDanceExtended,
+      attribution: sanitizeAttribution(rawAttribution),
     });
 
     const session = await stripe.checkout.sessions.create({

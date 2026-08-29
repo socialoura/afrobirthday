@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
 import { ORDER_DRAFT_STORAGE_KEY } from "@/lib/utils";
+import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 
 export default function PostHogPurchaseCompleted() {
   const searchParams = useSearchParams();
@@ -33,7 +33,7 @@ export default function PostHogPurchaseCompleted() {
       // ignore
     }
 
-    posthog.capture("order_completed", {
+    captureEvent(ANALYTICS_EVENTS.ORDER_COMPLETED, {
       order_id: orderId,
       value,
       currency,

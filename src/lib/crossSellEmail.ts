@@ -5,6 +5,8 @@ import {
   renderCrossSellEmailHtml,
   renderCrossSellEmailText,
 } from "@/lib/orderEmailTemplates";
+import { trackEmailSent } from "@/lib/analyticsServer";
+import { EMAIL_CAMPAIGNS } from "@/lib/campaign";
 
 export async function sendCrossSellEmail(order: Order, promoCode: string): Promise<void> {
   await sendEmailWithResend({
@@ -15,6 +17,8 @@ export async function sendCrossSellEmail(order: Order, promoCode: string): Promi
     replyTo: "support@afrobirthday.com",
     headers: buildMarketingEmailHeaders(order.email, order.id),
   });
+
+  await trackEmailSent(EMAIL_CAMPAIGNS.CROSS_SELL, order.email, { order_id: order.id });
 
   await markCrossSellEmailSent(order.id);
 }

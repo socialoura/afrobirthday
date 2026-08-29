@@ -47,6 +47,11 @@ type Order = {
   notes: string | null;
   cost: number;
   country: string | null;
+  attribution_source: string | null;
+  attribution_medium: string | null;
+  attribution_campaign: string | null;
+  attribution_landing: string | null;
+  attribution_referrer: string | null;
   final_video_url: string | null;
   final_video_sent_at: string | null;
 };
@@ -767,6 +772,7 @@ export default function AdminDashboardPage() {
                       <th className="text-left p-4 text-white/60 font-medium">ID</th>
                       <th className="text-left p-4 text-white/60 font-medium">Email</th>
                       <th className="text-left p-4 text-white/60 font-medium">Country</th>
+                      <th className="text-left p-4 text-white/60 font-medium">Origin</th>
                       <th className="text-left p-4 text-white/60 font-medium">Price</th>
                       <th className="text-left p-4 text-white/60 font-medium">Cost</th>
                       <th className="text-left p-4 text-white/60 font-medium">Status</th>
@@ -784,6 +790,18 @@ export default function AdminDashboardPage() {
                         <td className="p-4 text-white">{order.email}</td>
                         <td className="p-4 text-white/70 text-sm">
                           {order.country ? `${countryCodeToFlag(order.country)} ${order.country}` : "—"}
+                        </td>
+                        <td className="p-4 text-white/70 text-sm max-w-[180px]">
+                          {order.attribution_source ? (
+                            <span title={[order.attribution_medium, order.attribution_campaign, order.attribution_landing].filter(Boolean).join(" · ")}>
+                              {order.attribution_source}
+                              {order.attribution_campaign ? (
+                                <span className="text-white/40"> / {order.attribution_campaign}</span>
+                              ) : null}
+                            </span>
+                          ) : (
+                            "—"
+                          )}
                         </td>
                         <td className="p-4 text-green-400 font-medium">
                           ${Number(order.total_usd).toFixed(2)}

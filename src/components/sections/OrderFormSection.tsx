@@ -11,6 +11,8 @@ import { useExchangeRates } from "@/lib/useExchangeRates";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import dynamic from "next/dynamic";
+import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
+import { getAttributionPayload } from "@/lib/attribution";
 
 const CustomPaymentModal = dynamic(() => import("@/components/CustomPaymentModal"), { ssr: false });
 
@@ -408,7 +410,7 @@ export default function OrderFormSection() {
   const trackOrderStarted = useCallback(() => {
     if (hasStartedOrderRef.current) return;
     hasStartedOrderRef.current = true;
-    posthog.capture("order_form_started");
+    captureEvent(ANALYTICS_EVENTS.ORDER_FORM_STARTED);
   }, []);
 
   // Cached across setup attempts so returning to step 3 (or a retry) doesn't
@@ -428,7 +430,7 @@ export default function OrderFormSection() {
       return;
     }
     if (musicOption === "custom") {
-      posthog.capture("music_selected", { music_option: "custom" });
+      captureEvent(ANALYTICS_EVENTS.MUSIC_SELECTED, { music_option: "custom" });
     }
   }, [musicOption]);
 
@@ -540,7 +542,7 @@ export default function OrderFormSection() {
 
       if (data.valid && data.code && data.discountType && typeof data.discountValue === "number") {
         setAppliedPromo({ code: data.code, discountType: data.discountType, discountValue: data.discountValue });
-        posthog.capture("promo_code_applied", { code: data.code });
+        captureEvent(ANALYTICS_EVENTS.PROMO_CODE_APPLIED, { code: data.code });
       } else {
         setAppliedPromo(null);
         setPromoError(t("promo.invalid"));
@@ -597,7 +599,7 @@ export default function OrderFormSection() {
         // upload failed. Saying nothing here meant the customer only found out
         // at the payment step, as a generic payment error.
         setPhotoError(t("errors.photoUploadFailed"));
-        posthog.capture("photo_upload_failed", {
+        captureEvent(ANALYTICS_EVENTS.PHOTO_UPLOAD_FAILED, {
           reason: err instanceof Error ? err.message : String(err),
           file_size_kb: Math.round(file.size / 1024),
         });
@@ -647,7 +649,7 @@ export default function OrderFormSection() {
     setStripeClientSecret(null);
     beginPhotoUpload(finalFile);
     preloadPaymentAssets();
-    posthog.capture("photo_selected", { file_size_kb: Math.round(finalFile.size / 1024) });
+    captureEvent(ANALYTICS_EVENTS.PHOTO_SELECTED, { file_size_kb: Math.round(finalFile.size / 1024) });
     const reader = new FileReader();
     reader.onload = (e) => setPhotoPreview(e.target?.result as string);
     reader.readAsDataURL(finalFile);
@@ -686,7 +688,7 @@ export default function OrderFormSection() {
     }
 
     if (!ok) return;
-    posthog.capture("order_form_step_completed", { step: 1 });
+    captureEvent(ANALYTICS_EVENTS.ORDER_FORM_STEP_COMPLETED, { step: 1 });
     setCurrentStep(2);
     scrollToOrderTop();
   };
@@ -702,11 +704,11 @@ export default function OrderFormSection() {
         return;
       }
     }
-    posthog.capture("order_form_step_completed", { step: 2 });
+    captureEvent(ANALYTICS_EVENTS.ORDER_FORM_STEP_COMPLETED, { step: 2 });
     // The true denominator for the payment step. checkout_initiated can't play
     // that role: on the card path it only fires once the PaymentIntent exists,
     // so everyone lost during the upload + round trip is invisible to it.
-    posthog.capture("payment_step_viewed", {
+    captureEvent(ANALYTICS_EVENTS.PAYMENT_STEP_VIEWED, {
       payment_method: paymentMethod,
       music_option: musicOption,
       delivery_method: deliveryMethod,
@@ -744,7 +746,7 @@ export default function OrderFormSection() {
     }
     if (data.paymentMethod !== "paypal") return;
 
-    posthog.capture("checkout_initiated", {
+    captureEvent(ANALYTICS_EVENTS.CHECKOUT_INITIATED, {
       payment_method: data.paymentMethod,
       music_option: musicOption,
       delivery_method: deliveryMethod,
@@ -811,6 +813,7 @@ export default function OrderFormSection() {
           hasCustomSong: musicOption === "custom",
           isExpress: deliveryMethod === "express",
           promoCode: appliedPromo?.code,
+          attribution: getAttributionPayload(),
         }),
       });
 
@@ -823,7 +826,7 @@ export default function OrderFormSection() {
       if (payload.url) {
         // Last event we can record on our own domain — everything after this
         // happens on PayPal's.
-        posthog.capture("payment_redirect_started", {
+        captureEvent(ANALYTICS_EVENTS.PAYMENT_REDIRECT_STARTED, {
           payment_method: "paypal",
           provider: "paypal",
           order_id: orderId,
@@ -836,7 +839,7 @@ export default function OrderFormSection() {
       }
     } catch (error) {
       console.error("Checkout error:", error);
-      posthog.capture("payment_setup_failed", {
+      captureEvent(ANALYTICS_EVENTS.PAYMENT_SETUP_FAILED, {
         payment_method: "paypal",
         reason: error instanceof Error ? error.message : String(error),
         total_price: totalPrice,
@@ -900,6 +903,7 @@ export default function OrderFormSection() {
           hasCustomSong: musicOption === "custom",
           isExpress: deliveryMethod === "express",
           promoCode: appliedPromo?.code,
+          attribution: getAttributionPayload(),
         }),
       });
 
@@ -924,7 +928,7 @@ export default function OrderFormSection() {
       console.error("Payment setup error:", err);
       // A customer who never gets a payment form can't fail at paying, so this
       // has to be told apart from an abandonment.
-      posthog.capture("payment_setup_failed", {
+      captureEvent(ANALYTICS_EVENTS.PAYMENT_SETUP_FAILED, {
         payment_method: "card",
         reason: err instanceof Error ? err.message : String(err),
         total_price: totalPrice,
@@ -974,7 +978,7 @@ export default function OrderFormSection() {
     }
     if (!stripeClientSecret) return;
 
-    posthog.capture("checkout_initiated", {
+    captureEvent(ANALYTICS_EVENTS.CHECKOUT_INITIATED, {
       payment_method: "card",
       music_option: musicOption,
       delivery_method: deliveryMethod,

@@ -114,6 +114,19 @@ async function runEnsureOrdersTable() {
     ALTER TABLE orders
     ADD COLUMN IF NOT EXISTS dance_extended boolean NOT NULL DEFAULT false
   `;
+
+  // First-touch attribution. Declared here, on the guard createOrder() actually
+  // awaits — a column declared only in the admin's schema helper would be
+  // missing on the very first order after deploy.
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS attribution_source text,
+    ADD COLUMN IF NOT EXISTS attribution_medium text,
+    ADD COLUMN IF NOT EXISTS attribution_campaign text,
+    ADD COLUMN IF NOT EXISTS attribution_landing text,
+    ADD COLUMN IF NOT EXISTS attribution_referrer text,
+    ADD COLUMN IF NOT EXISTS attribution_first_seen_at timestamptz
+  `;
 }
 
 export async function ensurePromoCodesTable() {
@@ -178,7 +191,68 @@ export type OrderCreateInput = {
   discountAmount?: number;
   /** Dance extended version add-on (video is more than 2 minutes long). */
   danceExtended?: boolean;
+  /** First-touch attribution, already narrowed and truncated by the caller. */
+  attribution?: OrderAttribution;
 };
+
+/**
+ * The only attribution fields that are allowed into the database.
+ *
+ * The values originate in browser storage, which the visitor can edit, so the
+ * server copies known keys and drops everything else rather than spreading an
+ * arbitrary object into the row.
+ */
+export type OrderAttribution = {
+  source: string | null;
+  medium: string | null;
+  campaign: string | null;
+  landing: string | null;
+  referrer: string | null;
+  firstSeenAt: string | null;
+};
+
+const ATTRIBUTION_LIMITS = {
+  source: 120,
+  medium: 120,
+  campaign: 120,
+  landing: 200,
+  referrer: 200,
+} as const;
+
+export function sanitizeAttribution(raw: unknown): OrderAttribution | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const input = raw as Record<string, unknown>;
+
+  const take = (key: keyof typeof ATTRIBUTION_LIMITS) => {
+    const value = input[key];
+    if (typeof value !== "string") return null;
+    const trimmed = value.trim().slice(0, ATTRIBUTION_LIMITS[key]);
+    return trimmed.length ? trimmed : null;
+  };
+
+  const firstSeenRaw = input.firstSeenAt;
+  let firstSeenAt: string | null = null;
+  if (typeof firstSeenRaw === "string") {
+    const parsed = new Date(firstSeenRaw);
+    // A visitor-supplied date can be anything; only a real one is kept, and
+    // never one in the future.
+    if (!Number.isNaN(parsed.getTime()) && parsed.getTime() <= Date.now() + 60_000) {
+      firstSeenAt = parsed.toISOString();
+    }
+  }
+
+  const out: OrderAttribution = {
+    source: take("source"),
+    medium: take("medium"),
+    campaign: take("campaign"),
+    landing: take("landing"),
+    referrer: take("referrer"),
+    firstSeenAt,
+  };
+
+  const hasSomething = Object.values(out).some((v) => v !== null);
+  return hasSomething ? out : undefined;
+}
 
 export async function createOrder(input: OrderCreateInput) {
   const sql = getSql();
@@ -201,7 +275,13 @@ export async function createOrder(input: OrderCreateInput) {
       device,
       promo_code,
       discount_amount,
-      dance_extended
+      dance_extended,
+      attribution_source,
+      attribution_medium,
+      attribution_campaign,
+      attribution_landing,
+      attribution_referrer,
+      attribution_first_seen_at
     ) VALUES (
       ${input.id}::uuid,
       ${input.email},
@@ -219,7 +299,13 @@ export async function createOrder(input: OrderCreateInput) {
       ${input.device ?? null},
       ${input.promoCode ?? null},
       ${input.discountAmount ?? 0},
-      ${input.danceExtended ?? false}
+      ${input.danceExtended ?? false},
+      ${input.attribution?.source ?? null},
+      ${input.attribution?.medium ?? null},
+      ${input.attribution?.campaign ?? null},
+      ${input.attribution?.landing ?? null},
+      ${input.attribution?.referrer ?? null},
+      ${input.attribution?.firstSeenAt ?? null}
     )
     ON CONFLICT (id) DO NOTHING
   `;
@@ -417,6 +503,12 @@ export type Order = {
   cross_sell_email_sent_at: string | null;
   annual_reminder_email_sent_at: string | null;
   referral_email_sent_at: string | null;
+  attribution_source: string | null;
+  attribution_medium: string | null;
+  attribution_campaign: string | null;
+  attribution_landing: string | null;
+  attribution_referrer: string | null;
+  attribution_first_seen_at: string | null;
 };
 
 // Persist best-effort media generated at payment time (voiceover MP3, and the

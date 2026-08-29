@@ -1,5 +1,6 @@
 import posthog from "posthog-js";
 import { trackAttributedWebVitals } from "@/lib/webVitalsAttribution";
+import { captureFirstTouch } from "@/lib/attribution";
 
 const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 
@@ -19,3 +20,7 @@ if (token) {
 
   trackAttributedWebVitals();
 }
+
+// Outside the PostHog guard on purpose: the order's own attribution must not
+// depend on an analytics token being present.
+captureFirstTouch();

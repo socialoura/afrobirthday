@@ -4,6 +4,7 @@ import {
   createOrder,
   ensureOrdersTable,
   getPricingSettings,
+  sanitizeAttribution,
   validatePromoCode,
 } from "@/lib/db";
 import { discountedUsdTotal, usdDiscountAmount } from "@/lib/promo";
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
       deliveryMethod,
       photoUrl,
       promoCode: requestedPromoCode,
+      attribution: rawAttribution,
     } = body;
 
     if (!orderId || typeof orderId !== "string") {
@@ -95,6 +97,7 @@ export async function POST(request: NextRequest) {
       promoCode: appliedPromoCode ?? undefined,
       discountAmount: discountUsd,
       danceExtended: resolvedDanceExtended,
+      attribution: sanitizeAttribution(rawAttribution),
     });
 
     const returnUrl = `${origin}/paypal/success?orderId=${encodeURIComponent(orderId)}`;

@@ -1,5 +1,5 @@
-import posthog from "posthog-js";
 import { onINP, onLCP, type INPMetricWithAttribution, type LCPMetricWithAttribution } from "web-vitals/attribution";
+import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 
 /**
  * PostHog's built-in $web_vitals tells you the score and nothing else — its
@@ -19,7 +19,7 @@ function shouldReport(rating: string) {
 function reportInp(metric: INPMetricWithAttribution) {
   if (!shouldReport(metric.rating)) return;
   const a = metric.attribution;
-  posthog.capture("web_vital_attributed", {
+  captureEvent(ANALYTICS_EVENTS.WEB_VITAL_ATTRIBUTED, {
     metric: "INP",
     value: Math.round(metric.value),
     rating: metric.rating,
@@ -39,7 +39,7 @@ function reportInp(metric: INPMetricWithAttribution) {
 function reportLcp(metric: LCPMetricWithAttribution) {
   if (!shouldReport(metric.rating)) return;
   const a = metric.attribution;
-  posthog.capture("web_vital_attributed", {
+  captureEvent(ANALYTICS_EVENTS.WEB_VITAL_ATTRIBUTED, {
     metric: "LCP",
     value: Math.round(metric.value),
     rating: metric.rating,

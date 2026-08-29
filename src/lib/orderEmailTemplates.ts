@@ -1,5 +1,15 @@
 import type { Order } from "@/lib/db";
 import { buildUnsubscribeUrl } from "@/lib/emailOptOut";
+import { EMAIL_CAMPAIGNS, withCampaign, type EmailCampaign } from "@/lib/campaign";
+
+/**
+ * Link back to the order form, tagged so the e-mail channel has a
+ * denominator. Several of these messages handed out a promo code with no way
+ * to spend it — the campaign was running with no destination at all.
+ */
+function orderLink(campaign: EmailCampaign) {
+  return escapeHtml(withCampaign("/#order", campaign));
+}
 
 export function renderOrderConfirmationEmailHtml(order: Order) {
   const createdAt = order.created_at ? new Date(order.created_at).toLocaleString() : "";
@@ -223,6 +233,11 @@ export function renderCrossSellEmailHtml(order: Order, promoCode: string) {
     <p style="margin:0 0 16px; font-size: 18px;">
       <strong style="letter-spacing: 1px;">${escapeHtml(promoCode)}</strong>
     </p>
+    <p style="margin: 0 0 16px;">
+      <a href="${orderLink(EMAIL_CAMPAIGNS.CROSS_SELL)}" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
+        Order another video
+      </a>
+    </p>
     <p style="margin:0 0 16px;">
       Thanks for being an AfroBirthday customer,<br/>
       The AfroBirthday team
@@ -238,6 +253,8 @@ export function renderCrossSellEmailText(order: Order, promoCode: string) {
     "Got another birthday coming up? Surprise someone else with a personalized AfroBirthday video — use the code below for a discount on your next order.",
     "",
     `Promo code: ${promoCode}`,
+    "",
+    `Order another video: ${withCampaign("/#order", EMAIL_CAMPAIGNS.CROSS_SELL)}`,
     "",
     "Thanks for being an AfroBirthday customer,",
     "The AfroBirthday team",
@@ -255,6 +272,11 @@ export function renderAnnualReminderEmailHtml(order: Order, promoCode: string) {
     <p style="margin:0 0 16px; font-size: 18px;">
       <strong style="letter-spacing: 1px;">${escapeHtml(promoCode)}</strong>
     </p>
+    <p style="margin: 0 0 16px;">
+      <a href="${orderLink(EMAIL_CAMPAIGNS.ANNUAL_REMINDER)}" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
+        Start your next video
+      </a>
+    </p>
     <p style="margin:0 0 16px;">
       Looking forward to making another one for you,<br/>
       The AfroBirthday team
@@ -270,6 +292,8 @@ export function renderAnnualReminderEmailText(order: Order, promoCode: string) {
     "It's been a year since your last AfroBirthday video — same celebration again this year? Here's a code to make it easy.",
     "",
     `Promo code: ${promoCode}`,
+    "",
+    `Start your next video: ${withCampaign("/#order", EMAIL_CAMPAIGNS.ANNUAL_REMINDER)}`,
     "",
     "Looking forward to making another one for you,",
     "The AfroBirthday team",

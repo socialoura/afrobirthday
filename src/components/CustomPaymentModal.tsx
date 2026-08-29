@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import posthog from "posthog-js";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -13,6 +12,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { X, CreditCard, Lock, ShieldCheck, CheckCircle2, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { ANALYTICS_EVENTS, captureEvent, type AnalyticsEvent } from "@/lib/analyticsEvents";
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -124,8 +124,8 @@ function PaymentForm({
   }
 
   const track = useCallback(
-    (event: string, props: Record<string, unknown> = {}) => {
-      posthog.capture(event, {
+    (event: AnalyticsEvent, props: Record<string, unknown> = {}) => {
+      captureEvent(event, {
         order_id: orderId,
         value,
         value_usd: valueUsd,
@@ -138,7 +138,7 @@ function PaymentForm({
   );
 
   useEffect(() => {
-    track("payment_form_mounted");
+    track(ANALYTICS_EVENTS.PAYMENT_FORM_MOUNTED);
   }, [track]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -151,11 +151,11 @@ function PaymentForm({
     setIsProcessing(true);
     setError(null);
 
-    track("payment_submitted");
+    track(ANALYTICS_EVENTS.PAYMENT_SUBMITTED);
 
     const cardNumber = elements.getElement(CardNumberElement);
     if (!cardNumber) {
-      track("payment_failed", { stage: "validation", error_code: "card_element_missing" });
+      track(ANALYTICS_EVENTS.PAYMENT_FAILED, { stage: "validation", error_code: "card_element_missing" });
       setError(t("errors.cardMissing"));
       setIsProcessing(false);
       return;
@@ -171,7 +171,7 @@ function PaymentForm({
     );
 
     if (stripeError) {
-      track("payment_failed", {
+      track(ANALYTICS_EVENTS.PAYMENT_FAILED, {
         stage: "confirm",
         error_code: stripeError.code ?? null,
         decline_code: stripeError.decline_code ?? null,
@@ -185,7 +185,7 @@ function PaymentForm({
     if (paymentIntent?.status === "succeeded") {
       // Recorded here rather than only on /success, so a customer who closes
       // the tab on the way there still counts as a sale.
-      track("payment_succeeded", { payment_intent_id: paymentIntent.id });
+      track(ANALYTICS_EVENTS.PAYMENT_SUCCEEDED, { payment_intent_id: paymentIntent.id });
       // Confirm payment server-side (send email, Discord, mark as paid)
       if (orderId && paymentIntent.id) {
         try {
@@ -234,7 +234,7 @@ function PaymentForm({
               <CardNumberElement
                 options={cardElementOptions}
                 onReady={() =>
-                  track("payment_element_ready", {
+                  track(ANALYTICS_EVENTS.PAYMENT_ELEMENT_READY, {
                     ms_to_ready:
                       mountedAtRef.current > 0
                         ? Math.round(performance.now() - mountedAtRef.current)
@@ -332,7 +332,7 @@ export default function CustomPaymentModal({
   // otherwise look to the customer like a dead button.
   useEffect(() => {
     if (isOpen && !stripePromise) {
-      posthog.capture("stripe_unavailable", { order_id: orderId, value, value_usd: valueUsd, currency });
+      captureEvent(ANALYTICS_EVENTS.STRIPE_UNAVAILABLE, { order_id: orderId, value, value_usd: valueUsd, currency });
     }
   }, [isOpen, orderId, value, valueUsd, currency]);
 

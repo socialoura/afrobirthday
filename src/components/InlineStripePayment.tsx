@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import posthog from "posthog-js";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -16,6 +15,7 @@ import type {
 } from "@stripe/stripe-js";
 import { Lock, AlertTriangle, RefreshCw, ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { ANALYTICS_EVENTS, captureEvent, type AnalyticsEvent } from "@/lib/analyticsEvents";
 
 let stripePromise: ReturnType<typeof loadStripe> | null = null;
 function getStripe() {
@@ -108,8 +108,8 @@ function InnerPaymentForm({
   }
 
   const track = useCallback(
-    (event: string, props: Record<string, unknown> = {}) => {
-      posthog.capture(event, {
+    (event: AnalyticsEvent, props: Record<string, unknown> = {}) => {
+      captureEvent(event, {
         order_id: orderId,
         value,
         value_usd: valueUsd,
@@ -123,7 +123,7 @@ function InnerPaymentForm({
   // Fires even when Stripe.js never calls onReady, which is the case we most
   // need to see: a payment form that silently fails to render.
   useEffect(() => {
-    track("payment_form_mounted");
+    track(ANALYTICS_EVENTS.PAYMENT_FORM_MOUNTED);
   }, [track]);
 
   // Redirect methods come back here instead of resuming in page, so the whole
@@ -150,7 +150,7 @@ function InnerPaymentForm({
     if (!termsAccepted) {
       // Not an abandonment — the customer did try to pay, the checkbox stopped
       // them. Worth separating in the funnel.
-      track("payment_blocked_terms", { payment_method_type: submittedType });
+      track(ANALYTICS_EVENTS.PAYMENT_BLOCKED_TERMS, { payment_method_type: submittedType });
       onTermsRequired();
       return;
     }
@@ -158,11 +158,11 @@ function InnerPaymentForm({
     setIsProcessing(true);
     setError(null);
 
-    track("payment_submitted", { payment_method_type: submittedType });
+    track(ANALYTICS_EVENTS.PAYMENT_SUBMITTED, { payment_method_type: submittedType });
 
     const { error: submitError } = await elements.submit();
     if (submitError) {
-      track("payment_failed", {
+      track(ANALYTICS_EVENTS.PAYMENT_FAILED, {
         stage: "validation",
         payment_method_type: submittedType,
         error_code: submitError.code ?? null,
@@ -176,7 +176,7 @@ function InnerPaymentForm({
     if (REDIRECT_METHOD_TYPES.has(submittedType)) {
       // Stripe navigates away inside confirmPayment, so nothing after this call
       // is guaranteed to run for these methods.
-      track("payment_redirect_started", {
+      track(ANALYTICS_EVENTS.PAYMENT_REDIRECT_STARTED, {
         provider: submittedType,
         payment_method_type: submittedType,
       });
@@ -189,7 +189,7 @@ function InnerPaymentForm({
     });
 
     if (stripeError) {
-      track("payment_failed", {
+      track(ANALYTICS_EVENTS.PAYMENT_FAILED, {
         stage: "confirm",
         payment_method_type: submittedType,
         error_code: stripeError.code ?? null,
@@ -204,7 +204,7 @@ function InnerPaymentForm({
     if (paymentIntent?.status === "succeeded") {
       // Recorded here rather than only on /success, so a customer who closes
       // the tab on the redirect back still counts as a sale.
-      track("payment_succeeded", {
+      track(ANALYTICS_EVENTS.PAYMENT_SUCCEEDED, {
         payment_method_type: submittedType,
         payment_intent_id: paymentIntent.id,
       });
@@ -225,7 +225,7 @@ function InnerPaymentForm({
 
     // Neither an error nor a completed payment — 3-D Secure pending, or a
     // method still awaiting the customer elsewhere.
-    track("payment_incomplete", {
+    track(ANALYTICS_EVENTS.PAYMENT_INCOMPLETE, {
       payment_method_type: submittedType,
       payment_intent_status: paymentIntent?.status ?? null,
     });
@@ -249,7 +249,7 @@ function InnerPaymentForm({
           onConfirm={handleExpressConfirm}
           onReady={({ availablePaymentMethods }) => {
             setHasExpressOptions(Boolean(availablePaymentMethods));
-            track("express_checkout_ready", {
+            track(ANALYTICS_EVENTS.EXPRESS_CHECKOUT_READY, {
               available_methods: availablePaymentMethods
                 ? Object.keys(availablePaymentMethods).filter(
                     (key) => availablePaymentMethods[key as keyof typeof availablePaymentMethods]
@@ -287,7 +287,7 @@ function InnerPaymentForm({
             wallets: { applePay: "never", googlePay: "never" },
           }}
           onReady={() =>
-            track("payment_element_ready", {
+            track(ANALYTICS_EVENTS.PAYMENT_ELEMENT_READY, {
               ms_to_ready:
                 mountedAtRef.current > 0
                   ? Math.round(performance.now() - mountedAtRef.current)
@@ -296,7 +296,7 @@ function InnerPaymentForm({
             })
           }
           onLoadError={({ error: loadError }) =>
-            track("payment_element_load_failed", {
+            track(ANALYTICS_EVENTS.PAYMENT_ELEMENT_LOAD_FAILED, {
               error_code: loadError?.code ?? null,
               error_type: loadError?.type ?? null,
             })
@@ -306,7 +306,7 @@ function InnerPaymentForm({
             // onChange also fires on every keystroke; only a real switch of
             // payment method is worth an event.
             if (e.value.type !== lastMethodTypeRef.current) {
-              track("payment_method_selected", {
+              track(ANALYTICS_EVENTS.PAYMENT_METHOD_SELECTED, {
                 payment_method_type: e.value.type,
                 previous_method_type: lastMethodTypeRef.current,
               });
@@ -387,7 +387,7 @@ export default function InlineStripePayment({
   // that produced nothing but a support ticket.
   useEffect(() => {
     if (!stripe) {
-      posthog.capture("stripe_unavailable", { order_id: orderId, value, value_usd: valueUsd, currency });
+      captureEvent(ANALYTICS_EVENTS.STRIPE_UNAVAILABLE, { order_id: orderId, value, value_usd: valueUsd, currency });
     }
   }, [stripe, orderId, value, valueUsd, currency]);
 

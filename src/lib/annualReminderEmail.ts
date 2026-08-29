@@ -5,6 +5,8 @@ import {
   renderAnnualReminderEmailHtml,
   renderAnnualReminderEmailText,
 } from "@/lib/orderEmailTemplates";
+import { trackEmailSent } from "@/lib/analyticsServer";
+import { EMAIL_CAMPAIGNS } from "@/lib/campaign";
 
 export async function sendAnnualReminderEmail(order: Order, promoCode: string): Promise<void> {
   await sendEmailWithResend({
@@ -15,6 +17,8 @@ export async function sendAnnualReminderEmail(order: Order, promoCode: string): 
     replyTo: "support@afrobirthday.com",
     headers: buildMarketingEmailHeaders(order.email, order.id),
   });
+
+  await trackEmailSent(EMAIL_CAMPAIGNS.ANNUAL_REMINDER, order.email, { order_id: order.id });
 
   await markAnnualReminderEmailSent(order.id);
 }
