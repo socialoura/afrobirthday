@@ -970,13 +970,30 @@ export default function OrderFormSection() {
   // Card pays through the modal. The click is the moment the customer commits,
   // so it's where checkout_initiated belongs.
   const openCardPayment = () => {
+    // Recorded before any guard. Both early returns below used to be silent,
+    // which made a click the terms checkbox swallowed look exactly like never
+    // having clicked — five customers reached this step and left with nothing
+    // recorded either way.
+    captureEvent(ANALYTICS_EVENTS.PAYMENT_CTA_CLICKED, {
+      payment_method: "card",
+      total_price_usd: finalTotalUsd,
+      currency: localCurrency,
+    });
+
     if (termsAccepted !== true) {
+      captureEvent(ANALYTICS_EVENTS.PAYMENT_BLOCKED_TERMS, { payment_method: "card" });
       setHasAttemptedSubmit(true);
       setError("termsAccepted", { type: "manual", message: t("errors.termsRequired") });
       document.getElementById("order-terms")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    if (!stripeClientSecret) return;
+    if (!stripeClientSecret) {
+      captureEvent(ANALYTICS_EVENTS.PAYMENT_BLOCKED_NOT_READY, {
+        payment_method: "card",
+        preparing: isPreparingPayment,
+      });
+      return;
+    }
 
     captureEvent(ANALYTICS_EVENTS.CHECKOUT_INITIATED, {
       payment_method: "card",

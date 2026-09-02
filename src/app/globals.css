@@ -5,8 +5,8 @@
 :root {
   /* Checkout palette — derived from the site's own brand tokens
      (tailwind.config.ts), not a generic template palette. checkout-pay-btn
-     and checkout-pay-amount are used by InlineStripePayment, which is kept
-     unused while the card flow runs through CustomPaymentModal. */
+     and checkout-pay-amount belonged to the inline payment form, removed in
+     favour of CustomPaymentModal. The tokens below are still shared. */
   --checkout-paper: #fcf8f9;
   --checkout-paper-2: #f3f0ec;
   --checkout-ink: #1f2121;

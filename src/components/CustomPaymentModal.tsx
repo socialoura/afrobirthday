@@ -202,7 +202,17 @@ function PaymentForm({
         }
       }
       onSuccess();
+      return;
     }
+
+    // Neither an error nor a completed payment. Without this branch
+    // isProcessing stayed true forever and the customer was left staring at a
+    // spinner with no way back.
+    track(ANALYTICS_EVENTS.PAYMENT_INCOMPLETE, {
+      payment_intent_status: paymentIntent?.status ?? null,
+    });
+    setError(t("errors.generic"));
+    setIsProcessing(false);
   };
 
   return (

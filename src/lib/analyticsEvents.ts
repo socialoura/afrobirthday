@@ -22,13 +22,17 @@ export const ANALYTICS_EVENTS = {
 
   // --- payment step ---
   PAYMENT_STEP_VIEWED: "payment_step_viewed",
+  /** Every press of the pay button, before any guard. The denominator for the
+   *  two below: without it, a click that a guard swallowed is indistinguishable
+   *  from never having clicked at all. */
+  PAYMENT_CTA_CLICKED: "payment_cta_clicked",
+  PAYMENT_BLOCKED_NOT_READY: "payment_blocked_not_ready",
   CHECKOUT_INITIATED: "checkout_initiated",
   PAYMENT_SETUP_FAILED: "payment_setup_failed",
   PAYMENT_FORM_MOUNTED: "payment_form_mounted",
   PAYMENT_ELEMENT_READY: "payment_element_ready",
-  PAYMENT_ELEMENT_LOAD_FAILED: "payment_element_load_failed",
-  EXPRESS_CHECKOUT_READY: "express_checkout_ready",
-  PAYMENT_METHOD_SELECTED: "payment_method_selected",
+  // The accordion-specific events went with the inline form: the card modal
+  // offers one method, so there is nothing to select and no element to fail.
   PAYMENT_BLOCKED_TERMS: "payment_blocked_terms",
   PAYMENT_SUBMITTED: "payment_submitted",
   PAYMENT_REDIRECT_STARTED: "payment_redirect_started",
