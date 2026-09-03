@@ -18,8 +18,28 @@ if (token) {
 
     capture_pageview: "history_change",
     autocapture: false,
-    disable_session_recording: true,
     person_profiles: "identified_only",
+
+    // The privacy policy commits to three things, and these are them.
+    disable_session_recording: false,
+    // Honours the browser's Do Not Track signal, which the policy offers as
+    // the opt-out.
+    respect_dnt: true,
+    session_recording: {
+      // Nothing the customer types is ever recorded: not the e-mail address,
+      // not the birthday message. Masked in the browser, before the recording
+      // is sent.
+      maskAllInputs: true,
+      maskTextSelector: "[data-ph-mask]",
+      // The payment window is excluded outright. Stripe's card fields live in
+      // a cross-origin frame that could not be recorded anyway, but blocking
+      // the whole dialog means the amount, the e-mail and any error message
+      // around them are not captured either.
+      blockSelector: "[data-ph-no-capture]",
+      // Recording the fonts would pull the whole webfont into every session.
+      collectFonts: false,
+      recordCrossOriginIframes: false,
+    },
 
     // Answers "are customers hitting JavaScript errors we never see?" — the
     // site currently has no way to know.

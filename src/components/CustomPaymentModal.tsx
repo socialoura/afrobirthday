@@ -401,6 +401,8 @@ export default function CustomPaymentModal({
         aria-modal="true"
         aria-label={t("title")}
         tabIndex={-1}
+        // Excluded from session recording, as the privacy policy states.
+        data-ph-no-capture
         className="relative w-full max-w-md bg-gradient-to-b from-dark via-dark to-dark/95 rounded-3xl p-6 border border-white/10 shadow-2xl shadow-primary/10 animate-in fade-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto outline-none"
       >
         {/* Close Button */}
