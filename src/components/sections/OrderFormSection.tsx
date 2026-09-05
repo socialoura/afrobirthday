@@ -421,6 +421,14 @@ export default function OrderFormSection() {
   const musicUploadRef = useRef<Promise<string> | null>(null);
   const photoUploadSeqRef = useRef(0);
   const musicUploadSeqRef = useRef(0);
+  // One order row per customer, not per attempt. Minting a fresh id each time
+  // step 3 was reached meant switching from card to PayPal, or stepping back to
+  // change an option, left a duplicate pending order behind — 38% of all
+  // pending orders were such duplicates. The id is reused until a payment
+  // actually completes.
+  const orderIdRef = useRef<string | null>(null);
+  const sessionOrderId = () => (orderIdRef.current ??= crypto.randomUUID());
+
   const paymentSetupInFlightRef = useRef(false);
 
   const isFirstMusicOptionRender = useRef(true);
@@ -726,7 +734,9 @@ export default function OrderFormSection() {
       if (step === 3) {
         // Leaving the payment step — any price-affecting choice below (music,
         // delivery, dance extended, promo) can change on step 1/2, so force a
-        // fresh order + PaymentIntent next time step 3 is reached.
+        // fresh PaymentIntent next time step 3 is reached. orderIdRef is
+        // deliberately kept: it is the same order at a new price, and minting a
+        // new id here is what left duplicate rows behind.
         setStripeClientSecret(null);
         setCurrentOrderId(null);
         setPaymentSetupError(null);
@@ -761,7 +771,7 @@ export default function OrderFormSection() {
     setIsSubmitting(true);
 
     try {
-      const orderId = crypto.randomUUID();
+      const orderId = sessionOrderId();
       setCurrentOrderId(orderId);
 
       const photoForm = new FormData();
@@ -884,7 +894,7 @@ export default function OrderFormSection() {
       photoUrlRef.current = photoUrl;
       if (musicFileUrl) musicFileUrlRef.current = musicFileUrl;
 
-      const orderId = crypto.randomUUID();
+      const orderId = sessionOrderId();
       const response = await fetch("/api/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

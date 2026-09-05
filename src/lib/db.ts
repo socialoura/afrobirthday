@@ -307,7 +307,29 @@ export async function createOrder(input: OrderCreateInput) {
       ${input.attribution?.referrer ?? null},
       ${input.attribution?.firstSeenAt ?? null}
     )
-    ON CONFLICT (id) DO NOTHING
+    -- One customer, one order row. The client keeps a stable id for the whole
+    -- form session, so switching from card to PayPal — or stepping back to
+    -- change the delivery speed — updates the attempt instead of leaving a
+    -- duplicate behind. 38% of pending orders were such duplicates.
+    --
+    -- Guarded on status: a replayed request must never rewrite the amount of an
+    -- order that has already been paid.
+    ON CONFLICT (id) DO UPDATE SET
+      email = EXCLUDED.email,
+      message = EXCLUDED.message,
+      music_option = EXCLUDED.music_option,
+      music_link = EXCLUDED.music_link,
+      music_file_url = EXCLUDED.music_file_url,
+      delivery_method = EXCLUDED.delivery_method,
+      photo_url = EXCLUDED.photo_url,
+      total_usd = EXCLUDED.total_usd,
+      currency = EXCLUDED.currency,
+      total_local = EXCLUDED.total_local,
+      exchange_rate = EXCLUDED.exchange_rate,
+      promo_code = EXCLUDED.promo_code,
+      discount_amount = EXCLUDED.discount_amount,
+      dance_extended = EXCLUDED.dance_extended
+    WHERE orders.status = 'pending'
   `;
 }
 
