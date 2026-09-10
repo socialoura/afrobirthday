@@ -8,7 +8,7 @@
  * sent to the team over Telegram (see discordWebhook.ts / telegramBot.ts).
  */
 
-import { getSupabaseAdmin, publicUrlFor, STORAGE_BUCKET } from "@/lib/storage";
+import { uploadObject } from "@/lib/storage";
 
 const OPENAI_TTS_ENDPOINT = "https://api.openai.com/v1/audio/speech";
 
@@ -215,16 +215,26 @@ export async function generateVoiceover(
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    // Stable path so the recap page's URL survives a regeneration, with a short
+    // cache so the regenerated take is the one that actually plays.
     const filename = `orders/voiceover/${orderId}-voiceover.mp3`;
-    const { error } = await getSupabaseAdmin()
-      .storage.from(STORAGE_BUCKET)
-      .upload(filename, buffer, { contentType: "audio/mpeg", upsert: true });
-    if (error) {
+    let url: string;
+    try {
+      url = await uploadObject(filename, buffer, {
+        contentType: "audio/mpeg",
+        overwrite: true,
+        cacheSeconds: 60,
+      });
+    } catch (error) {
       console.error("Voiceover upload error:", error);
-      return { ok: false, reason: "upload-error", detail: error.message };
+      return {
+        ok: false,
+        reason: "upload-error",
+        detail: error instanceof Error ? error.message : String(error),
+      };
     }
 
-    return { ok: true, url: publicUrlFor(filename) };
+    return { ok: true, url };
   } catch (error) {
     console.error("Voiceover generation error:", error);
     return {

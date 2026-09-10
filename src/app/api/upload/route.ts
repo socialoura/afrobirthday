@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin, publicUrlFor, STORAGE_BUCKET } from "@/lib/storage";
+import { uploadObject } from "@/lib/storage";
 import { verifyAdminRequest } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -97,12 +97,9 @@ export async function POST(request: Request) {
 
     const key = `${folder}/${crypto.randomUUID()}.${ext}`;
 
-    const { error } = await getSupabaseAdmin()
-      .storage.from(STORAGE_BUCKET)
-      .upload(key, file, { contentType: mime, upsert: false });
-    if (error) throw error;
+    const url = await uploadObject(key, file, { contentType: mime });
 
-    return NextResponse.json({ url: publicUrlFor(key) });
+    return NextResponse.json({ url });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
