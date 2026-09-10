@@ -24,7 +24,28 @@ const TOKEN_TTL_MS = 60 * 60 * 1000;
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const body = (await request.json()) as HandleUploadBody;
+    const raw = (await request.json()) as Record<string, unknown>;
+
+    // A page loaded before this route moved to Vercel Blob posts the old
+    // Supabase shape — `{ orderId, filename, clientPayload }`, with no event
+    // `type`. The SDK would call that "Invalid event type", which tells the
+    // operator nothing; the stale page does render this message, so say what
+    // actually fixes it.
+    if (typeof raw.type !== "string") {
+      console.error(
+        "Upload video token error: stale client payload, keys:",
+        Object.keys(raw).join(",")
+      );
+      return NextResponse.json(
+        {
+          error:
+            "Page obsolète — ferme et rouvre le lien d'upload pour charger la nouvelle version.",
+        },
+        { status: 409 }
+      );
+    }
+
+    const body = raw as unknown as HandleUploadBody;
 
     const result = await handleUpload({
       body,
