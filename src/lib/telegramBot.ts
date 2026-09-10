@@ -99,6 +99,11 @@ function formatOrderAge(createdAt: string): string {
   return `${days}j ${hours % 24}h`;
 }
 
+// Standing instructions for the video provider, appended to every customer
+// message so the operator forwards one block instead of retyping them per order.
+const VIDEO_REMARK = `remark: blue pants   danse
+kiss photo`;
+
 export async function sendNewOrderNotification(params: {
   order: Order;
   provider: "Stripe" | "PayPal";
@@ -171,12 +176,16 @@ export async function sendNewOrderNotification(params: {
   // Send main text message
   await sendTelegramMessage(message);
 
-  // Send customer message in a separate message
-  if (order.message?.trim()) {
-    await sendTelegramMessage(
-      escapeHtml(order.message)
-    );
-  }
+  // The customer message goes out on its own so the whole thing can be copied
+  // into WeChat in one tap, standing instructions for the video included. It is
+  // sent even when there is no message, because the provider needs the remark
+  // either way.
+  const customerMessage = order.message?.trim();
+  await sendTelegramMessage(
+    customerMessage
+      ? `${escapeHtml(customerMessage)}\n${VIDEO_REMARK}`
+      : VIDEO_REMARK
+  );
 
   // Send photo if available
   if (order.photo_url) {
