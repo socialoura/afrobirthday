@@ -1,9 +1,13 @@
+import { upload } from "@vercel/blob/client";
+
 /**
  * Browser-side helper for uploading large files (final videos) directly to
- * Supabase Storage via a signed upload URL, replacing the old
- * `@vercel/blob/client` `upload()` flow. Keeps the same two properties the
- * admin UI depends on: progress events (Supabase's fetch-based client has
- * none, so this uses a raw XHR) and a public URL back once done.
+ * Vercel Blob, keeping the two properties the admin UI depends on: progress
+ * events and a public URL back once done.
+ *
+ * Videos deliberately do not go to Supabase Storage — see the comment in
+ * `/api/admin/orders/upload-video` for why serving them from there can restrict
+ * the whole Supabase project.
  */
 export async function uploadFileWithProgress(
   orderId: string,
@@ -11,62 +15,36 @@ export async function uploadFileWithProgress(
   clientPayload: string,
   onProgress?: (percent: number) => void
 ): Promise<string> {
-  const initRes = await fetch("/api/admin/orders/upload-video", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ orderId, filename: file.name, clientPayload }),
-  });
-  if (!initRes.ok) {
-    const body = await initRes.json().catch(() => ({}));
-    throw new Error(body?.error || "Upload init failed");
-  }
-  const { signedUrl, publicUrl, token: uploadToken } = (await initRes.json()) as {
-    signedUrl: string;
-    publicUrl: string;
-    token?: string;
-  };
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || "video";
+  // The server only signs a token for a path under this order's prefix, so the
+  // orderId here is not a trust boundary — the UUID just keeps a re-upload from
+  // colliding with the previous take.
+  const pathname = `final-videos/${orderId}/${crypto.randomUUID()}-${safeName}`;
 
-  await new Promise<void>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("PUT", signedUrl);
-    xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
-    // Supabase's signed upload URL embeds the token in the query string AND
-    // accepts it as a Bearer token — sending both is harmless if the query
-    // already has it, and recovers uploads that would otherwise 400 because
-    // the token got stripped by some intermediary.
-    if (uploadToken) {
-      xhr.setRequestHeader("Authorization", `Bearer ${uploadToken}`);
-    }
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) onProgress?.(Math.round((e.loaded / e.total) * 100));
-    };
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) return resolve();
-      // Surface the Supabase error body so the operator sees the real reason
-      // (token expired, payload too large, bucket policy, etc.) instead of a
-      // bare "Upload failed (400)".
-      let detail = "";
-      const raw =
-        (typeof xhr.responseText === "string" && xhr.responseText) ||
-        (typeof xhr.response === "string" ? xhr.response : "") ||
-        "";
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw);
-          detail = parsed.message || parsed.error || parsed.msg || raw;
-        } catch {
-          detail = raw;
-        }
-      }
-      reject(
-        new Error(
-          `Upload failed (${xhr.status})${detail ? `: ${String(detail).slice(0, 300)}` : ""}`
-        )
+  try {
+    const blob = await upload(pathname, file, {
+      access: "public",
+      handleUploadUrl: "/api/admin/orders/upload-video",
+      clientPayload,
+      contentType: file.type || "application/octet-stream",
+      // Splits the video into parts uploaded in parallel with per-part retries,
+      // so a dropped bar on mobile data doesn't restart the whole upload.
+      multipart: true,
+      onUploadProgress: ({ percentage }) => onProgress?.(Math.round(percentage)),
+    });
+
+    return blob.url;
+  } catch (error) {
+    // The SDK collapses every failure of the token route into one opaque
+    // message; the only ways that route refuses are an expired magic link, an
+    // expired admin session, or a missing Blob token, so point the operator at
+    // the fix instead of showing them that.
+    const message = error instanceof Error ? error.message : "";
+    if (/client token/i.test(message)) {
+      throw new Error(
+        "Upload refusé : lien expiré ou session admin expirée. Recharge la page."
       );
-    };
-    xhr.onerror = () => reject(new Error("Upload failed (network error)"));
-    xhr.send(file);
-  });
-
-  return publicUrl;
+    }
+    throw error;
+  }
 }
