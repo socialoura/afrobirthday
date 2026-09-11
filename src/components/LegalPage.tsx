@@ -71,7 +71,9 @@ export default async function LegalPage({
       <StructuredData type="page" locale={locale} pageName={title} path={`/${page}`} />
       <div className="section-container max-w-3xl">
         <header className="text-center mb-12 md:mb-16">
-          <h1 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl tracking-tight mb-4">
+          {/* hyphens-auto + break-words: single German compounds such as
+              "Rückerstattungsrichtlinie" are wider than a phone screen. */}
+          <h1 className="font-display font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight mb-4 hyphens-auto break-words">
             {title}
           </h1>
           <p className="text-white/60 text-lg max-w-2xl mx-auto mb-6">{content.subtitle}</p>

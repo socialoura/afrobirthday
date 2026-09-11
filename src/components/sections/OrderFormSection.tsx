@@ -1141,7 +1141,7 @@ export default function OrderFormSection() {
                       </div>
                       <p className="text-white/80 font-medium">{t("photo.dropHere")}</p>
                       <p className="text-white/70 text-sm mt-1">
-                        {t("photo.or")} <span className="text-primary font-semibold">{t("photo.browse")}</span>
+                        {t("photo.or")} <span className="text-primary-400 font-semibold">{t("photo.browse")}</span>
                       </p>
                       <p className="text-xs text-white/60 mt-3">
                         {t("photo.formats")}
@@ -1371,7 +1371,7 @@ export default function OrderFormSection() {
                   />
                   <p className="font-medium text-white">{t("delivery.standard.title")}</p>
                   <p className="text-sm text-white/80">{t("delivery.standard.time")}</p>
-                  <p className="text-primary font-semibold mt-1">{t("delivery.standard.price")}</p>
+                  <p className="text-primary-400 font-semibold mt-1">{t("delivery.standard.price")}</p>
                   {deliveryMethod === "standard" && (
                     <Check size={20} className="text-primary mt-2" />
                   )}
@@ -1393,7 +1393,7 @@ export default function OrderFormSection() {
                   />
                   <p className="font-medium text-white">{t("delivery.express.title")}</p>
                   <p className="text-sm text-white/80">{t("delivery.express.time")}</p>
-                  <p className="text-primary font-semibold mt-1">
+                  <p className="text-primary-400 font-semibold mt-1">
                     +{formatMoney(localComponent("expressDelivery"))}
                   </p>
                   {deliveryMethod === "express" && (
