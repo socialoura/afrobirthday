@@ -58,7 +58,7 @@ export default function HowItWorksSection() {
 
               <div className="glass-card p-5 md:p-8 hover:bg-white/10 transition-all duration-500 relative z-10 h-full">
                 {/* Step number */}
-                <span className="absolute top-6 right-6 text-6xl font-bold text-white/5 font-display">
+                <span aria-hidden="true" className="absolute top-6 right-6 text-6xl font-bold text-white/5 font-display">
                   {step.number}
                 </span>
 

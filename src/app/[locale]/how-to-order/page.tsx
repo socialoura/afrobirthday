@@ -65,7 +65,7 @@ export default async function HowToOrderPage({
   ];
 
   return (
-    <main className="pt-24 pb-20 bg-dark relative overflow-hidden">
+    <main className="pt-32 md:pt-40 pb-20 bg-dark relative overflow-hidden">
       <StructuredData type="page" locale={locale} pageName={tMeta("title")} path="/how-to-order" />
       <div className="section-container relative">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none -z-10" />
@@ -82,7 +82,7 @@ export default async function HowToOrderPage({
               <div className="flex-shrink-0">
                 <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center relative">
                   <step.icon size={36} className="text-primary" />
-                  <span className="absolute -top-2 -right-2 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <span className="absolute -top-2 -right-2 w-8 h-8 bg-primary text-dark rounded-full flex items-center justify-center text-sm font-bold">
                     {step.number}
                   </span>
                 </div>
@@ -116,8 +116,8 @@ export default async function HowToOrderPage({
                 <p className="text-white/70 text-sm">{t("timeline.standard")}</p>
               </div>
               <span className="text-white/50">{t("timeline.or")}</span>
-              <div className="bg-primary px-6 py-4 rounded-xl">
-                <p className="text-white font-bold text-2xl">12-24h</p>
+              <div className="bg-primary/15 border border-primary/40 px-6 py-4 rounded-xl">
+                <p className="text-primary font-bold text-2xl">12-24h</p>
                 <p className="text-white/80 text-sm">{t("timeline.express")}</p>
               </div>
             </div>

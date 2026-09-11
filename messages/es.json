@@ -73,7 +73,7 @@
       }
     },
     "cta": "Empezar ahora",
-    "note": "No se requiere cuenta • Pago seguro con tarjeta"
+    "note": "No se requiere cuenta • Pago seguro con tarjeta o PayPal"
   },
   "FAQQuick": {
     "title": "Respuestas rápidas",
@@ -184,7 +184,7 @@
     "items": [
       {
         "question": "¿Cuánto tarda en llegar mi vídeo?",
-        "answer": "Tu vídeo de cumpleaños personalizado se entrega en 24–48 h después de la confirmación. Con la opción Express (+5,99 €), puede llegar en 12–24 h."
+        "answer": "Tu vídeo de cumpleaños personalizado se entrega en 24–48 h después de la confirmación. Con la opción Express (suplemento indicado en el formulario de pedido), puede llegar en 12–24 h."
       },
       {
         "question": "¿Y si no me gusta el vídeo?",
@@ -415,7 +415,7 @@
       },
       "1": {
         "title": "Paga con seguridad",
-        "description": "Completa el pago en nuestro checkout seguro. Aceptamos las principales tarjetas.",
+        "description": "Completa el pago en nuestro checkout seguro. Aceptamos las principales tarjetas, Apple Pay, Google Pay y PayPal.",
         "tips": {
           "0": "Pagos cifrados y seguros",
           "1": "Recibirás un correo de confirmación al instante",
@@ -436,12 +436,12 @@
       "title": "Tiempo de entrega ⚡",
       "standard": "Estándar",
       "or": "o",
-      "express": "Express (+€5,99)"
+      "express": "Express"
     },
     "secure": {
       "title": "Seguro y confiable",
       "ssl": "Cifrado SSL",
-      "cards": "Pago con tarjeta",
+      "cards": "Tarjeta o PayPal",
       "guarantee": "Satisfacción garantizada"
     },
     "cta": "¿Listo para crear magia? Pide ahora"
@@ -556,7 +556,7 @@
     "globalError": "No se pudo cargar el formulario de pago. Inténtalo de nuevo."
   },
   "Success": {
-    "title": "¡Pago Exitoso!",
+    "title": "¡Pago exitoso!",
     "intro": "¡Gracias por tu pedido! Ya estamos trabajando en crear tu video de cumpleaños personalizado.",
     "nextTitle": "¿Y ahora qué?",
     "questions": "¿Preguntas?",
@@ -599,5 +599,243 @@
     "emailCta": "Escríbenos",
     "whatsappCta": "Chatear por WhatsApp",
     "hours": "Tiempo medio de respuesta: menos de 4 horas"
+  },
+  "Legal": {
+    "updated": "Última actualización: {date}",
+    "refund": {
+      "subtitle": "¿No te gusta tu vídeo? Lo arreglamos o te devolvemos tu dinero.",
+      "highlight": {
+        "title": "💯 Garantía de devolución del 100 %",
+        "body": "Confiamos en nuestro producto. Si no estás completamente satisfecho con tu vídeo de cumpleaños, te devolvemos el importe íntegro dentro de los 7 días posteriores a la entrega."
+      },
+      "sections": [
+        {
+          "title": "Nuestra garantía",
+          "paragraphs": [
+            "En AfroBirthday, la satisfacción del cliente es nuestra máxima prioridad. Queremos que te encante tu vídeo de cumpleaños personalizado. Si por cualquier motivo no estás contento con el resultado, ofrecemos un proceso de reembolso sencillo."
+          ]
+        },
+        {
+          "title": "Requisitos para el reembolso",
+          "paragraphs": [
+            "Tienes derecho a un reembolso completo si:"
+          ],
+          "items": [
+            "Solicitas el reembolso dentro de los 7 días posteriores a la recepción de tu vídeo",
+            "La calidad del vídeo no cumple unas expectativas razonables",
+            "Hay errores en la personalización (nombre o mensaje incorrecto, etc.)",
+            "El vídeo no se entregó en el plazo prometido",
+            "Simplemente no estás satisfecho con el resultado final"
+          ]
+        },
+        {
+          "title": "Cómo solicitar un reembolso",
+          "paragraphs": [
+            "Solicitar un reembolso es muy sencillo. Solo sigue estos pasos:"
+          ],
+          "steps": [
+            "<b>Escríbenos</b> a <email></email>",
+            "<b>Incluye tu número de pedido</b> (aparece en tu correo de confirmación)",
+            "<b>Explica brevemente</b> por qué solicitas el reembolso (opcional, pero útil)",
+            "<b>Recibe tu reembolso</b> en un plazo de 5 a 7 días hábiles"
+          ]
+        },
+        {
+          "title": "Tramitación del reembolso",
+          "paragraphs": [
+            "Los reembolsos se realizan en tu método de pago original. Según tu banco o el emisor de tu tarjeta, el importe puede tardar de 5 a 7 días hábiles en aparecer en tu cuenta. Recibirás un correo de confirmación en cuanto se haya tramitado el reembolso."
+          ]
+        },
+        {
+          "title": "Nueva versión gratuita",
+          "paragraphs": [
+            "Antes de pedir un reembolso, ¡considera nuestra opción de nueva versión gratuita! Si quieres cambiar algo concreto de tu vídeo, lo rehacemos sin coste adicional. Solo envíanos tus comentarios por correo y crearemos un nuevo vídeo en 24 horas."
+          ]
+        },
+        {
+          "title": "Excepciones",
+          "paragraphs": [
+            "Aunque intentamos atender todas las solicitudes de reembolso, las siguientes situaciones pueden no dar derecho a reembolso:"
+          ],
+          "items": [
+            "Reembolso solicitado más de 7 días después de la entrega del vídeo",
+            "El vídeo ya se ha compartido públicamente en redes sociales",
+            "Varias solicitudes de reembolso de un mismo cliente"
+          ]
+        },
+        {
+          "title": "Contacto",
+          "paragraphs": [
+            "¿Tienes preguntas sobre nuestra política de reembolso? ¡Estamos aquí para ayudarte! <link>Escríbenos</link> y te responderemos en 24 horas."
+          ]
+        }
+      ],
+      "cta": "Crear mi vídeo de cumpleaños"
+    },
+    "privacy": {
+      "subtitle": "Qué datos recopilamos, por qué lo hacemos y cómo protegemos tus fotos y tu información personal.",
+      "sections": [
+        {
+          "title": "1. Información que recopilamos",
+          "paragraphs": [
+            "Cuando utilizas AfroBirthday, recopilamos la siguiente información:"
+          ],
+          "items": [
+            "<b>Datos de contacto:</b> dirección de correo electrónico para la entrega del pedido y la comunicación",
+            "<b>Fotos:</b> imágenes que subes para personalizar el vídeo",
+            "<b>Mensajes personalizados:</b> textos que nos facilitas para tu vídeo",
+            "<b>Información de pago:</b> procesada de forma segura por nuestro proveedor de pagos (no almacenamos los datos de tu tarjeta)",
+            "<b>Datos de uso:</b> cómo interactúas con nuestro sitio web, para mejorarlo"
+          ]
+        },
+        {
+          "title": "2. Cómo usamos tu información",
+          "items": [
+            "Para crear y entregar tu vídeo de cumpleaños personalizado",
+            "Para procesar pagos y enviar confirmaciones de pedido",
+            "Para comunicarnos contigo sobre tu pedido",
+            "Para mejorar nuestros servicios y tu experiencia",
+            "Para enviarte comunicaciones de marketing (solo con tu consentimiento)"
+          ]
+        },
+        {
+          "title": "3. Tratamiento y eliminación de fotos",
+          "paragraphs": [
+            "Nos tomamos tu privacidad en serio. Las fotos que subes:"
+          ],
+          "items": [
+            "Se cifran durante la subida y el almacenamiento",
+            "Se usan únicamente para crear tu vídeo personalizado",
+            "Se eliminan automáticamente de nuestros servidores en un plazo de 30 días tras la entrega del vídeo",
+            "Nunca se comparten con terceros con fines de marketing"
+          ]
+        },
+        {
+          "title": "4. Seguridad de los datos",
+          "paragraphs": [
+            "Aplicamos medidas de seguridad estándar del sector, como el cifrado SSL, el procesamiento seguro de pagos con tarjeta y auditorías de seguridad periódicas, para proteger tu información personal."
+          ]
+        },
+        {
+          "title": "5. Cumplimiento del RGPD (usuarios de la UE)",
+          "paragraphs": [
+            "Si te encuentras en la Unión Europea, tienes derecho a:"
+          ],
+          "items": [
+            "Acceder a tus datos personales",
+            "Solicitar la rectificación de datos inexactos",
+            "Solicitar la supresión de tus datos",
+            "Oponerte al tratamiento de tus datos",
+            "La portabilidad de tus datos"
+          ],
+          "note": "Para ejercer estos derechos, escríbenos a <email></email>."
+        },
+        {
+          "title": "6. Cookies",
+          "paragraphs": [
+            "Utilizamos cookies esenciales para el funcionamiento del sitio y cookies analíticas (con tu consentimiento) para entender cómo usan los visitantes nuestro sitio. Puedes gestionar tus preferencias de cookies en la configuración de tu navegador."
+          ]
+        },
+        {
+          "title": "7. Servicios de terceros",
+          "paragraphs": [
+            "Utilizamos servicios de terceros de confianza, como un proveedor de pagos y herramientas de analítica. Estos servicios tienen sus propias políticas de privacidad y tratan los datos según sus condiciones."
+          ]
+        },
+        {
+          "title": "8. Contacto",
+          "paragraphs": [
+            "Para cualquier pregunta o solicitud relacionada con la privacidad, escríbenos a <email></email>."
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "subtitle": "Las normas que se aplican cuando pides un vídeo de cumpleaños personalizado a AfroBirthday.",
+      "sections": [
+        {
+          "title": "1. Aceptación de las condiciones",
+          "paragraphs": [
+            "Al acceder a AfroBirthday («el Servicio») y utilizarlo, aceptas quedar vinculado por estas Condiciones del servicio. Si no estás de acuerdo con ellas, te rogamos que no utilices nuestro Servicio."
+          ]
+        },
+        {
+          "title": "2. Descripción del Servicio",
+          "paragraphs": [
+            "AfroBirthday ofrece vídeos de cumpleaños personalizados realizados por bailarines africanos. Los vídeos se entregan en formato digital en un plazo de 24 a 48 horas (o de 12 a 24 horas para pedidos Express) tras la confirmación del pago."
+          ]
+        },
+        {
+          "title": "3. Proceso de pedido",
+          "paragraphs": [
+            "Al realizar un pedido, te comprometes a:"
+          ],
+          "items": [
+            "Proporcionar información exacta y completa",
+            "Subir fotos adecuadas (sin contenido ofensivo o inapropiado)",
+            "Escribir mensajes respetuosos y adecuados",
+            "Pagar el importe total en el momento del pedido"
+          ]
+        },
+        {
+          "title": "4. Normas de contenido",
+          "paragraphs": [
+            "Nos reservamos el derecho de rechazar pedidos que contengan:"
+          ],
+          "items": [
+            "Contenido ofensivo, discriminatorio o que incite al odio",
+            "Material inapropiado o explícito",
+            "Contenido que vulnere derechos de terceros",
+            "Contenido que promueva actividades ilegales"
+          ]
+        },
+        {
+          "title": "5. Propiedad intelectual",
+          "paragraphs": [
+            "Tras la entrega, recibes una licencia personal y no exclusiva para usar tu vídeo con fines personales. AfroBirthday se reserva el derecho de utilizar los vídeos (sin datos que permitan identificarte) con fines promocionales, salvo que te opongas expresamente."
+          ]
+        },
+        {
+          "title": "6. Condiciones de pago",
+          "paragraphs": [
+            "Todos los pagos se procesan de forma segura con tarjeta o PayPal a través de nuestros proveedores de pago. Los precios se muestran en la moneda indicada en el pago e incluyen los impuestos aplicables cuando corresponda. Los reembolsos se tramitan según nuestra <refund>política de reembolso</refund>."
+          ]
+        },
+        {
+          "title": "7. Entrega",
+          "paragraphs": [
+            "Los vídeos se envían por correo electrónico a la dirección indicada durante el pago. La entrega estándar tarda de 24 a 48 horas; la entrega Express, de 12 a 24 horas. Aunque nos esforzamos por cumplir estos plazos, pueden producirse retrasos puntuales por alta demanda o imprevistos."
+          ]
+        },
+        {
+          "title": "8. Limitación de responsabilidad",
+          "paragraphs": [
+            "AfroBirthday proporciona los vídeos «tal cual» y no ofrece garantías sobre resultados concretos. Nuestra responsabilidad se limita al importe pagado por el servicio. No somos responsables de daños indirectos, incidentales o consecuentes."
+          ]
+        },
+        {
+          "title": "9. Resolución de conflictos",
+          "paragraphs": [
+            "Cualquier conflicto se resolverá mediante una negociación de buena fe. Si no se alcanza un acuerdo, el conflicto quedará sometido a las leyes y los tribunales de los Países Bajos."
+          ]
+        },
+        {
+          "title": "10. Cambios en las condiciones",
+          "paragraphs": [
+            "Podemos actualizar estas condiciones periódicamente. Seguir utilizando el Servicio tras los cambios implica la aceptación de las nuevas condiciones."
+          ]
+        },
+        {
+          "title": "11. Contacto",
+          "paragraphs": [
+            "Si tienes preguntas sobre estas condiciones, escríbenos a <email></email>."
+          ]
+        }
+      ]
+    }
+  },
+  "HomeMeta": {
+    "title": "Vídeos de cumpleaños personalizados",
+    "description": "Haz su cumpleaños inolvidable con un vídeo personalizado de auténticos bailarines africanos. Sube una foto, añade tu mensaje y recíbelo por e-mail en 12–48 h."
   }
 }

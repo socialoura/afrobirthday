@@ -43,25 +43,27 @@ export default async function AboutPage({
   const tMeta = await getTranslations({ locale, namespace: "AboutPage.meta" });
 
   return (
-    <main className="pt-24 pb-20">
+    <main className="pt-32 md:pt-40 pb-20">
       <StructuredData type="page" locale={locale} pageName={tMeta("title")} path="/about" />
       <div className="section-container max-w-4xl">
-        <h1 className="heading-1 text-center mb-8">{t("title")}</h1>
+        <h1 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl tracking-tight text-center mb-12 md:mb-16">
+          {t("title")}
+        </h1>
 
-        <div className="prose prose-lg max-w-none">
-          <section className="mb-12">
-            <h2 className="heading-2 mb-4">{t("who.title")}</h2>
-            <p className="text-dark/80 mb-4">{t("who.p1")}</p>
-            <p className="text-dark/80">{t("who.p2")}</p>
+        <div className="space-y-12 text-white/70 leading-relaxed">
+          <section>
+            <h2 className="heading-3 text-white mb-4">{t("who.title")}</h2>
+            <p className="mb-4">{t("who.p1")}</p>
+            <p>{t("who.p2")}</p>
           </section>
 
-          <section className="mb-12">
-            <h2 className="heading-2 mb-4">{t("mission.title")}</h2>
-            <p className="text-dark/80">{t("mission.p1")}</p>
+          <section>
+            <h2 className="heading-3 text-white mb-4">{t("mission.title")}</h2>
+            <p>{t("mission.p1")}</p>
           </section>
 
-          <section className="mb-12">
-            <h2 className="heading-2 mb-4">{t("team.title")}</h2>
+          <section>
+            <h2 className="heading-3 text-white mb-4">{t("team.title")}</h2>
             <div className="grid md:grid-cols-3 gap-6 mb-6">
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden">
                 <Image src="/showcase_1.jpg" alt={t("team.images.0")} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
@@ -73,16 +75,16 @@ export default async function AboutPage({
                 <Image src="/showcase_3.jpg" alt={t("team.images.2")} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
               </div>
             </div>
-            <p className="text-dark/80">{t("team.p1")}</p>
+            <p>{t("team.p1")}</p>
           </section>
 
-          <section className="mb-12">
-            <h2 className="heading-2 mb-4">{t("contact.title")}</h2>
-            <div className="bg-light p-6 rounded-xl">
+          <section>
+            <h2 className="heading-3 text-white mb-4">{t("contact.title")}</h2>
+            <div className="glass-card rounded-2xl p-6">
               <div className="space-y-3">
                 <a
                   href="mailto:support@afrobirthday.com"
-                  className="flex items-center gap-3 text-dark/80 hover:text-primary transition-colors"
+                  className="flex items-center gap-3 text-white/80 hover:text-primary transition-colors"
                 >
                   <Mail size={20} />
                   support@afrobirthday.com
@@ -91,7 +93,7 @@ export default async function AboutPage({
                   href="https://www.instagram.com/afrobirthday"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-dark/80 hover:text-primary transition-colors"
+                  className="flex items-center gap-3 text-white/80 hover:text-primary transition-colors"
                 >
                   <Instagram size={20} />
                   @afrobirthday

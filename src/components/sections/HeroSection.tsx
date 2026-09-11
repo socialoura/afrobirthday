@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import {
   Play,
@@ -99,7 +98,6 @@ export default function HeroSection() {
     }
     return formatLocal(basePriceUsd);
   }, [baseOverrides, localCurrency, browserLocale, basePriceUsd, formatLocal]);
-  const displayOriginalPrice = useMemo(() => formatLocal(39.99), [formatLocal]);
 
   return (
     <section className="relative min-h-[100svh] lg:min-h-screen overflow-hidden bg-dark">
@@ -114,7 +112,9 @@ export default function HeroSection() {
       <div className="relative z-10 section-container pt-28 pb-16 lg:pt-32 lg:pb-24">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* ───────── LEFT: Copy + CTAs + Social proof ───────── */}
-          <div className="order-2 lg:order-1 lg:col-span-7 text-center lg:text-start">
+          {/* Copy first on mobile too: with the video first, the title, price
+              and order button all sat below the fold on a phone. */}
+          <div className="order-1 lg:col-span-7 text-center lg:text-start">
             {/* Top badge — real count of orders delivered this week */}
             <RecentOrdersBadge />
 
@@ -133,18 +133,12 @@ export default function HeroSection() {
 
             {/* Price block */}
             <div className="inline-flex items-center gap-3 mb-7 px-5 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+              {/* No struck-through "was" price: in the EU it must be the lowest
+                  price of the previous 30 days, which a fixed anchor never was. */}
               {priceReady ? (
-                <>
-                  <span className="text-white/60 line-through text-base">
-                    {displayOriginalPrice}
-                  </span>
-                  <span className="text-3xl sm:text-4xl font-bold text-white">
-                    {displayPrice}
-                  </span>
-                  <span className="px-2.5 py-1 rounded-full bg-gradient-to-r from-primary to-accent text-white text-xs font-bold">
-                    -50%
-                  </span>
-                </>
+                <span className="text-3xl sm:text-4xl font-bold text-white">
+                  {displayPrice}
+                </span>
               ) : (
                 <span
                   className="h-9 w-40 rounded-lg bg-white/10 animate-pulse"
@@ -231,7 +225,7 @@ export default function HeroSection() {
           </div>
 
           {/* ───────── RIGHT: Video preview card + floating proof ───────── */}
-          <div className="order-1 lg:order-2 lg:col-span-5 relative">
+          <div className="order-2 lg:col-span-5 relative">
             <div className="relative max-w-[360px] mx-auto lg:max-w-none">
               {/* Glow halo behind card */}
               <div
@@ -290,14 +284,20 @@ export default function HeroSection() {
                 className="hidden sm:flex absolute -bottom-6 start-1/4 max-w-[260px] items-start gap-3 px-4 py-3 rounded-2xl bg-white shadow-2xl rotate-[-3deg] animate-float"
                 style={{ animationDelay: "1.7s" }}
               >
-                <Image
-                  src="/showcase_2.jpg"
-                  alt=""
-                  width={36}
-                  height={36}
-                  className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                {/* Initials, not a photo: the photo was of the dancers, not Marie. */}
+                <div
                   aria-hidden="true"
-                />
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                >
+                  {tHero("miniReview.name")
+                    .split("·")[0]
+                    .trim()
+                    .split(/\s+/)
+                    .map((word) => Array.from(word)[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </div>
                 <div>
                   <div className="flex gap-0.5 mb-0.5" aria-hidden="true">
                     {[...Array(5)].map((_, i) => (

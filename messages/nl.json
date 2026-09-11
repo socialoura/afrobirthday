@@ -73,7 +73,7 @@
       }
     },
     "cta": "Start nu",
-    "note": "Geen account nodig • Veilige kaartbetaling"
+    "note": "Geen account nodig • Veilig betalen met kaart of PayPal"
   },
   "FAQQuick": {
     "title": "Snelle antwoorden",
@@ -184,7 +184,7 @@
     "items": [
       {
         "question": "Hoe snel ontvang ik mijn video?",
-        "answer": "Je gepersonaliseerde verjaardagsvideo wordt geleverd binnen 24–48 uur na bevestiging. Met Express (+€5,99) binnen 12–24 uur."
+        "answer": "Je gepersonaliseerde verjaardagsvideo wordt geleverd binnen 24–48 uur na bevestiging. Met Express (toeslag zie bestelformulier) binnen 12–24 uur."
       },
       {
         "question": "Wat als ik de video niet leuk vind?",
@@ -415,7 +415,7 @@
       },
       "1": {
         "title": "Betaal veilig",
-        "description": "Rond je betaling af via onze beveiligde checkout. We accepteren de belangrijkste kaarten.",
+        "description": "Rond je betaling af via onze beveiligde checkout. We accepteren de belangrijkste kaarten, Apple Pay, Google Pay en PayPal.",
         "tips": {
           "0": "Alle betalingen zijn versleuteld en veilig",
           "1": "Je ontvangt meteen een bevestigingsmail",
@@ -436,12 +436,12 @@
       "title": "Levertijd ⚡",
       "standard": "Standaard",
       "or": "of",
-      "express": "Express (+€5,99)"
+      "express": "Express"
     },
     "secure": {
       "title": "Veilig & betrouwbaar",
       "ssl": "SSL-versleuteld",
-      "cards": "Kaartbetaling",
+      "cards": "Kaart of PayPal",
       "guarantee": "Tevredenheid gegarandeerd"
     },
     "cta": "Klaar om magie te maken? Bestel nu"
@@ -558,7 +558,7 @@
   "LegalMeta": {
     "privacy": {
       "title": "Privacybeleid",
-      "description": "Lees het privacybeleid van AfroBirthday om te begrijpen welke gegevens we verzamelen, hoe we ze gebruiken en hoe we je foto's en persoonlijke gegevens beschermen."
+      "description": "Het privacybeleid van AfroBirthday: welke gegevens we verzamelen, hoe we ze gebruiken en hoe we je foto's en persoonsgegevens beschermen."
     },
     "refund": {
       "title": "Terugbetalingsbeleid",
@@ -572,11 +572,249 @@
   "Chat": {
     "open": "Chat openen",
     "close": "Chat sluiten",
-    "title": "AfroBirthday Support",
+    "title": "AfroBirthday-support",
     "subtitle": "We reageren meestal binnen een paar uur",
     "body": "Heb je een vraag over een bestelling, levering of terugbetaling? Neem contact op en ons team reageert snel.",
     "emailCta": "Mail ons",
     "whatsappCta": "Chat via WhatsApp",
     "hours": "Gemiddelde reactietijd: minder dan 4 uur"
+  },
+  "Legal": {
+    "updated": "Laatst bijgewerkt: {date}",
+    "refund": {
+      "subtitle": "Niet blij met je video? Wij lossen het op, of je krijgt je geld terug.",
+      "highlight": {
+        "title": "💯 100% geld-terug-garantie",
+        "body": "We staan achter ons product. Ben je niet helemaal tevreden met je verjaardagsvideo, dan krijg je binnen 7 dagen na levering het volledige bedrag terug."
+      },
+      "sections": [
+        {
+          "title": "Onze garantie",
+          "paragraphs": [
+            "Bij AfroBirthday staat klanttevredenheid voorop. We willen dat je dol bent op je gepersonaliseerde verjaardagsvideo. Ben je om welke reden dan ook niet blij met het resultaat, dan bieden we een eenvoudige terugbetalingsprocedure."
+          ]
+        },
+        {
+          "title": "Recht op terugbetaling",
+          "paragraphs": [
+            "Je hebt recht op een volledige terugbetaling als:"
+          ],
+          "items": [
+            "je binnen 7 dagen na ontvangst van je video om terugbetaling vraagt",
+            "de kwaliteit van de video niet aan redelijke verwachtingen voldoet",
+            "er fouten in de personalisatie zitten (verkeerde naam, verkeerd bericht, enz.)",
+            "de video niet binnen de beloofde termijn is geleverd",
+            "je gewoon niet tevreden bent met het eindresultaat"
+          ]
+        },
+        {
+          "title": "Zo vraag je een terugbetaling aan",
+          "paragraphs": [
+            "Een terugbetaling aanvragen is eenvoudig. Volg gewoon deze stappen:"
+          ],
+          "steps": [
+            "<b>Mail ons</b> op <email></email>",
+            "<b>Vermeld je bestelnummer</b> (dit staat in je bevestigingsmail)",
+            "<b>Leg kort uit</b> waarom je om terugbetaling vraagt (optioneel, maar handig)",
+            "<b>Ontvang je terugbetaling</b> binnen 5–7 werkdagen"
+          ]
+        },
+        {
+          "title": "Verwerking van de terugbetaling",
+          "paragraphs": [
+            "Terugbetalingen gaan naar je oorspronkelijke betaalmethode. Afhankelijk van je bank of kaartuitgever kan het 5–7 werkdagen duren voordat het bedrag op je rekening staat. Je ontvangt een bevestiging per e-mail zodra de terugbetaling is verwerkt."
+          ]
+        },
+        {
+          "title": "Gratis nieuwe versie",
+          "paragraphs": [
+            "Denk voordat je om terugbetaling vraagt eens aan onze gratis nieuwe versie! Wil je iets specifieks aan je video veranderen, dan maken we hem zonder extra kosten opnieuw. Mail ons je feedback en we maken binnen 24 uur een nieuwe video."
+          ]
+        },
+        {
+          "title": "Uitzonderingen",
+          "paragraphs": [
+            "We doen ons best om elk verzoek te honoreren, maar in de volgende gevallen is terugbetaling mogelijk niet van toepassing:"
+          ],
+          "items": [
+            "Terugbetaling aangevraagd meer dan 7 dagen na levering van de video",
+            "De video is al openbaar gedeeld op sociale media",
+            "Meerdere terugbetalingsverzoeken van dezelfde klant"
+          ]
+        },
+        {
+          "title": "Contact",
+          "paragraphs": [
+            "Vragen over ons terugbetalingsbeleid? We helpen je graag! <link>Mail ons</link> en we reageren binnen 24 uur."
+          ]
+        }
+      ],
+      "cta": "Maak mijn verjaardagsvideo"
+    },
+    "privacy": {
+      "subtitle": "Welke gegevens we verzamelen, waarom, en hoe we je foto's en persoonsgegevens beschermen.",
+      "sections": [
+        {
+          "title": "1. Welke gegevens we verzamelen",
+          "paragraphs": [
+            "Wanneer je AfroBirthday gebruikt, verzamelen we de volgende gegevens:"
+          ],
+          "items": [
+            "<b>Contactgegevens:</b> e-mailadres voor de levering van je bestelling en communicatie",
+            "<b>Foto's:</b> afbeeldingen die je uploadt om de video te personaliseren",
+            "<b>Persoonlijke berichten:</b> teksten die je voor je video aanlevert",
+            "<b>Betaalgegevens:</b> veilig verwerkt door onze betaalprovider (we slaan geen kaartgegevens op)",
+            "<b>Gebruiksgegevens:</b> hoe je onze website gebruikt, om deze te verbeteren"
+          ]
+        },
+        {
+          "title": "2. Hoe we je gegevens gebruiken",
+          "items": [
+            "Om je gepersonaliseerde verjaardagsvideo te maken en te leveren",
+            "Om betalingen te verwerken en orderbevestigingen te sturen",
+            "Om met je te communiceren over je bestelling",
+            "Om onze diensten en je gebruikservaring te verbeteren",
+            "Om je marketingberichten te sturen (alleen met je toestemming)"
+          ]
+        },
+        {
+          "title": "3. Omgang met foto's en verwijdering",
+          "paragraphs": [
+            "We nemen je privacy serieus. Foto's die je uploadt worden:"
+          ],
+          "items": [
+            "versleuteld tijdens het uploaden en opslaan",
+            "alleen gebruikt om je gepersonaliseerde video te maken",
+            "binnen 30 dagen na levering van de video automatisch van onze servers verwijderd",
+            "nooit gedeeld met derden voor marketingdoeleinden"
+          ]
+        },
+        {
+          "title": "4. Gegevensbeveiliging",
+          "paragraphs": [
+            "We nemen gangbare beveiligingsmaatregelen, waaronder SSL-versleuteling, veilige verwerking van kaartbetalingen en regelmatige beveiligingscontroles, om je persoonsgegevens te beschermen."
+          ]
+        },
+        {
+          "title": "5. AVG-naleving (gebruikers in de EU)",
+          "paragraphs": [
+            "Als je in de Europese Unie woont, heb je het recht om:"
+          ],
+          "items": [
+            "je persoonsgegevens in te zien",
+            "onjuiste gegevens te laten corrigeren",
+            "je gegevens te laten verwijderen",
+            "bezwaar te maken tegen de verwerking van je gegevens",
+            "je gegevens over te dragen"
+          ],
+          "note": "Om deze rechten uit te oefenen, neem je contact met ons op via <email></email>."
+        },
+        {
+          "title": "6. Cookies",
+          "paragraphs": [
+            "We gebruiken essentiële cookies voor de werking van de website en analytische cookies (met je toestemming) om te begrijpen hoe bezoekers onze site gebruiken. Je cookievoorkeuren beheer je via de instellingen van je browser."
+          ]
+        },
+        {
+          "title": "7. Diensten van derden",
+          "paragraphs": [
+            "We maken gebruik van betrouwbare diensten van derden, waaronder een betaalprovider en analysetools. Deze diensten hebben hun eigen privacybeleid en verwerken gegevens volgens hun eigen voorwaarden."
+          ]
+        },
+        {
+          "title": "8. Contact",
+          "paragraphs": [
+            "Voor vragen of verzoeken over privacy kun je contact met ons opnemen via <email></email>."
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "subtitle": "De regels die gelden wanneer je bij AfroBirthday een gepersonaliseerde verjaardagsvideo bestelt.",
+      "sections": [
+        {
+          "title": "1. Aanvaarding van de voorwaarden",
+          "paragraphs": [
+            "Door AfroBirthday („de Dienst”) te bezoeken en te gebruiken, ga je akkoord met deze Servicevoorwaarden. Ga je niet akkoord met deze voorwaarden, gebruik onze Dienst dan niet."
+          ]
+        },
+        {
+          "title": "2. Beschrijving van de Dienst",
+          "paragraphs": [
+            "AfroBirthday levert gepersonaliseerde verjaardagsvideo's gemaakt door Afrikaanse dansers. Video's worden digitaal geleverd binnen 24–48 uur (of 12–24 uur voor Express-bestellingen) na bevestiging van de betaling."
+          ]
+        },
+        {
+          "title": "3. Bestelproces",
+          "paragraphs": [
+            "Bij het plaatsen van een bestelling ga je ermee akkoord om:"
+          ],
+          "items": [
+            "juiste en volledige informatie te verstrekken",
+            "gepaste foto's te uploaden (geen aanstootgevende of ongepaste inhoud)",
+            "respectvolle en gepaste berichten aan te leveren",
+            "het volledige bedrag te betalen bij het plaatsen van de bestelling"
+          ]
+        },
+        {
+          "title": "4. Inhoudsrichtlijnen",
+          "paragraphs": [
+            "We behouden ons het recht voor bestellingen te weigeren die het volgende bevatten:"
+          ],
+          "items": [
+            "Aanstootgevende, discriminerende of haatdragende inhoud",
+            "Ongepast of expliciet materiaal",
+            "Inhoud die inbreuk maakt op rechten van derden",
+            "Inhoud die illegale activiteiten promoot"
+          ]
+        },
+        {
+          "title": "5. Intellectueel eigendom",
+          "paragraphs": [
+            "Bij levering ontvang je een persoonlijke, niet-exclusieve licentie om je video voor persoonlijke doeleinden te gebruiken. AfroBirthday behoudt zich het recht voor video's (zonder identificerende gegevens) voor promotiedoeleinden te gebruiken, tenzij je daar uitdrukkelijk bezwaar tegen maakt."
+          ]
+        },
+        {
+          "title": "6. Betalingsvoorwaarden",
+          "paragraphs": [
+            "Alle betalingen worden veilig verwerkt per kaart of PayPal via onze betaalproviders. Prijzen worden weergegeven in de valuta die bij het afrekenen wordt getoond en zijn inclusief toepasselijke belastingen waar vereist. Terugbetalingen worden verwerkt volgens ons <refund>terugbetalingsbeleid</refund>."
+          ]
+        },
+        {
+          "title": "7. Levering",
+          "paragraphs": [
+            "Video's worden per e-mail geleverd op het adres dat je bij het afrekenen hebt opgegeven. Standaardlevering duurt 24–48 uur, Express-levering 12–24 uur. We doen ons best deze termijnen te halen, maar bij grote drukte of onvoorziene omstandigheden kan er af en toe vertraging optreden."
+          ]
+        },
+        {
+          "title": "8. Beperking van aansprakelijkheid",
+          "paragraphs": [
+            "AfroBirthday levert video's „zoals ze zijn” en geeft geen garanties over specifieke resultaten. Onze aansprakelijkheid is beperkt tot het bedrag dat voor de dienst is betaald. We zijn niet aansprakelijk voor indirecte, incidentele of gevolgschade."
+          ]
+        },
+        {
+          "title": "9. Geschillenbeslechting",
+          "paragraphs": [
+            "Geschillen worden opgelost via onderhandelingen te goeder trouw. Lukt dat niet, dan is het recht van Nederland van toepassing en zijn de Nederlandse rechtbanken bevoegd."
+          ]
+        },
+        {
+          "title": "10. Wijzigingen van de voorwaarden",
+          "paragraphs": [
+            "We kunnen deze voorwaarden van tijd tot tijd bijwerken. Wie de Dienst na wijzigingen blijft gebruiken, aanvaardt de nieuwe voorwaarden."
+          ]
+        },
+        {
+          "title": "11. Contact",
+          "paragraphs": [
+            "Voor vragen over deze voorwaarden kun je contact met ons opnemen via <email></email>."
+          ]
+        }
+      ]
+    }
+  },
+  "HomeMeta": {
+    "title": "Gepersonaliseerde verjaardagsvideo's",
+    "description": "Maak de verjaardag onvergetelijk met een persoonlijke video van echte Afrikaanse dansers. Upload een foto, schrijf je bericht en ontvang hem binnen 12–48 uur."
   }
 }

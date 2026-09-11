@@ -9,6 +9,7 @@ import StickyMobileCTA from "@/components/StickyMobileCTA";
 import ScrollToOrderHint from "@/components/ScrollToOrderHint";
 
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { buildAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
@@ -17,9 +18,9 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const title = "Personalized Birthday Videos";
-  const description =
-    "Make their birthday unforgettable with a personalized video from real African dancers. Upload a photo, add your message, choose delivery (12-48h), and receive it by email.";
+  const t = await getTranslations({ locale, namespace: "HomeMeta" });
+  const title = t("title");
+  const description = t("description");
 
   return {
     title,

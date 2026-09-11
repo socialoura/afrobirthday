@@ -200,7 +200,7 @@ function StepIndicator({
                     ? "bg-primary text-white"
                     : isActive
                     ? "bg-primary/15 border-2 border-primary text-primary"
-                    : "bg-white/5 border border-white/15 text-white/40"
+                    : "bg-white/5 border border-white/15 text-white/60"
                 )}
                 aria-current={isActive ? "step" : undefined}
               >
@@ -209,7 +209,7 @@ function StepIndicator({
               <span
                 className={cn(
                   "text-xs font-medium whitespace-nowrap",
-                  isActive || isComplete ? "text-white" : "text-white/40"
+                  isActive || isComplete ? "text-white" : "text-white/60"
                 )}
               >
                 {label}
@@ -1094,7 +1094,7 @@ export default function OrderFormSection() {
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div>
                     <label className="block font-semibold text-white">
-                      {t("photo.label")} <span className="text-error">*</span>
+                      {t("photo.label")} <span className="text-red-400">*</span>
                     </label>
                     <p className="text-white/70 text-sm mt-1">
                       {t("photo.help")}
@@ -1159,7 +1159,7 @@ export default function OrderFormSection() {
                   )}
                 </div>
                 {photoError && (
-                  <p className="text-error text-sm mt-2">{photoError}</p>
+                  <p className="text-red-400 text-sm mt-2">{photoError}</p>
                 )}
               </div>
 
@@ -1168,13 +1168,13 @@ export default function OrderFormSection() {
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div>
                     <label htmlFor="order-message" className="block font-semibold text-white">
-                      {t("message.label")} <span className="text-error">*</span>
+                      {t("message.label")} <span className="text-red-400">*</span>
                     </label>
                     <p className="text-white/70 text-sm mt-1">
                       {t("message.help")}
                     </p>
                   </div>
-                  <div className={cn("text-sm", message.length > 90 ? "text-error" : "text-white/70")}>
+                  <div className={cn("text-sm", message.length > 90 ? "text-red-400" : "text-white/70")}>
                     {message.length}/100
                   </div>
                 </div>
@@ -1188,18 +1188,18 @@ export default function OrderFormSection() {
                   rows={3}
                   className={cn(
                     "w-full px-4 py-3 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base min-h-[100px]",
-                    errors.message ? "border-error" : "border-white/20"
+                    errors.message ? "border-red-400" : "border-white/20"
                   )}
                 />
                 {errors.message && (
-                  <p className="text-error text-sm mt-2">{errors.message.message}</p>
+                  <p className="text-red-400 text-sm mt-2">{errors.message.message}</p>
                 )}
               </div>
 
               {/* Email */}
               <div className="border-t border-white/10 pt-6">
                 <label htmlFor="order-email" className="block font-semibold mb-2 text-white">
-                  {t("email.label")} <span className="text-error">*</span>
+                  {t("email.label")} <span className="text-red-400">*</span>
                 </label>
                 <p className="text-white/70 text-sm mb-4">
                   {t("email.help")}
@@ -1212,11 +1212,11 @@ export default function OrderFormSection() {
                   placeholder={t("email.placeholder")}
                   className={cn(
                     "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base h-12",
-                    errors.email ? "border-error" : "border-white/20"
+                    errors.email ? "border-red-400" : "border-white/20"
                   )}
                 />
                 {errors.email && (
-                  <p className="text-error text-sm mt-2">{errors.email.message}</p>
+                  <p className="text-red-400 text-sm mt-2">{errors.email.message}</p>
                 )}
                 </div>
               </div>
@@ -1285,11 +1285,11 @@ export default function OrderFormSection() {
                     placeholder={t("music.linkPlaceholder")}
                     className={cn(
                       "w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder:text-white/50 text-base h-12",
-                      errors.musicLink ? "border-error" : "border-white/20"
+                      errors.musicLink ? "border-red-400" : "border-white/20"
                     )}
                   />
                   {errors.musicLink && (
-                    <p className="text-error text-sm">{errors.musicLink.message}</p>
+                    <p className="text-red-400 text-sm">{errors.musicLink.message}</p>
                   )}
                   {musicEmbed?.platform === "youtube" && (
                     <div className="rounded-xl overflow-hidden border border-white/20 bg-black/20">
@@ -1469,7 +1469,7 @@ export default function OrderFormSection() {
                       </button>
                     </div>
                   )}
-                  {promoError && <p className="text-error text-sm mt-2">{promoError}</p>}
+                  {promoError && <p className="text-red-400 text-sm mt-2">{promoError}</p>}
                 </div>
               )}
               </>
@@ -1617,7 +1617,7 @@ export default function OrderFormSection() {
                   </span>
                 </label>
                 {hasAttemptedSubmit && errors.termsAccepted && (
-                  <p className="text-error text-sm mt-2">
+                  <p className="text-red-400 text-sm mt-2">
                     {errors.termsAccepted.message}
                   </p>
                 )}

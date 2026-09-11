@@ -49,14 +49,14 @@ export default function PayPalSuccessClient() {
   }, [router, searchParams]);
 
   return (
-    <main className="pt-24 pb-20 min-h-screen bg-dark">
+    <main className="pt-32 md:pt-40 pb-20 min-h-screen bg-dark">
       <div className="section-container max-w-2xl text-center">
         <h1 className="heading-2 text-white mb-4">Confirming your PayPal payment…</h1>
         {!error ? (
           <p className="text-white/60">Please wait, we’re validating your payment.</p>
         ) : (
           <div className="glass-card p-6 text-left">
-            <p className="text-error font-semibold mb-2">Payment confirmation failed</p>
+            <p className="text-red-400 font-semibold mb-2">Payment confirmation failed</p>
             <p className="text-white/70 text-sm">{error}</p>
             <div className="mt-4">
               <a href="/#order" className="btn-primary inline-flex">

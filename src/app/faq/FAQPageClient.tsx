@@ -46,7 +46,7 @@ export default function FAQPageClient({ extraItems = [] }: { extraItems?: FAQIte
   const faqs = [...extraItems, ...templateFaqs.filter((f) => !seen.has(f.question.trim().toLowerCase()))];
 
   return (
-    <main className="pt-24 pb-20 bg-dark relative overflow-hidden">
+    <main className="pt-32 md:pt-40 pb-20 bg-dark relative overflow-hidden">
       <div className="section-container relative">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none -z-10" />
         <div className="text-center mb-12 relative">

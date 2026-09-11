@@ -25,7 +25,7 @@ export default async function SuccessPage({
   const t = await getTranslations({ locale, namespace: "Success" });
 
   return (
-    <main className="pt-24 pb-20 min-h-screen bg-dark relative overflow-hidden">
+    <main className="pt-32 md:pt-40 pb-20 min-h-screen bg-dark relative overflow-hidden">
       <Suspense fallback={null}>
         <ConfirmRedirectPayment />
         <PostHogPurchaseCompleted />

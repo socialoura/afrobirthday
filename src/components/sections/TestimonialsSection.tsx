@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -10,8 +9,27 @@ type Testimonial = {
   location: string;
   text: string;
   rating: number;
-  avatar: string;
 };
+
+// Initials rather than a photo: the only pictures we have are of the dancers,
+// and putting those next to a customer's name made the reviews look staged.
+function InitialsAvatar({ name }: { name: string }) {
+  const initials = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => Array.from(word)[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  return (
+    <div
+      aria-hidden="true"
+      className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-lg ring-2 ring-white/10 flex-shrink-0"
+    >
+      {initials}
+    </div>
+  );
+}
 
 export default function TestimonialsSection() {
   const t = useTranslations("Testimonials");
@@ -45,13 +63,7 @@ export default function TestimonialsSection() {
               className="glass-card p-6 hover:bg-white/10 transition-all duration-300"
             >
               <div className="flex items-center gap-3 mb-4">
-                <Image
-                  src={testimonial.avatar}
-                  alt={testimonial.name}
-                  width={56}
-                  height={56}
-                  className="w-14 h-14 rounded-full object-cover ring-2 ring-white/10"
-                />
+                <InitialsAvatar name={testimonial.name} />
                 <div>
                   <p className="font-semibold text-white">{testimonial.name}</p>
                   <p className="text-sm text-white/70">{testimonial.location}</p>
@@ -81,13 +93,7 @@ export default function TestimonialsSection() {
                 >
                   <div className="glass-card p-6">
                     <div className="flex items-center gap-3 mb-4">
-                      <Image
-                        src={testimonial.avatar}
-                        alt={testimonial.name}
-                        width={56}
-                        height={56}
-                        className="w-14 h-14 rounded-full object-cover ring-2 ring-white/10"
-                      />
+                      <InitialsAvatar name={testimonial.name} />
                       <div>
                         <p className="font-semibold text-white">{testimonial.name}</p>
                         <p className="text-sm text-white/70">{testimonial.location}</p>

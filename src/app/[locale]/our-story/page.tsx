@@ -67,11 +67,14 @@ export default async function OurStoryPage({
     { number: "500+", label: t("metrics.customers") },
     { number: "100+", label: t("metrics.creators") },
     { number: "50+", label: t("metrics.countries") },
-    { number: "4.9", label: t("metrics.rating") },
+    {
+      number: new Intl.NumberFormat(locale, { minimumFractionDigits: 1, numberingSystem: "latn" }).format(4.9),
+      label: t("metrics.rating"),
+    },
   ];
 
   return (
-    <main className="pt-24 pb-20 bg-dark relative overflow-hidden">
+    <main className="pt-32 md:pt-40 pb-20 bg-dark relative overflow-hidden">
       <StructuredData type="page" locale={locale} pageName={tMeta("title")} path="/our-story" />
       <div className="section-container relative">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none -z-10" />

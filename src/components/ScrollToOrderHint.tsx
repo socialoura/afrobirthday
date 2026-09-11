@@ -42,7 +42,9 @@ export default function ScrollToOrderHint() {
 
   return (
     <div
-      className={`fixed inset-x-0 z-30 flex justify-center pointer-events-none transition-opacity duration-300 ${
+      // Desktop only: on mobile the sticky order bar already does this job, and
+      // the pill sat on top of the hero's rating line.
+      className={`fixed inset-x-0 z-30 hidden lg:flex justify-center pointer-events-none transition-opacity duration-300 ${
         stickyCtaVisible ? "bottom-24" : "bottom-4"
       } lg:bottom-6 ${visible ? "opacity-100" : "opacity-0"}`}
       aria-hidden={!visible}
