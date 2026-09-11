@@ -1,6 +1,19 @@
 import { getTranslations } from "next-intl/server";
 import { PRICES } from "@/lib/utils";
 import { getPricingSettings } from "@/lib/db";
+import { getPriceTestDefinition } from "@/lib/priceTest";
+
+// Google caps applicableCountry at 50 codes. Every country with a paid order
+// (44 as of Sept 2026), then the nearest markets without one yet.
+const RETURN_POLICY_COUNTRIES = [
+  "US", "DE", "ES", "CA", "HU", "FR", "IT", "AU", "CH", "SK", "GB", "BR", "NO",
+  "HR", "BE", "CZ", "TH", "SG", "LT", "MX", "AT", "AE", "TR", "SE", "LU", "PE",
+  "SI", "KR", "JP", "KZ", "LV", "HN", "NL", "EE", "AR", "IE", "LB", "PL", "UA",
+  "MY", "BA", "IL", "AL", "EG", "PT", "NZ", "DK", "FI", "GR", "RO",
+];
+
+// The base price was unchanged from launch until the first price test.
+const PRICE_UNCHANGED_SINCE = "2026-02-01";
 import { SITE_URL } from "@/lib/siteUrl";
 import { getPublishedFaq, mergeFaq } from "@/lib/faqContent";
 
@@ -74,8 +87,14 @@ export default async function StructuredData({ type, locale, pageName, path }: S
     // The advertised price has to match the charged one, or Google flags the
     // offer. It reads the settings the checkout charges from, so a price
     // change cannot leave the structured data behind.
-    const livePricing = await getPricingSettings().catch(() => null);
+    const [livePricing, priceTest] = await Promise.all([
+      getPricingSettings().catch(() => null),
+      getPriceTestDefinition(),
+    ]);
     const advertisedBase = livePricing?.base ?? PRICES.base;
+    // validFrom is the day the advertised price took effect: the test's start
+    // while it runs, its end once the price has gone back.
+    const priceSince = (priceTest?.endedAt ?? priceTest?.startedAt)?.slice(0, 10) ?? PRICE_UNCHANGED_SINCE;
 
     const product = {
       "@context": "https://schema.org",
@@ -90,6 +109,7 @@ export default async function StructuredData({ type, locale, pageName, path }: S
         url: `${url}#order`,
         priceCurrency: "USD",
         price: advertisedBase.toFixed(2),
+        validFrom: priceSince,
         // Google warns on an Offer with no priceValidUntil and can stop showing
         // the price. Rolls forward automatically so it never goes stale.
         priceValidUntil: `${new Date().getUTCFullYear() + 1}-12-31`,
@@ -105,6 +125,7 @@ export default async function StructuredData({ type, locale, pageName, path }: S
         // text on the site, so these numbers must move together.
         hasMerchantReturnPolicy: {
           "@type": "MerchantReturnPolicy",
+          applicableCountry: RETURN_POLICY_COUNTRIES,
           returnPolicyCategory:
             "https://schema.org/MerchantReturnFiniteReturnWindow",
           merchantReturnDays: 7,
