@@ -127,6 +127,15 @@ async function runEnsureOrdersTable() {
     ADD COLUMN IF NOT EXISTS attribution_referrer text,
     ADD COLUMN IF NOT EXISTS attribution_first_seen_at timestamptz
   `;
+
+  // The currency the customer was shown, as opposed to the one charged.
+  // PayPal bills every order in USD, so without this a European who paid by
+  // PayPal was indistinguishable from an American — and the price test could
+  // not tell which arm they were in.
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS display_currency text
+  `;
 }
 
 export async function ensurePromoCodesTable() {
@@ -179,6 +188,8 @@ export type OrderCreateInput = {
   country?: string;
   /** Currency actually charged to the customer (defaults to USD). */
   currency?: string;
+  /** Currency the customer was shown; differs from `currency` on PayPal. */
+  displayCurrency?: string;
   /** Amount charged in the local currency (defaults to totalUsd). */
   totalLocal?: number;
   /** USD -> currency rate used at checkout time. */
@@ -281,7 +292,8 @@ export async function createOrder(input: OrderCreateInput) {
       attribution_campaign,
       attribution_landing,
       attribution_referrer,
-      attribution_first_seen_at
+      attribution_first_seen_at,
+      display_currency
     ) VALUES (
       ${input.id}::uuid,
       ${input.email},
@@ -305,7 +317,8 @@ export async function createOrder(input: OrderCreateInput) {
       ${input.attribution?.campaign ?? null},
       ${input.attribution?.landing ?? null},
       ${input.attribution?.referrer ?? null},
-      ${input.attribution?.firstSeenAt ?? null}
+      ${input.attribution?.firstSeenAt ?? null},
+      ${input.displayCurrency ?? input.currency ?? "USD"}
     )
     -- One customer, one order row. The client keeps a stable id for the whole
     -- form session, so switching from card to PayPal — or stepping back to
@@ -328,7 +341,8 @@ export async function createOrder(input: OrderCreateInput) {
       exchange_rate = EXCLUDED.exchange_rate,
       promo_code = EXCLUDED.promo_code,
       discount_amount = EXCLUDED.discount_amount,
-      dance_extended = EXCLUDED.dance_extended
+      dance_extended = EXCLUDED.dance_extended,
+      display_currency = EXCLUDED.display_currency
     WHERE orders.status = 'pending'
   `;
 }
@@ -688,7 +702,7 @@ export type PricingSettings = {
 };
 
 export const DEFAULT_PRICING_SETTINGS: PricingSettings = {
-  base: 19.99,
+  base: 24.99,
   customSong: 9.99,
   expressDelivery: 7.99,
   danceExtended: 20,

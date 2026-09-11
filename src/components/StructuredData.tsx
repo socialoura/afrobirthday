@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { PRICES } from "@/lib/utils";
+import { getPricingSettings } from "@/lib/db";
 import { SITE_URL } from "@/lib/siteUrl";
 import { getPublishedFaq, mergeFaq } from "@/lib/faqContent";
 
@@ -70,6 +71,12 @@ export default async function StructuredData({ type, locale, pageName, path }: S
         ? (items.reduce((s, i) => s + (i.rating ?? 5), 0) / reviewCount).toFixed(1)
         : "4.9";
 
+    // The advertised price has to match the charged one, or Google flags the
+    // offer. It reads the settings the checkout charges from, so a price
+    // change cannot leave the structured data behind.
+    const livePricing = await getPricingSettings().catch(() => null);
+    const advertisedBase = livePricing?.base ?? PRICES.base;
+
     const product = {
       "@context": "https://schema.org",
       "@type": "Product",
@@ -82,7 +89,7 @@ export default async function StructuredData({ type, locale, pageName, path }: S
         "@type": "Offer",
         url: `${url}#order`,
         priceCurrency: "USD",
-        price: PRICES.base.toFixed(2),
+        price: advertisedBase.toFixed(2),
         // Google warns on an Offer with no priceValidUntil and can stop showing
         // the price. Rolls forward automatically so it never goes stale.
         priceValidUntil: `${new Date().getUTCFullYear() + 1}-12-31`,

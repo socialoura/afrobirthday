@@ -116,6 +116,7 @@ export async function POST(request: NextRequest) {
       country,
       device,
       currency: finalCharge.currency,
+      displayCurrency: finalCharge.currency,
       totalLocal: finalCharge.localAmount,
       exchangeRate: finalCharge.rate,
       promoCode: appliedPromoCode ?? undefined,

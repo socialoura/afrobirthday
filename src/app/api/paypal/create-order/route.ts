@@ -11,6 +11,8 @@ import { discountedUsdTotal, usdDiscountAmount } from "@/lib/promo";
 import { createPayPalOrder } from "@/lib/paypal";
 import { deviceTypeFromUserAgent } from "@/lib/device";
 import { SITE_URL } from "@/lib/siteUrl";
+import { isSupportedCurrency } from "@/lib/currency";
+import { getActivePriceTest, isControlCurrency } from "@/lib/priceTest";
 
 export const runtime = "nodejs";
 
@@ -40,6 +42,7 @@ export async function POST(request: NextRequest) {
       photoUrl,
       promoCode: requestedPromoCode,
       attribution: rawAttribution,
+      currency: requestedCurrency,
     } = body;
 
     if (!orderId || typeof orderId !== "string") {
@@ -51,7 +54,16 @@ export async function POST(request: NextRequest) {
 
     await ensureOrdersTable();
 
-    const pricing = await getPricingSettings();
+    // PayPal bills in dollars whatever the customer was shown. During a price
+    // test the control currencies keep the dollar prices they had before it
+    // started — otherwise the control group's PayPal payers, a fifth of them,
+    // would quietly be charged the new price and the comparison would be void.
+    const displayCurrency = isSupportedCurrency(requestedCurrency) ? requestedCurrency : "USD";
+    const [livePricing, priceTest] = await Promise.all([getPricingSettings(), getActivePriceTest()]);
+    const pricing =
+      priceTest && isControlCurrency(priceTest, displayCurrency)
+        ? priceTest.legacyUsdPricing
+        : livePricing;
     const resolvedMusicOption = musicOption ?? (hasCustomSong ? "custom" : "default");
     const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
     const resolvedDanceExtended = danceExtended === true;
@@ -92,6 +104,7 @@ export async function POST(request: NextRequest) {
       country,
       device,
       currency: "USD",
+      displayCurrency,
       totalLocal: chargedUsd,
       exchangeRate: 1,
       promoCode: appliedPromoCode ?? undefined,

@@ -263,6 +263,7 @@ export default function OrderFormSection() {
     Partial<Record<CurrencyCode, Partial<{ base: number; customSong: number; expressDelivery: number; danceExtended: number }>>>
   >({});
   const [promoEnabled, setPromoEnabled] = useState(false);
+  const [priceTest, setPriceTest] = useState<{ id: string; startedAt: string; controlCurrencies: string[] } | null>(null);
   const [promoInput, setPromoInput] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<{
     code: string;
@@ -293,11 +294,13 @@ export default function OrderFormSection() {
           danceExtended: number;
           overrides: Partial<Record<CurrencyCode, Partial<{ base: number; customSong: number; expressDelivery: number; danceExtended: number }>>>;
           promoEnabled: boolean;
+          priceTest: { id: string; startedAt: string; controlCurrencies: string[] } | null;
         }>;
 
         if (!isMounted) return;
 
         setPromoEnabled(data.promoEnabled === true);
+        setPriceTest(data.priceTest ?? null);
 
         setPricing((prev) => ({
           base: typeof data.base === "number" && Number.isFinite(data.base) ? data.base : prev.base,
@@ -490,6 +493,24 @@ export default function OrderFormSection() {
     if (!Number.isFinite(rate) || rate <= 0) return Math.round(finalTotal * 100) / 100;
     return Math.round((finalTotal / rate) * 100) / 100;
   }, [finalTotal, localCurrency, rates]);
+
+  // Every event from here on carries the price the visitor was shown and the
+  // arm of the price test they fall in, so any PostHog chart can be split by
+  // it. Super properties rather than a field on each capture: an event added
+  // later inherits them without anyone having to remember.
+  const shownBase = Math.round(localComponent("base") * 100) / 100;
+  useEffect(() => {
+    posthog.register({
+      price_currency: localCurrency,
+      price_base_local: shownBase,
+      price_test: priceTest?.id ?? null,
+      price_group: priceTest
+        ? priceTest.controlCurrencies.includes(localCurrency)
+          ? "control"
+          : "test"
+        : null,
+    });
+  }, [localCurrency, shownBase, priceTest]);
 
   // True when at least one component of the displayed total is auto-converted
   // (no manual override) — i.e. the live exchange rate actually applies.
@@ -823,6 +844,10 @@ export default function OrderFormSection() {
           hasCustomSong: musicOption === "custom",
           isExpress: deliveryMethod === "express",
           promoCode: appliedPromo?.code,
+          // The currency the customer was shown: PayPal bills in dollars, so
+          // the server needs it to charge the right arm of a price test, and
+          // the order records it.
+          currency: localCurrency,
           attribution: getAttributionPayload(),
         }),
       });
