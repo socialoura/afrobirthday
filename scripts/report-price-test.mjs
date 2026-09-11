@@ -8,6 +8,7 @@
  * the two can never disagree.
  */
 import { buildPriceTestReport } from "../src/lib/priceTestReport.ts";
+import { getSql } from "../src/lib/db.ts";
 
 const r = await buildPriceTestReport();
 const pct = (x) => `${(100 * x).toFixed(1)} %`;
@@ -55,4 +56,6 @@ if (r.diffInDiff) {
 
 console.log(`\nVerdict : ${r.verdict.message}\n`);
 for (const n of r.notes) console.log(`  · ${n}`);
+// Close the pool first: exiting with it open trips a libuv assertion on Windows.
+await getSql().end({ timeout: 5 });
 process.exit(0);
