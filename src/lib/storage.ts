@@ -1,5 +1,11 @@
-import { del as deleteBlob, put } from "@vercel/blob";
+import { del as deleteBlob } from "@vercel/blob";
 import { createClient } from "@supabase/supabase-js";
+import {
+  deleteFromMedia,
+  isMediaUrl,
+  keyFromMediaUrl,
+  uploadToMedia,
+} from "@/lib/mediaHost";
 
 export const STORAGE_BUCKET = "orders";
 
@@ -20,33 +26,29 @@ export function getSupabaseAdmin() {
 /**
  * Stores an object and returns its public URL.
  *
- * Everything uploads to Vercel Blob, whose bandwidth is part of the hosting
- * plan. Supabase Storage is write-free on purpose: its free tier meters egress,
- * and serving files from it is what restricted the whole project — storage,
- * database and checkout at once — while customers were mid-order. Supabase
- * keeps the database, which barely moves any bytes.
+ * Everything uploads to media.afrobirthday.com, a plain file server we run.
+ * Storage has moved three times before — an early Vercel Blob store, Supabase
+ * Storage, then a second Vercel Blob store — and the first two are now 403 and
+ * 402 respectively, which is 421 delivered files no customer can reach. Each
+ * break happened because the URL carried a vendor's hostname. This one carries
+ * ours, so the next move is a DNS record rather than another dead corpus.
  *
- * `overwrite` reproduces Supabase's `upsert`, for the regenerated files whose
- * URL must stay put. Those pair it with a short cache: the CDN holds a blob for
- * 30 days by default, long enough to keep serving the previous take of a
- * voiceover after it has been redone.
+ * `overwrite` is no longer a flag: a PUT to the same key always replaces it.
+ * Callers that regenerate a file at a fixed key (voiceovers, downloaded music)
+ * rely on that, and the server sends those paths a one-minute cache so the
+ * previous take stops being served promptly — the role `cacheSeconds` used to
+ * play. Both options stay in the signature so call sites read unchanged.
  */
 export async function uploadObject(
   key: string,
   body: Buffer | File | Blob | ArrayBuffer,
   options: { contentType: string; overwrite?: boolean; cacheSeconds?: number }
 ): Promise<string> {
-  const { url } = await put(key, body, {
-    access: "public",
-    contentType: options.contentType,
-    addRandomSuffix: false,
-    allowOverwrite: options.overwrite ?? false,
-    ...(options.cacheSeconds === undefined
-      ? {}
-      : { cacheControlMaxAge: options.cacheSeconds }),
-    token: process.env.BLOB_READ_WRITE_TOKEN,
-  });
-  return url;
+  const payload =
+    body instanceof Blob
+      ? body
+      : new Blob([body as BlobPart], { type: options.contentType });
+  return uploadToMedia(key, payload, options.contentType);
 }
 
 /** Reverses publicUrlFor: extracts the storage key from a public bucket URL. */
@@ -64,14 +66,23 @@ export async function deleteObject(key: string): Promise<void> {
 
 /**
  * Deletes a stored photo whatever backend it lives on, and reports whether it
- * could. Three shapes exist in the database: Vercel Blob for anything uploaded
- * since, Supabase Storage for the middle period, and Vercel Blob again for the
- * oldest rows — those last ones live in a store that was left behind in a team
- * migration and suspended, so they will never delete. The caller must not clear
- * the database pointer when this returns false, or the file becomes an
- * unreachable orphan that stays publicly readable.
+ * could. Four shapes exist in the database: our own host for anything uploaded
+ * since the move, Vercel Blob and Supabase Storage for the two periods before
+ * it, and an older Vercel Blob store left behind in a team migration and
+ * suspended, which will never delete. The caller must not clear the database
+ * pointer when this returns false, or the file becomes an unreachable orphan
+ * that stays publicly readable.
  */
 export async function deletePhotoByUrl(url: string): Promise<boolean> {
+  if (isMediaUrl(url)) {
+    const key = keyFromMediaUrl(url);
+    if (!key) return false;
+    // Throws on a server error, which is what we want: the caller leaves the
+    // row alone and retries on the next run.
+    await deleteFromMedia(key);
+    return true;
+  }
+
   const key = keyFromPublicUrl(url);
   if (key) {
     await deleteObject(key);
@@ -79,8 +90,6 @@ export async function deletePhotoByUrl(url: string): Promise<boolean> {
   }
 
   if (url.includes(".blob.vercel-storage.com/")) {
-    // Throws when BLOB_READ_WRITE_TOKEN is missing, which is what we want:
-    // the caller leaves the row alone and retries on the next run.
     await deleteBlob(url, { token: process.env.BLOB_READ_WRITE_TOKEN });
     return true;
   }
