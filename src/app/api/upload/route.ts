@@ -6,8 +6,20 @@ export const runtime = "nodejs";
 
 const ALLOWED = {
   "orders/photos": {
-    mimes: ["image/jpeg", "image/png", "image/webp"],
-    exts: ["jpg", "jpeg", "png", "webp"],
+    // HEIC/HEIF are what an iPhone hands over when the browser doesn't
+    // transcode on pick. The client converts them to JPEG first, but that
+    // conversion can fail (older iOS, no canvas codec), and rejecting them
+    // here cost real orders: the customer only saw "upload failed" and left.
+    mimes: [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/heic",
+      "image/heif",
+      "image/heic-sequence",
+      "image/heif-sequence",
+    ],
+    exts: ["jpg", "jpeg", "png", "webp", "heic", "heif"],
     maxBytes: 5 * 1024 * 1024,
   },
   "orders/music": {

@@ -70,9 +70,13 @@ export default function OptimizedVideo({
     }
   }, [muted]);
 
-  // Generate WebM and MP4 sources from the original src
+  // MP4 only. There was a WebM <source> listed first here, but no .webm file
+  // has ever been built: the request fell through to the [locale] route, which
+  // answered 200 with the whole HTML page as `text/html`. The browser
+  // downloaded that, failed to decode it, and only then fell back to the MP4 —
+  // a wasted round trip and a wasted payload on the critical path of every
+  // video on the site, the hero included.
   const baseSrc = src.replace(/\.(MOV|mov|mp4|MP4)$/i, "");
-  const webmSrc = `${baseSrc}.webm`;
   const mp4Src = `${baseSrc}.mp4`;
 
   return (
@@ -84,6 +88,8 @@ export default function OptimizedVideo({
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
           aria-hidden="true"
+          decoding="async"
+          loading={isHero ? "eager" : "lazy"}
         />
       )}
       <video
@@ -102,14 +108,7 @@ export default function OptimizedVideo({
         )}
       >
         {/* Only load sources when video is visible (lazy loading) */}
-        {isVisible && (
-          <>
-            {/* WebM first (better compression, smaller files) */}
-            <source src={webmSrc} type="video/webm" />
-            {/* MP4 fallback (universal compatibility) */}
-            <source src={mp4Src} type="video/mp4" />
-          </>
-        )}
+        {isVisible && <source src={mp4Src} type="video/mp4" />}
       </video>
     </div>
   );

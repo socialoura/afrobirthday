@@ -64,24 +64,80 @@ const createOrderSchema = (t: ReturnType<typeof useTranslations>) =>
 
 type OrderFormData = z.infer<ReturnType<typeof createOrderSchema>>;
 
+/** What /api/upload accepts without any conversion. */
+const DIRECTLY_UPLOADABLE_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+function needsTranscode(file: File): boolean {
+  return !DIRECTLY_UPLOADABLE_IMAGE_TYPES.includes((file.type || "").toLowerCase());
+}
+
 /**
- * Downscales/re-encodes large photos client-side before upload, cutting
- * upload time and storage cost. Uses createImageBitmap's imageOrientation
- * option so EXIF-rotated phone photos don't come out sideways. Returns null
- * (meaning: use the original file) if compression isn't worth it, isn't
- * supported, or fails for any reason — never blocks the upload.
+ * Decodes an image file to something drawable on a canvas.
+ *
+ * createImageBitmap is the fast path but it throws on HEIC in several Safari
+ * versions — and HEIC is what an iPhone hands over. <img> uses the OS decoder,
+ * which does handle HEIC on iOS, so it is worth a second try before giving up.
  */
-async function compressImageIfPossible(file: File): Promise<File | null> {
-  if (typeof window === "undefined" || typeof createImageBitmap !== "function") {
+async function decodeImage(
+  file: File
+): Promise<{ source: CanvasImageSource; width: number; height: number; release: () => void } | null> {
+  if (typeof createImageBitmap === "function") {
+    try {
+      const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+      return {
+        source: bitmap,
+        width: bitmap.width,
+        height: bitmap.height,
+        release: () => bitmap.close?.(),
+      };
+    } catch {
+      // Fall through to the <img> decoder.
+    }
+  }
+
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.decoding = "sync";
+    img.src = url;
+    await img.decode();
+    return {
+      source: img,
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+      release: () => URL.revokeObjectURL(url),
+    };
+  } catch {
+    URL.revokeObjectURL(url);
     return null;
   }
-  try {
-    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-    const maxDim = 2000;
-    const { width, height } = bitmap;
+}
 
-    if (width <= maxDim && height <= maxDim && file.size <= 1.5 * 1024 * 1024) {
-      bitmap.close?.();
+/**
+ * Downscales/re-encodes photos client-side before upload, cutting upload time
+ * and storage cost, and converting formats the API won't take (HEIC from
+ * iPhones) into JPEG. Preserves EXIF orientation so phone photos don't come
+ * out sideways.
+ *
+ * Returns null meaning "use the original file". For a HEIC that the browser
+ * couldn't decode that is still the right answer: the API accepts HEIC as a
+ * fallback, and an awkward file beats a lost order.
+ */
+async function compressImageIfPossible(file: File): Promise<File | null> {
+  if (typeof window === "undefined") return null;
+
+  const mustConvert = needsTranscode(file);
+  const decoded = await decodeImage(file);
+  if (!decoded) return null;
+
+  try {
+    const maxDim = 2000;
+    const { width, height } = decoded;
+    if (!width || !height) return null;
+
+    // A small, already-supported photo is fine as-is. A HEIC never is,
+    // however small: it has to be re-encoded whatever its size.
+    if (!mustConvert && width <= maxDim && height <= maxDim && file.size <= 1.5 * 1024 * 1024) {
       return null;
     }
 
@@ -93,23 +149,25 @@ async function compressImageIfPossible(file: File): Promise<File | null> {
     canvas.width = targetWidth;
     canvas.height = targetHeight;
     const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      bitmap.close?.();
-      return null;
-    }
-    ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
-    bitmap.close?.();
+    if (!ctx) return null;
+
+    ctx.drawImage(decoded.source, 0, 0, targetWidth, targetHeight);
 
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob((b) => resolve(b), "image/jpeg", 0.85)
     );
-    if (!blob || blob.size >= file.size) return null;
+    if (!blob) return null;
+    // Keep the bigger JPEG when the source can't be uploaded as-is: size is
+    // not the point there, being readable by everyone downstream is.
+    if (!mustConvert && blob.size >= file.size) return null;
 
     return new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", {
       type: "image/jpeg",
     });
   } catch {
     return null;
+  } finally {
+    decoded.release();
   }
 }
 
@@ -603,7 +661,15 @@ export default function OrderFormSection() {
     form.append("file", file);
     form.append("folder", folder);
     const res = await fetch("/api/upload", { method: "POST", body: form });
-    if (!res.ok) throw new Error(`Upload failed (${folder})`);
+    if (!res.ok) {
+      // The bare "Upload failed (folder)" this used to throw was the only
+      // thing photo_upload_failed carried, which made a 415 on iPhone photos
+      // indistinguishable from a rate limit or a storage outage.
+      const detail = (await res.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(
+        `Upload failed (${folder}) [${res.status}${detail?.error ? ` ${detail.error}` : ""}]`
+      );
+    }
     const { url } = (await res.json()) as { url?: string };
     if (!url) throw new Error(`Missing upload URL (${folder})`);
     return url;
@@ -631,6 +697,7 @@ export default function OrderFormSection() {
         captureEvent(ANALYTICS_EVENTS.PHOTO_UPLOAD_FAILED, {
           reason: err instanceof Error ? err.message : String(err),
           file_size_kb: Math.round(file.size / 1024),
+          file_type: file.type || "(none)",
         });
       });
       photoUploadRef.current = upload;
@@ -664,13 +731,25 @@ export default function OrderFormSection() {
 
   const handlePhotoSelect = async (file: File) => {
     trackOrderStarted();
-    if (file.size > 5 * 1024 * 1024) {
+
+    // Decoding is what costs time and memory on a phone, so keep an outer
+    // bound on what is worth attempting at all. Between this and the 5 MB
+    // limit sits the range compression can rescue.
+    if (file.size > 25 * 1024 * 1024) {
       alert(t("alerts.photoTooLarge"));
       return;
     }
 
+    // Compress first, then check the size. Checking the source file turned
+    // away photos that compression would have brought well under the limit —
+    // and a modern phone camera clears 5 MB without trying.
     const compressed = await compressImageIfPossible(file);
     const finalFile = compressed ?? file;
+
+    if (finalFile.size > 5 * 1024 * 1024) {
+      alert(t("alerts.photoTooLarge"));
+      return;
+    }
 
     setPhoto(finalFile);
     setPhotoError(null);
