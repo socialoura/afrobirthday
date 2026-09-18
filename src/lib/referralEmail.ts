@@ -15,6 +15,8 @@ import {
   renderReferralRewardEmailHtml,
   renderReferralRewardEmailText,
 } from "@/lib/orderEmailTemplates";
+import { trackEmailSent } from "@/lib/analyticsServer";
+import { EMAIL_CAMPAIGNS } from "@/lib/campaign";
 
 function randomCodeSuffix() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -49,6 +51,8 @@ export async function generateAndSendReferralCode(
     replyTo: "support@afrobirthday.com",
     headers: buildMarketingEmailHeaders(order.email, order.id),
   });
+
+  await trackEmailSent(EMAIL_CAMPAIGNS.REFERRAL_CODE, order.email, { order_id: order.id });
 
   await markReferralEmailSent(order.id);
 }
@@ -95,5 +99,12 @@ export async function handlePossibleReferralRedemption(redeemedOrder: Order): Pr
     text: renderReferralRewardEmailText(promoCode.owner_email, rewardCode, rewardType, rewardValue),
     replyTo: "support@afrobirthday.com",
     headers: buildMarketingEmailHeaders(promoCode.owner_email),
+  });
+
+  // The recipient is the referrer, not the buyer, so the order that triggered
+  // the reward belongs to someone else — order_id would attach it to the wrong
+  // person's funnel.
+  await trackEmailSent(EMAIL_CAMPAIGNS.REFERRAL_REWARD, promoCode.owner_email, {
+    referred_order_id: redeemedOrder.id,
   });
 }
