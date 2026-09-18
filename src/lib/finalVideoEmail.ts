@@ -9,6 +9,8 @@ import {
   renderFinalVideoEmailText,
 } from "@/lib/orderEmailTemplates";
 import { SITE_URL } from "@/lib/siteUrl";
+import { trackEmailSent } from "@/lib/analyticsServer";
+import { EMAIL_CAMPAIGNS } from "@/lib/campaign";
 
 /**
  * Persists the final video URL (if changed), emails the customer their delivery
@@ -50,6 +52,8 @@ export async function deliverFinalVideoEmail(
       "X-Entity-Ref-ID": order.id,
     },
   });
+
+  await trackEmailSent(EMAIL_CAMPAIGNS.FINAL_VIDEO, order.email, { order_id: order.id });
 
   await markFinalVideoSent(order.id);
 }
