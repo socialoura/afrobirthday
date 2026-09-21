@@ -173,6 +173,45 @@ async function runEnsureSettingsTable() {
       value text NOT NULL
     )
   `;
+
+  // Roll back the September price test exactly once. The marker keeps later
+  // price changes made from the admin dashboard from being overwritten on
+  // every cold start.
+  await sql.begin(async (transaction) => {
+    const applied = await transaction`
+      INSERT INTO settings (key, value)
+      VALUES ('migration_price_base_20_20260921', ${new Date().toISOString()})
+      ON CONFLICT (key) DO NOTHING
+      RETURNING key
+    `;
+
+    if (applied.length === 0) return;
+
+    await transaction`
+      INSERT INTO settings (key, value)
+      VALUES ('price_base', '20')
+      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+    `;
+
+    const priceTests = await transaction`
+      SELECT value FROM settings WHERE key = 'price_test'
+    `;
+    if (priceTests.length === 0) return;
+
+    try {
+      const priceTest = JSON.parse(priceTests[0].value) as Record<string, unknown>;
+      if (!priceTest.endedAt) {
+        priceTest.endedAt = new Date().toISOString();
+        await transaction`
+          UPDATE settings
+          SET value = ${JSON.stringify(priceTest)}
+          WHERE key = 'price_test'
+        `;
+      }
+    } catch {
+      // A malformed analytics definition must not prevent the price rollback.
+    }
+  });
 }
 
 export type OrderCreateInput = {
@@ -702,7 +741,7 @@ export type PricingSettings = {
 };
 
 export const DEFAULT_PRICING_SETTINGS: PricingSettings = {
-  base: 24.99,
+  base: 20,
   customSong: 9.99,
   expressDelivery: 7.99,
   danceExtended: 20,

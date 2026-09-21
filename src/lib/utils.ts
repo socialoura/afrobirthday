@@ -87,7 +87,7 @@ export function formatPriceSimple(price: number, currency: CurrencyCode = "USD")
 }
 
 export const PRICES = {
-  base: 24.99,
+  base: 20,
   customSong: 9.99,
   expressDelivery: 7.99,
   danceExtended: 20,

@@ -125,7 +125,7 @@ export default function AdminDashboardPage() {
 
   // Settings state
   const [pricingSettings, setPricingSettings] = useState({
-    base: 19.99,
+    base: 20,
     customSong: 9.99,
     expressDelivery: 7.99,
     danceExtended: 20,
@@ -249,7 +249,7 @@ export default function AdminDashboardPage() {
       if (res.ok) {
         const data = await res.json();
         setPricingSettings({
-          base: typeof data.base === "number" ? data.base : 19.99,
+          base: typeof data.base === "number" ? data.base : 20,
           customSong: typeof data.customSong === "number" ? data.customSong : 9.99,
           expressDelivery: typeof data.expressDelivery === "number" ? data.expressDelivery : 7.99,
           danceExtended: typeof data.danceExtended === "number" ? data.danceExtended : 20,
