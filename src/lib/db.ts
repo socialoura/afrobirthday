@@ -406,14 +406,29 @@ export async function attachStripePaymentIntentToOrder(orderId: string, paymentI
   `;
 }
 
-export async function markOrderPaid(orderId: string, paymentIntentId: string | null) {
+/**
+ * Atomically marks a Stripe order as paid and claims its post-payment work.
+ *
+ * Stripe can call the webhook at the same time as the browser calls
+ * /api/confirm-payment. A separate read followed by an unconditional update
+ * lets both requests observe `pending` and send the email/Telegram bundle
+ * twice. The conditional UPDATE is the single source of truth: exactly one
+ * concurrent caller receives a row and may run the side effects.
+ */
+export async function markOrderPaid(
+  orderId: string,
+  paymentIntentId: string | null
+): Promise<boolean> {
   const sql = getSql();
 
-  await sql`
+  const claimed = await sql`
     UPDATE orders
     SET status = 'paid', payment_provider = 'stripe', stripe_payment_intent_id = ${paymentIntentId}
-    WHERE id = ${orderId}::uuid
+    WHERE id = ${orderId}::uuid AND status <> 'paid'
+    RETURNING id
   `;
+
+  return claimed.length === 1;
 }
 
 export async function attachPayPalOrderToOrder(orderId: string, paypalOrderId: string) {
@@ -426,14 +441,21 @@ export async function attachPayPalOrderToOrder(orderId: string, paypalOrderId: s
   `;
 }
 
-export async function markOrderPaidPayPal(orderId: string, paypalCaptureId: string | null) {
+/** PayPal equivalent of markOrderPaid; see its concurrency note above. */
+export async function markOrderPaidPayPal(
+  orderId: string,
+  paypalCaptureId: string | null
+): Promise<boolean> {
   const sql = getSql();
 
-  await sql`
+  const claimed = await sql`
     UPDATE orders
     SET status = 'paid', payment_provider = 'paypal', paypal_capture_id = ${paypalCaptureId}
-    WHERE id = ${orderId}::uuid
+    WHERE id = ${orderId}::uuid AND status <> 'paid'
+    RETURNING id
   `;
+
+  return claimed.length === 1;
 }
 
 export async function markOrderCanceled(orderId: string) {
