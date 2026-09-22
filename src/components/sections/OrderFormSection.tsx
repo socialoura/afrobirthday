@@ -13,6 +13,7 @@ import { Link } from "@/i18n/navigation";
 import dynamic from "next/dynamic";
 import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 import { getAttributionPayload } from "@/lib/attribution";
+import { resolveLocalPriceComponent } from "@/lib/currency";
 
 const CustomPaymentModal = dynamic(() => import("@/components/CustomPaymentModal"), { ssr: false });
 
@@ -509,16 +510,19 @@ export default function OrderFormSection() {
     (deliveryMethod === "express" ? pricing.expressDelivery : 0) +
     (danceExtended ? pricing.danceExtended : 0);
 
-  // Resolves a price component in the active local currency: a manual admin
-  // override for that currency wins, otherwise the USD price is converted with
+  // Resolves a price component in the active local currency. EUR keeps the USD
+  // numerical price (€20 for $20); other currencies use an admin override or
   // the live rate. Mirrors the server-side resolveLocalCharge logic.
   const localComponent = useMemo(() => {
     const override = priceOverrides[localCurrency];
     const rate = localCurrency === "USD" ? 1 : rates[localCurrency] ?? 1;
     return (key: "base" | "customSong" | "expressDelivery" | "danceExtended") => {
-      const ov = override?.[key];
-      if (typeof ov === "number" && Number.isFinite(ov) && ov >= 0) return ov;
-      return pricing[key] * rate;
+      return resolveLocalPriceComponent({
+        usdPrice: pricing[key],
+        currency: localCurrency,
+        rate,
+        override: override?.[key],
+      });
     };
   }, [priceOverrides, localCurrency, rates, pricing]);
 
@@ -573,7 +577,7 @@ export default function OrderFormSection() {
   // True when at least one component of the displayed total is auto-converted
   // (no manual override) — i.e. the live exchange rate actually applies.
   const usesLiveRate = useMemo(() => {
-    if (localCurrency === "USD") return false;
+    if (localCurrency === "USD" || localCurrency === "EUR") return false;
     const override = priceOverrides[localCurrency];
     const overridden = (key: "base" | "customSong" | "expressDelivery" | "danceExtended") =>
       typeof override?.[key] === "number";
@@ -923,9 +927,8 @@ export default function OrderFormSection() {
           hasCustomSong: musicOption === "custom",
           isExpress: deliveryMethod === "express",
           promoCode: appliedPromo?.code,
-          // The currency the customer was shown: PayPal bills in dollars, so
-          // the server needs it to charge the right arm of a price test, and
-          // the order records it.
+          // The server validates this code, calculates the authoritative local
+          // amount and falls back to USD if PayPal does not support it.
           currency: localCurrency,
           attribution: getAttributionPayload(),
         }),

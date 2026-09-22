@@ -95,8 +95,8 @@ export const PRICES = {
 
 /**
  * Maps a BCP-47 locale (e.g. "fr-FR", "ar-SA", "pt-BR") to its most likely
- * local currency. Used to show "estimated local price" while always charging
- * in USD on the server side.
+ * local currency. Stripe and PayPal use it when the payment provider supports
+ * that currency; unsupported PayPal currencies fall back to USD.
  */
 export function currencyFromLocale(locale: string): CurrencyCode {
   const region = locale.split("-")[1]?.toUpperCase();

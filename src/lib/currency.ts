@@ -87,6 +87,25 @@ export type ResolvedCharge = {
   usdEquivalent: number;
 };
 
+/**
+ * AfroBirthday uses price parity for euro customers: a component priced at
+ * $20 is sold for €20. This is a commercial price rule, not an FX conversion,
+ * and therefore takes precedence over legacy EUR overrides.
+ */
+export function resolveLocalPriceComponent(params: {
+  usdPrice: number;
+  currency: CurrencyCode;
+  rate: number;
+  override?: number;
+}): number {
+  const { usdPrice, currency, rate, override } = params;
+  if (currency === "EUR") return usdPrice;
+  if (typeof override === "number" && Number.isFinite(override) && override >= 0) {
+    return override;
+  }
+  return usdPrice * rate;
+}
+
 /** Converts a local amount back to USD at the rate that was used to charge it. */
 export function toUsdEquivalent(localAmount: number, rate: number): number {
   if (!Number.isFinite(rate) || rate <= 0) return Math.round(localAmount * 100) / 100;
@@ -96,10 +115,9 @@ export function toUsdEquivalent(localAmount: number, rate: number): number {
 /**
  * Resolves the amount to charge in the customer's local currency.
  *
- * For each price component (base / customSong / expressDelivery) a manual
- * override for that currency wins; otherwise the USD price is converted with
- * the live rate. This lets the admin pin clean local prices (e.g. 19,99 €) while
- * other currencies fall back to automatic conversion.
+ * EUR follows numerical price parity with USD. For every other currency, a
+ * manual component override wins; otherwise the USD price is converted with
+ * the live rate.
  */
 export function resolveLocalCharge(params: {
   usdPricing: PriceComponents;
@@ -114,9 +132,12 @@ export function resolveLocalCharge(params: {
   const rate = rates[currency] ?? CURRENCY_RATES[currency] ?? 1;
 
   const component = (key: keyof PriceComponents): number => {
-    const ov = override?.[key];
-    if (typeof ov === "number" && Number.isFinite(ov) && ov >= 0) return ov;
-    return usdPricing[key] * rate;
+    return resolveLocalPriceComponent({
+      usdPrice: usdPricing[key],
+      currency,
+      rate,
+      override: override?.[key],
+    });
   };
 
   let local = component("base");
@@ -147,4 +168,23 @@ export function formatStripeAmount(
   const isZeroDecimal = (ZERO_DECIMAL_CURRENCIES as Set<string>).has(code);
   const value = isZeroDecimal ? amount : amount / 100;
   return `${value.toFixed(isZeroDecimal ? 0 : 2)} ${code}`;
+}
+
+/**
+ * Formats the amount consistently across the browser callback and Stripe
+ * webhook. Whichever concurrent request wins the atomic payment claim should
+ * produce the same operator-facing label.
+ */
+export function formatStripeAmountWithUsd(
+  amount: number,
+  currency: string,
+  usdEquivalent?: string | number | null
+): string {
+  const local = formatStripeAmount(amount, currency);
+  if (currency.toUpperCase() === "USD") return local;
+
+  const usd = Number(usdEquivalent);
+  return Number.isFinite(usd) && usd > 0
+    ? `${local} (≈ $${usd.toFixed(2)})`
+    : local;
 }

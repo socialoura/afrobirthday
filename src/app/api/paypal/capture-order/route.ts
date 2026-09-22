@@ -32,8 +32,13 @@ export async function POST(request: NextRequest) {
 
     await ensureOrdersTable();
 
-    const existingOrder = await getOrderById(orderId);
-    const wasAlreadyPaid = existingOrder?.status === "paid";
+    const pendingOrder = await getOrderById(orderId);
+    if (!pendingOrder) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+    if (pendingOrder.paypal_order_id !== paypalOrderId) {
+      return NextResponse.json({ error: "PayPal order mismatch" }, { status: 400 });
+    }
 
     const capture = await capturePayPalOrder(paypalOrderId);
 
@@ -44,13 +49,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!wasAlreadyPaid) {
-      await markOrderPaidPayPal(orderId, capture.captureId);
+    const expectedCurrency = (pendingOrder.currency || "USD").toUpperCase();
+    const expectedAmount = Number(pendingOrder.total_local ?? pendingOrder.total_usd);
+    if (
+      capture.orderId !== orderId ||
+      capture.currency?.toUpperCase() !== expectedCurrency ||
+      capture.amount == null ||
+      Math.abs(capture.amount - expectedAmount) > 0.001
+    ) {
+      throw new Error(
+        `PayPal capture mismatch for order ${orderId}: expected ${expectedAmount} ${expectedCurrency}`
+      );
     }
 
-    const order = (await getOrderById(orderId)) ?? existingOrder;
+    const shouldProcess = await markOrderPaidPayPal(orderId, capture.captureId);
 
-    if (!wasAlreadyPaid && order?.promo_code) {
+    const order = await getOrderById(orderId);
+
+    if (shouldProcess && order?.promo_code) {
       await incrementPromoCodeUsage(order.promo_code).catch((err) =>
         console.error("Failed to increment promo code usage (PayPal):", err)
       );
@@ -59,7 +75,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!wasAlreadyPaid && order?.email) {
+    if (shouldProcess && order?.email) {
       try {
         await sendEmailWithResend({
           to: order.email,
@@ -72,24 +88,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (order) {
+    // Previously this notification was outside the !wasAlreadyPaid guard, so
+    // every repeated PayPal callback resent the complete Telegram bundle.
+    if (shouldProcess && order) {
+      const currency = (order.currency || "USD").toUpperCase();
+      const localAmount = Number(order.total_local ?? order.total_usd);
+      const amountLabel =
+        currency === "USD"
+          ? `$${localAmount.toFixed(2)} USD`
+          : `${localAmount.toFixed(currency === "JPY" ? 0 : 2)} ${currency} (≈ $${Number(order.total_usd).toFixed(2)} USD)`;
       await notifyOrderPaid({
         order,
         provider: "PayPal",
-        amountLabel: `$${Number(order.total_usd).toFixed(2)} USD`,
+        amountLabel,
         paymentRef: capture.captureId ?? paypalOrderId,
       });
     }
 
     return NextResponse.json({
       ok: true,
-      // total_local reflects the actual amount charged (after any promo
-      // discount); total_usd is the pre-discount reference price.
       value: order?.total_local ?? order?.total_usd ?? null,
-      // PayPal always charges in USD, so the two match — sent explicitly so the
-      // success page reports value_usd on this path too.
-      valueUsd: order?.total_local ?? order?.total_usd ?? null,
-      currency: "USD",
+      valueUsd: order
+        ? Math.max(0, Number(order.total_usd) - Number(order.discount_amount || 0))
+        : null,
+      currency: order?.currency ?? "USD",
     });
   } catch (error) {
     console.error("PayPal capture error:", error);

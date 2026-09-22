@@ -1,4 +1,25 @@
+import type { CurrencyCode } from "@/lib/utils";
+
 type PayPalEnv = "sandbox" | "live";
+
+// Intersection between the currencies displayed by AfroBirthday and the
+// currencies accepted by PayPal Checkout. Unsupported local currencies keep
+// the historical USD fallback instead of making PayPal reject the order.
+const PAYPAL_SUPPORTED_CURRENCIES = new Set<CurrencyCode>([
+  "USD",
+  "EUR",
+  "GBP",
+  "CAD",
+  "AUD",
+  "BRL",
+  "MXN",
+  "CNY",
+  "JPY",
+]);
+
+export function isPayPalSupportedCurrency(currency: CurrencyCode): boolean {
+  return PAYPAL_SUPPORTED_CURRENCIES.has(currency);
+}
 
 function getPayPalEnv(): PayPalEnv {
   const env = (process.env.PAYPAL_ENV ?? "sandbox").toLowerCase();
@@ -41,7 +62,8 @@ async function getPayPalAccessToken() {
 
 export async function createPayPalOrder(input: {
   orderId: string;
-  amountUsd: number;
+  amount: number;
+  currency: CurrencyCode;
   returnUrl: string;
   cancelUrl: string;
 }) {
@@ -60,8 +82,8 @@ export async function createPayPalOrder(input: {
           reference_id: input.orderId,
           custom_id: input.orderId,
           amount: {
-            currency_code: "USD",
-            value: input.amountUsd.toFixed(2),
+            currency_code: input.currency,
+            value: input.amount.toFixed(input.currency === "JPY" ? 0 : 2),
           },
         },
       ],
@@ -129,12 +151,26 @@ export async function capturePayPalOrder(paypalOrderId: string) {
   const data = JSON.parse(text) as {
     status?: string;
     purchase_units?: Array<{
+      reference_id?: string;
+      custom_id?: string;
       payments?: {
-        captures?: Array<{ id: string; status?: string }>;
+        captures?: Array<{
+          id: string;
+          status?: string;
+          amount?: { currency_code?: string; value?: string };
+        }>;
       };
     }>;
   };
 
-  const captureId = data.purchase_units?.[0]?.payments?.captures?.[0]?.id;
-  return { status: data.status ?? null, captureId: captureId ?? null, raw: data };
+  const purchaseUnit = data.purchase_units?.[0];
+  const capture = purchaseUnit?.payments?.captures?.[0];
+  return {
+    status: data.status ?? null,
+    captureId: capture?.id ?? null,
+    orderId: purchaseUnit?.custom_id ?? purchaseUnit?.reference_id ?? null,
+    currency: capture?.amount?.currency_code ?? null,
+    amount: capture?.amount?.value != null ? Number(capture.amount.value) : null,
+    raw: data,
+  };
 }

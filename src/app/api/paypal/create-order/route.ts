@@ -3,15 +3,20 @@ import {
   attachPayPalOrderToOrder,
   createOrder,
   ensureOrdersTable,
+  getPricingOverrides,
   getPricingSettings,
   sanitizeAttribution,
   validatePromoCode,
 } from "@/lib/db";
-import { discountedUsdTotal, usdDiscountAmount } from "@/lib/promo";
-import { createPayPalOrder } from "@/lib/paypal";
+import { applyPromoToCharge, usdDiscountAmount } from "@/lib/promo";
+import { createPayPalOrder, isPayPalSupportedCurrency } from "@/lib/paypal";
 import { deviceTypeFromUserAgent } from "@/lib/device";
 import { SITE_URL } from "@/lib/siteUrl";
-import { isSupportedCurrency } from "@/lib/currency";
+import {
+  getServerExchangeRates,
+  isSupportedCurrency,
+  resolveLocalCharge,
+} from "@/lib/currency";
 import { getActivePriceTest, isControlCurrency } from "@/lib/priceTest";
 
 export const runtime = "nodejs";
@@ -54,12 +59,17 @@ export async function POST(request: NextRequest) {
 
     await ensureOrdersTable();
 
-    // PayPal bills in dollars whatever the customer was shown. During a price
-    // test the control currencies keep the dollar prices they had before it
-    // started — otherwise the control group's PayPal payers, a fifth of them,
-    // would quietly be charged the new price and the comparison would be void.
     const displayCurrency = isSupportedCurrency(requestedCurrency) ? requestedCurrency : "USD";
-    const [livePricing, priceTest] = await Promise.all([getPricingSettings(), getActivePriceTest()]);
+    // PayPal does not accept every local currency displayed by the storefront.
+    // Charge supported currencies directly (notably EUR); otherwise retain the
+    // existing USD fallback.
+    const currency = isPayPalSupportedCurrency(displayCurrency) ? displayCurrency : "USD";
+    const [livePricing, priceTest, rates, overrides] = await Promise.all([
+      getPricingSettings(),
+      getActivePriceTest(),
+      getServerExchangeRates(),
+      getPricingOverrides(),
+    ]);
     const pricing =
       priceTest && isControlCurrency(priceTest, displayCurrency)
         ? priceTest.legacyUsdPricing
@@ -67,18 +77,23 @@ export async function POST(request: NextRequest) {
     const resolvedMusicOption = musicOption ?? (hasCustomSong ? "custom" : "default");
     const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
     const resolvedDanceExtended = danceExtended === true;
-    const computedTotalUsd =
-      pricing.base +
-      (resolvedMusicOption === "custom" ? pricing.customSong : 0) +
-      (resolvedDeliveryMethod === "express" ? pricing.expressDelivery : 0) +
-      (resolvedDanceExtended ? pricing.danceExtended : 0);
+    const charge = resolveLocalCharge({
+      usdPricing: pricing,
+      hasCustomSong: resolvedMusicOption === "custom",
+      isExpress: resolvedDeliveryMethod === "express",
+      hasDanceExtended: resolvedDanceExtended,
+      currency,
+      rates,
+      override: overrides[currency],
+    });
+    const referenceUsd = charge.usdEquivalent;
 
     const country = request.headers.get("x-vercel-ip-country") ?? undefined;
     const device = deviceTypeFromUserAgent(request.headers.get("user-agent"));
 
     // Never trust a client-sent discount: re-validate the code server-side
     // and recompute the charge from scratch.
-    let chargedUsd = computedTotalUsd;
+    let finalCharge = charge;
     let appliedPromoCode: string | null = null;
     let discountUsd = 0;
     if (typeof requestedPromoCode === "string" && requestedPromoCode.trim()) {
@@ -86,9 +101,9 @@ export async function POST(request: NextRequest) {
       if (!promo) {
         return NextResponse.json({ error: "Invalid or expired promo code" }, { status: 400 });
       }
-      chargedUsd = discountedUsdTotal(computedTotalUsd, promo);
+      finalCharge = applyPromoToCharge(charge, promo);
       appliedPromoCode = promo.code;
-      discountUsd = usdDiscountAmount(computedTotalUsd, promo);
+      discountUsd = usdDiscountAmount(referenceUsd, promo);
     }
 
     await createOrder({
@@ -100,13 +115,13 @@ export async function POST(request: NextRequest) {
       musicFileUrl,
       deliveryMethod: resolvedDeliveryMethod,
       photoUrl,
-      totalUsd: computedTotalUsd,
+      totalUsd: referenceUsd,
       country,
       device,
-      currency: "USD",
+      currency: finalCharge.currency,
       displayCurrency,
-      totalLocal: chargedUsd,
-      exchangeRate: 1,
+      totalLocal: finalCharge.localAmount,
+      exchangeRate: finalCharge.rate,
       promoCode: appliedPromoCode ?? undefined,
       discountAmount: discountUsd,
       danceExtended: resolvedDanceExtended,
@@ -118,7 +133,8 @@ export async function POST(request: NextRequest) {
 
     const { paypalOrderId, approveUrl } = await createPayPalOrder({
       orderId,
-      amountUsd: chargedUsd,
+      amount: finalCharge.localAmount,
+      currency: finalCharge.currency,
       returnUrl,
       cancelUrl,
     });
