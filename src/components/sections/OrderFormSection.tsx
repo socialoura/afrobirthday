@@ -14,6 +14,7 @@ import dynamic from "next/dynamic";
 import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 import { getAttributionPayload } from "@/lib/attribution";
 import { resolveLocalPriceComponent } from "@/lib/currency";
+import { resolveOrderUploads } from "@/lib/orderUploads";
 
 const CustomPaymentModal = dynamic(() => import("@/components/CustomPaymentModal"), { ssr: false });
 
@@ -724,6 +725,29 @@ export default function OrderFormSection() {
     [uploadToStorage]
   );
 
+  // Both payment methods need the same uploaded assets. Uploads start as soon
+  // as a file is selected, so reaching the payment CTA should await and reuse
+  // that work instead of sending the same photo/music a second time. A failed
+  // background transfer gets one fresh attempt here.
+  const resolveUploadedFiles = useCallback(async () => {
+    if (!photo) throw new Error("Missing photo");
+
+    const { photoUrl, musicFileUrl } = await resolveOrderUploads({
+      photo,
+      musicFile,
+      photoUrl: photoUrlRef.current,
+      musicFileUrl: musicFileUrlRef.current,
+      photoUpload: photoUploadRef.current,
+      musicUpload: musicUploadRef.current,
+      upload: uploadToStorage,
+    });
+
+    photoUrlRef.current = photoUrl;
+    if (musicFileUrl) musicFileUrlRef.current = musicFileUrl;
+
+    return { photoUrl, musicFileUrl };
+  }, [musicFile, photo, uploadToStorage]);
+
   // Stripe.js is a ~1 MB script and the payment modal is a lazy chunk, both of
   // which used to start downloading only once the client secret arrived. Warm
   // them as soon as the customer commits to an order.
@@ -877,43 +901,7 @@ export default function OrderFormSection() {
     try {
       const orderId = sessionOrderId();
       setCurrentOrderId(orderId);
-
-      const photoForm = new FormData();
-      photoForm.append("file", photo);
-      photoForm.append("folder", "orders/photos");
-
-      const photoUploadRes = await fetch("/api/upload", {
-        method: "POST",
-        body: photoForm,
-      });
-
-      if (!photoUploadRes.ok) {
-        throw new Error("Photo upload failed");
-      }
-
-      const { url: photoUrl } = await photoUploadRes.json();
-      if (!photoUrl) {
-        throw new Error("Missing photo URL");
-      }
-
-      let musicFileUrl: string | undefined;
-      if (musicFile) {
-        const musicForm = new FormData();
-        musicForm.append("file", musicFile);
-        musicForm.append("folder", "orders/music");
-
-        const musicUploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: musicForm,
-        });
-
-        if (!musicUploadRes.ok) {
-          throw new Error("Music upload failed");
-        }
-
-        const { url } = await musicUploadRes.json();
-        if (url) musicFileUrl = url;
-      }
+      const { photoUrl, musicFileUrl } = await resolveUploadedFiles();
 
       const response = await fetch("/api/paypal/create-order", {
         method: "POST",
@@ -981,25 +969,7 @@ export default function OrderFormSection() {
     setPaymentSetupError(null);
 
     try {
-      // Both files started uploading the moment they were picked, so this
-      // usually resolves instantly. Only a failed background upload gets
-      // retried here, and photo and music no longer wait on each other.
-      const pendingPhoto: Promise<string> = photoUrlRef.current
-        ? Promise.resolve(photoUrlRef.current)
-        : (photoUploadRef.current ?? uploadToStorage(photo, "orders/photos"));
-
-      const pendingMusic: Promise<string | undefined> =
-        musicFile && !musicFileUrlRef.current
-          ? (musicUploadRef.current ?? uploadToStorage(musicFile, "orders/music"))
-          : Promise.resolve(musicFileUrlRef.current ?? undefined);
-
-      const [photoUrl, musicFileUrl] = await Promise.all([
-        pendingPhoto.catch(() => uploadToStorage(photo, "orders/photos")),
-        pendingMusic,
-      ]);
-
-      photoUrlRef.current = photoUrl;
-      if (musicFileUrl) musicFileUrlRef.current = musicFileUrl;
+      const { photoUrl, musicFileUrl } = await resolveUploadedFiles();
 
       const orderId = sessionOrderId();
       const response = await fetch("/api/create-payment-intent", {
@@ -1059,9 +1029,8 @@ export default function OrderFormSection() {
       paymentSetupInFlightRef.current = false;
     }
   }, [
-    uploadToStorage,
+    resolveUploadedFiles,
     photo,
-    musicFile,
     email,
     message,
     musicOption,
