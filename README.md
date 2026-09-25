@@ -47,7 +47,7 @@ npm run optimize:videos
 - TypeScript
 - Tailwind CSS
 - Stripe + PayPal
-- Supabase (Postgres + Storage)
+- PostgreSQL sur VPS (tunnel SSH depuis Vercel) + Supabase Storage
 - PostHog + Vercel Analytics
 
 ## 📚 Documentation

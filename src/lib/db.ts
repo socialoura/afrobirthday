@@ -1,28 +1,107 @@
 import postgres from "postgres";
+import { timingSafeEqual } from "node:crypto";
+import type { Duplex } from "node:stream";
+import { Client as SshClient } from "ssh2";
 
-// Prefer the Supabase-provided connection string (injected by the Supabase
-// Vercel integration) over POSTGRES_URL/DATABASE_URL, which are managed by
-// the project's separate Neon integration and read-only in the dashboard.
-const POSTGRES_URL =
-  process.env.SUPABASE_POSTGRES_URL ||
-  process.env.POSTGRES_URL ||
-  process.env.DATABASE_URL;
+const DATABASE_URL = process.env.DATABASE_URL;
 
 let cachedSql: ReturnType<typeof postgres> | null = null;
 
+function openDatabaseTunnel(hosts: string[], ports: number[]): Promise<Duplex> {
+  const [databaseHost] = hosts;
+  const [databasePort] = ports;
+  const sshHost = process.env.DATABASE_SSH_HOST;
+  const sshUser = process.env.DATABASE_SSH_USER;
+  const privateKey = process.env.DATABASE_SSH_PRIVATE_KEY;
+  const expectedFingerprint = process.env.DATABASE_SSH_HOST_KEY_SHA256?.toLowerCase();
+
+  if (!databaseHost || !databasePort || !sshHost || !sshUser || !privateKey) {
+    throw new Error("PostgreSQL SSH tunnel configuration is missing.");
+  }
+  if (!expectedFingerprint || !/^[a-f0-9]{64}$/.test(expectedFingerprint)) {
+    throw new Error("DATABASE_SSH_HOST_KEY_SHA256 must be a SHA-256 hex fingerprint.");
+  }
+
+  return new Promise((resolve, reject) => {
+    const ssh = new SshClient();
+    let settled = false;
+    let forwardedSocket: Duplex | undefined;
+    const fail = (error: Error) => {
+      if (settled) return;
+      settled = true;
+      ssh.end();
+      reject(error);
+    };
+
+    ssh.once("error", fail);
+    ssh.once("close", () => {
+      if (!settled) {
+        fail(new Error("SSH closed before the PostgreSQL tunnel was opened."));
+      } else if (forwardedSocket && !forwardedSocket.destroyed) {
+        forwardedSocket.destroy(new Error("PostgreSQL SSH tunnel was closed."));
+      }
+    });
+    ssh.once("ready", () => {
+      ssh.forwardOut("127.0.0.1", 0, databaseHost, databasePort, (error, socket) => {
+        if (error) return fail(error);
+        settled = true;
+        forwardedSocket = socket;
+        ssh.removeListener("error", fail);
+        ssh.on("error", () => {
+          if (!socket.destroyed) socket.destroy();
+        });
+        socket.once("close", () => ssh.end());
+        resolve(socket);
+      });
+    });
+
+    const sshPort = Number(process.env.DATABASE_SSH_PORT || 22);
+    if (!Number.isInteger(sshPort) || sshPort < 1 || sshPort > 65_535) {
+      fail(new Error("DATABASE_SSH_PORT must be a valid port."));
+      return;
+    }
+    ssh.connect({
+      host: sshHost,
+      port: sshPort,
+      username: sshUser,
+      privateKey,
+      hostHash: "sha256",
+      algorithms: { serverHostKey: ["ssh-ed25519"] },
+      hostVerifier: (fingerprint: string | Buffer) => {
+        if (typeof fingerprint !== "string" || !/^[a-f0-9]{64}$/i.test(fingerprint)) return false;
+        return timingSafeEqual(Buffer.from(fingerprint, "hex"), Buffer.from(expectedFingerprint, "hex"));
+      },
+      readyTimeout: 10_000,
+      keepaliveInterval: 15_000,
+      keepaliveCountMax: 2,
+    });
+  });
+}
+
 export function getSql() {
-  if (!POSTGRES_URL) {
-    throw new Error("Missing POSTGRES_URL");
+  if (!DATABASE_URL) {
+    throw new Error("Missing DATABASE_URL");
   }
   if (!cachedSql) {
-    cachedSql = postgres(POSTGRES_URL, {
-      // Required for Supabase's transaction-pooling mode (pgbouncer): pooled
-      // connections can be handed to a different client between statements,
-      // which breaks protocol-level prepared statements.
+    const databaseHost = new URL(DATABASE_URL).hostname;
+    const usesSshTunnel = Boolean(process.env.DATABASE_SSH_HOST);
+    const databaseIsLocal = ["127.0.0.1", "localhost", "::1"].includes(databaseHost);
+    if (process.env.VERCEL && databaseIsLocal && !usesSshTunnel) {
+      throw new Error("DATABASE_URL targets localhost on Vercel but DATABASE_SSH_HOST is missing.");
+    }
+    const options = {
       prepare: false,
-      ssl: "require",
-      max: 10,
-    });
+      max: 1,
+      idle_timeout: 20,
+      connect_timeout: 15,
+      ssl: usesSshTunnel || databaseIsLocal ? false : "verify-full",
+      ...(usesSshTunnel
+        ? { socket: (connection: { host: string[]; port: number[] }) => openDatabaseTunnel(connection.host, connection.port) }
+        : {}),
+    } as NonNullable<Parameters<typeof postgres>[1]> & {
+      socket?: (connection: { host: string[]; port: number[] }) => Promise<Duplex>;
+    };
+    cachedSql = postgres(DATABASE_URL, options);
   }
   return cachedSql;
 }

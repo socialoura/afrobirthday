@@ -18,7 +18,7 @@ AfroBirthday est une app e-commerce Next.js pour commander des vidéos d'anniver
 - **Framework** : Next.js **16.1.6** App Router + Turbopack, React **18.3.1**, TypeScript strict.
 - **Styles** : Tailwind CSS 3.4, `tailwind-merge`, `clsx`, classes utilitaires custom (`glass-card`, `btn-primary`, `section-container`, etc.).
 - **i18n** : `next-intl` 4.8 ; locales dans `messages/*.json` ; config dans `src/i18n/config.ts` ; middleware `localePrefix: "always"`.
-- **DB** : Postgres via package `postgres` (pas d'ORM), code-first DDL dans `src/lib/db.ts`.
+- **DB** : PostgreSQL sur le VPS via `postgres` et un tunnel SSH épinglé depuis Vercel ; DDL code-first dans `src/lib/db.ts`.
 - **Storage** : Supabase Storage bucket `orders` via `@supabase/supabase-js` **service role** côté serveur.
 - **Paiements** : `stripe` 16 + `@stripe/react-stripe-js` / `@stripe/stripe-js` ; PayPal via REST `api-m.paypal.com` / sandbox.
 - **Emails** : Resend API HTTP directe (`src/lib/resend.ts`).
@@ -175,9 +175,9 @@ Il **n'existe pas** de `schema.sql` ni dossier `migrations/` dans le repo. Le sc
 
 Connexion DB (`getSql`) :
 
-- ordre de lecture : `SUPABASE_POSTGRES_URL` > `POSTGRES_URL` > `DATABASE_URL` ;
-- `prepare: false`, `ssl: "require"`, pool max 10 ;
-- erreur si aucune URL : `Missing POSTGRES_URL`.
+- `DATABASE_URL` est l'unique URL lue par l'application et pointe vers PostgreSQL local (`127.0.0.1:5432`) à travers le tunnel SSH configuré dans `DATABASE_SSH_HOST`, `DATABASE_SSH_PORT`, `DATABASE_SSH_USER`, `DATABASE_SSH_PRIVATE_KEY` et `DATABASE_SSH_HOST_KEY_SHA256` ;
+- la clé d'hôte SSH est épinglée en SHA-256 ; le client PostgreSQL utilise `prepare: false` et un pool d'une connexion ;
+- sans URL : erreur `Missing DATABASE_URL`.
 
 ### Table `orders`
 
@@ -255,10 +255,10 @@ Aucun `.env*` n'est tracké (`.gitignore` exclut `.env*` / `.env*.local`). Varia
 ### Site / DB / storage
 
 - `NEXT_PUBLIC_SITE_URL` : base publique ; fallback code `https://afrobirthday.com`.
-- `SUPABASE_POSTGRES_URL` : prioritaire pour la DB.
-- `POSTGRES_URL`, `DATABASE_URL` : fallback DB.
+- `DATABASE_URL` : connexion au PostgreSQL du VPS, requise pour l'application.
+- `DATABASE_SSH_HOST`, `DATABASE_SSH_PORT`, `DATABASE_SSH_USER`, `DATABASE_SSH_PRIVATE_KEY`, `DATABASE_SSH_HOST_KEY_SHA256` : tunnel SSH épinglé depuis Vercel.
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` : storage serveur obligatoire.
-- `SUPABASE_POSTGRES_URL_NON_POOLING`, `NEON_POSTGRES_URL` : script migration seulement.
+- Les anciennes URL PostgreSQL Supabase/Neon ne sont plus lues par l'application.
 
 ### Stripe / PayPal
 
@@ -312,7 +312,7 @@ Aucun `.env*` n'est tracké (`.gitignore` exclut `.env*` / `.env*.local`). Varia
 
 ## 11) Docs existantes fausses / obsolètes / contradictoires
 
-1. **README dit “Neon PostgreSQL”** : obsolète. Le code préfère `SUPABASE_POSTGRES_URL`, le storage est Supabase, et `scripts/migrate-neon-to-supabase.mjs` documente une migration Neon -> Supabase.
+1. **README dit “Neon PostgreSQL”** : obsolète. La cible applicative est le PostgreSQL du VPS ; Supabase Storage reste utilisé, et `scripts/migrate-neon-to-supabase.mjs` est un script historique.
 2. **Docs musique (`MUSIC_DOWNLOAD_SETUP.md`, `FEATURE_MUSIC_DOWNLOAD.md`) parlent de Discord + Vercel Blob** : obsolète. Le code upload sur Supabase Storage et notifie Telegram ; Discord est désactivé dans `src/lib/discordWebhook.ts`.
 3. **Ces mêmes docs présentent Cobalt `co.wuk.sh` comme voie normale** : partiellement obsolète. Le code commente que l'instance publique legacy est morte et préfère `RAPIDAPI_KEY` pour YouTube ; `co.wuk.sh` reste seulement le défaut si `MUSIC_DOWNLOAD_API_URL` absent.
 4. **`DISCORD_MOBILE_COPY.md`** : utile historiquement, mais la cible "vérifier Discord" est obsolète ; le message copiable existe encore dans le module Discord désactivé et la logique équivalente est envoyée sur Telegram.
@@ -325,7 +325,7 @@ Aucun `.env*` n'est tracké (`.gitignore` exclut `.env*` / `.env*.local`). Varia
 11. **Lint** : `package.json` garde `"lint": "next lint"` avec Next 16 ; `npm run lint` échoue (`Invalid project directory ... /workspace/lint`). Utiliser `npx tsc` et/ou moderniser ESLint.
 12. **Build en petit conteneur** : `npm run build` compile puis est tué (`exit 137`) pendant "Running TypeScript" dans cet environnement ; `npx tsc --noEmit --incremental false` passe avec plus de heap. Ce n'est pas une contradiction de doc, mais un piège de vérification.
 13. **README/langues** : correct — 10 locales : EN, FR, ES, DE, IT, PT, NL, AR, HI, ZH.
-14. **README/technologies** : incomplet — manque Supabase Storage/DB, Resend, Telegram, OpenAI, AWS Bedrock, RapidAPI, cron Vercel.
+14. **README/technologies** : incomplet — manque le PostgreSQL du VPS, Supabase Storage, Resend, Telegram, OpenAI, AWS Bedrock, RapidAPI, cron Vercel.
 
 ## 12) Commandes de vérification avant de terminer une tâche
 
@@ -358,8 +358,8 @@ git diff --stat
 ## 13) Résumé nouvel agent — 7 points essentiels
 
 1. Le flux carte réel de l'UI est `/api/create-payment-intent` -> `CustomPaymentModal` -> `/api/confirm-payment` ; `/api/create-checkout` existe mais semble legacy/non câblé.
-2. La DB est code-first dans `src/lib/db.ts` ; pas de `schema.sql`/migrations. Connexion `SUPABASE_POSTGRES_URL` > `POSTGRES_URL` > `DATABASE_URL`.
-3. Supabase est utilisé pour DB + Storage bucket `orders` ; Discord est désactivé, Telegram est le canal actif.
+2. La DB est code-first dans `src/lib/db.ts` ; pas de `schema.sql`/migrations. La connexion applicative utilise `DATABASE_URL` et le tunnel SSH vers le VPS.
+3. Le PostgreSQL du VPS sert la DB ; Supabase Storage conserve le bucket `orders`. Discord est désactivé, Telegram est le canal actif.
 4. Les montants clients ne sont jamais fiables : le serveur recalcule base/customSong/express + overrides + taux avant de créer Stripe/PayPal.
 5. Les liens upload/recap sont des tokens HMAC order-scoped de 14 jours ; utilise uniquement `node scripts/upload-link.mjs <orderId>` pour les générer.
 6. Promo codes, Stripe settings DB et certaines docs racine sont des pièges : présents mais pas branchés ou obsolètes ; vérifie le code avant d'agir.
