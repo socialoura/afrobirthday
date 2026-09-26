@@ -164,7 +164,7 @@ Les tables/routes admin promo existent, mais `validatePromoCode` / `incrementPro
 | `/api/recap/download` | GET | upload token ; proxy download photo/musique/vocal |
 | `/api/recap/regenerate-voiceover` | POST | upload token ; régénère vocal OpenAI |
 | `/api/stripe-webhook` | POST | signature Stripe `STRIPE_WEBHOOK_SECRET` |
-| `/api/telegram/webhook` | POST | public ; webhook bot Telegram |
+| `/api/telegram/webhook` | POST | Telegram secret header + allowlisted private owner chat |
 | `/api/upload` | POST | public rate-limit ; folders allowlistés ; `admin/videos` exige admin |
 | `/api/upload-final/order` | GET | upload token ; résumé commande pour pages magiques |
 | `/api/upload-final/save` | POST | upload token ; save final video + option email client |
@@ -271,7 +271,8 @@ Aucun `.env*` n'est tracké (`.gitignore` exclut `.env*` / `.env*.local`). Varia
 ### Emails / notifications / IA
 
 - `RESEND_API_KEY`, `RESEND_FROM_EMAIL` : envois emails.
-- `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` : bot et notifications.
+- `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` : bot et notifications ; `TELEGRAM_CHAT_ID` doit être l'ID privé du propriétaire autorisé.
+- `TELEGRAM_WEBHOOK_SECRET` : secret Telegram du webhook ; doit être identique au paramètre `secret_token` de `setWebhook` (1–256 caractères parmi lettres, chiffres, `_`, `-`). La route refuse les requêtes tant que ce secret n'est pas configuré.
 - `OPENAI_API_KEY` : TTS vocal.
 - `OPENAI_TTS_MODEL` (défaut `gpt-4o-mini-tts`), `OPENAI_TTS_VOICE` (défaut `nova`), `OPENAI_TTS_SPEED` (défaut `0.75`).
 - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_SESSION_TOKEN`, `BEDROCK_MODEL` : chatbot Telegram via Bedrock.

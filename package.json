@@ -11,6 +11,7 @@
     "optimize:videos": "node scripts/optimize-videos.js",
     "check:videos": "node scripts/check-videos.js",
     "audit:events": "node scripts/audit-events.mjs",
+    "test:telegram-webhook": "node --experimental-strip-types --test scripts/telegram-webhook-auth.test.mjs",
     "check:campaigns": "node --env-file=.env.local --experimental-strip-types --import ./scripts/alias-loader-register.mjs scripts/check-campaigns.mjs",
     "check:attribution": "node --env-file=.env.local --experimental-strip-types --import ./scripts/alias-loader-register.mjs scripts/check-attribution.mjs",
     "check:seo-urls": "node --experimental-strip-types --import ./scripts/alias-loader-register.mjs scripts/check-seo-urls.mjs",

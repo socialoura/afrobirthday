@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import {
+  isAllowedTelegramChat,
+  isTelegramWebhookSecretConfigured,
+  isTelegramWebhookSecretValid,
+} from "@/lib/telegramWebhookAuth";
 import { getAllOrders, setOrderMedia } from "@/lib/db";
 import {
   sendTelegramMessage,
@@ -15,19 +20,51 @@ export const maxDuration = 60;
 
 type TelegramUpdate = {
   message?: {
-    chat: { id: number };
+    chat: { id: number; type?: string };
     text?: string;
-    from?: { first_name?: string };
+    from?: { id?: number; first_name?: string };
   };
 };
 
 export async function POST(request: Request) {
+  const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (!isTelegramWebhookSecretConfigured(expectedSecret)) {
+    console.error("Telegram webhook secret is missing or invalid");
+    return NextResponse.json({ error: "Webhook is not configured" }, { status: 503 });
+  }
+
+  if (
+    !isTelegramWebhookSecretValid(
+      request.headers.get("x-telegram-bot-api-secret-token"),
+      expectedSecret
+    )
+  ) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const allowedChatId = process.env.TELEGRAM_CHAT_ID;
+  if (!allowedChatId?.trim()) {
+    console.error("Telegram webhook chat allowlist is not configured");
+    return NextResponse.json({ error: "Webhook is not configured" }, { status: 503 });
+  }
+
   try {
     const update: TelegramUpdate = await request.json();
     const message = update.message;
     if (!message?.text) return NextResponse.json({ ok: true });
 
     const chatId = String(message.chat.id);
+    if (
+      !isAllowedTelegramChat(
+        message.chat.id,
+        message.chat.type,
+        message.from?.id,
+        allowedChatId
+      )
+    ) {
+      return NextResponse.json({ ok: true });
+    }
+
     const text = message.text.trim();
 
     if (text === "/start") {
