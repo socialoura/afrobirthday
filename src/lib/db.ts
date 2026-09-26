@@ -26,9 +26,15 @@ function openDatabaseTunnel(hosts: string[], ports: number[]): Promise<Duplex> {
     const ssh = new SshClient();
     let settled = false;
     let forwardedSocket: Duplex | undefined;
+    let forwardOutTimer: ReturnType<typeof setTimeout> | undefined;
+    const clearForwardOutTimer = () => {
+      if (forwardOutTimer) clearTimeout(forwardOutTimer);
+      forwardOutTimer = undefined;
+    };
     const fail = (error: Error) => {
       if (settled) return;
       settled = true;
+      clearForwardOutTimer();
       ssh.end();
       reject(error);
     };
@@ -42,10 +48,24 @@ function openDatabaseTunnel(hosts: string[], ports: number[]): Promise<Duplex> {
       }
     });
     ssh.once("ready", () => {
+      forwardOutTimer = setTimeout(() => fail(new Error("Timed out opening the PostgreSQL SSH tunnel.")), 8_000);
       ssh.forwardOut("127.0.0.1", 0, databaseHost, databasePort, (error, socket) => {
+        clearForwardOutTimer();
+        if (settled) {
+          socket?.destroy();
+          return;
+        }
         if (error) return fail(error);
         settled = true;
         forwardedSocket = socket;
+        let inactivityTimer: ReturnType<typeof setTimeout>;
+        const refreshInactivityTimer = () => {
+          clearTimeout(inactivityTimer);
+          inactivityTimer = setTimeout(() => (socket as Duplex).destroy(new Error("The PostgreSQL SSH tunnel is unresponsive.")), 15_000);
+        };
+        socket.on("data", refreshInactivityTimer);
+        socket.once("close", () => clearTimeout(inactivityTimer));
+        refreshInactivityTimer();
         ssh.removeListener("error", fail);
         ssh.on("error", () => {
           if (!socket.destroyed) socket.destroy();
@@ -92,7 +112,9 @@ export function getSql() {
     const options = {
       prepare: false,
       max: 1,
-      idle_timeout: 20,
+      max_pipeline: 1,
+      idle_timeout: process.env.VERCEL === "1" ? 1 : 20,
+      max_lifetime: process.env.VERCEL === "1" ? 30 : 1800,
       connect_timeout: 15,
       ssl: usesSshTunnel || databaseIsLocal ? false : "verify-full",
       ...(usesSshTunnel
