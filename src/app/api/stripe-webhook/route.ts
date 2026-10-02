@@ -1,13 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { ensureOrdersTable, getOrderById, markOrderPaid, markOrderCanceled, incrementPromoCodeUsage } from "@/lib/db";
-import { sendDiscordWebhook, notifyOrderPaid } from "@/lib/discordWebhook";
-import { handlePossibleReferralRedemption } from "@/lib/referralEmail";
-import { sendEmailWithResend } from "@/lib/resend";
-import {
-  renderOrderConfirmationEmailHtml,
-  renderOrderConfirmationEmailText,
-} from "@/lib/orderEmailTemplates";
+import { ensureOrdersTable, getOrderById, markOrderPaid, markOrderCanceled } from "@/lib/db";
+import { sendDiscordWebhook } from "@/lib/discordWebhook";
+import { fulfillStripePaymentIntent, runPaidOrderSideEffects } from "@/lib/orderFulfillment";
 import { formatStripeAmount } from "@/lib/currency";
 import { sendTelegramMessage } from "@/lib/telegramBot";
 
@@ -41,51 +36,8 @@ export async function POST(request: Request) {
   try {
     if (event.type === "payment_intent.succeeded") {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      const orderId = paymentIntent.metadata?.orderId;
-
       await ensureOrdersTable();
-
-      const existingOrder = orderId ? await getOrderById(orderId) : null;
-      const wasAlreadyPaid = existingOrder?.status === "paid";
-
-      if (orderId && !wasAlreadyPaid) {
-        await markOrderPaid(orderId, paymentIntent.id);
-      }
-
-      if (orderId && !wasAlreadyPaid) {
-        const order = (await getOrderById(orderId)) ?? existingOrder;
-
-        if (order?.promo_code) {
-          await incrementPromoCodeUsage(order.promo_code).catch((err) =>
-            console.error("Failed to increment promo code usage (Stripe PI):", err)
-          );
-          await handlePossibleReferralRedemption(order).catch((err) =>
-            console.error("Failed to process referral redemption (Stripe PI):", err)
-          );
-        }
-
-        if (order?.email) {
-          try {
-            await sendEmailWithResend({
-              to: order.email,
-              subject: `AfroBirthday order confirmation (${order.id})`,
-              html: renderOrderConfirmationEmailHtml(order),
-              text: renderOrderConfirmationEmailText(order),
-            });
-          } catch (emailErr) {
-            console.error("Failed to send order confirmation email (Stripe PI):", emailErr);
-          }
-        }
-
-        if (order) {
-          await notifyOrderPaid({
-            order,
-            provider: "Stripe",
-            amountLabel: formatStripeAmount(paymentIntent.amount, paymentIntent.currency ?? "usd"),
-            paymentRef: paymentIntent.id,
-          });
-        }
-      }
+      await fulfillStripePaymentIntent(paymentIntent);
     }
 
     if (event.type === "payment_intent.canceled") {
@@ -95,7 +47,7 @@ export async function POST(request: Request) {
       await ensureOrdersTable();
 
       if (orderId) {
-        await markOrderCanceled(orderId);
+        await markOrderCanceled(orderId, { paymentIntentId: paymentIntent.id });
       }
 
       await sendDiscordWebhook({
@@ -114,53 +66,26 @@ export async function POST(request: Request) {
       });
     }
 
+    // Legacy embedded Checkout (route removed); kept so sessions created before
+    // the removal still confirm.
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const orderId = session.metadata?.orderId;
 
       await ensureOrdersTable();
 
-      const existingOrder = orderId ? await getOrderById(orderId) : null;
-      const wasAlreadyPaid = existingOrder?.status === "paid";
-
-      if (orderId && !wasAlreadyPaid) {
-        await markOrderPaid(orderId, (session.payment_intent as string | null) ?? null);
-      }
-
-      if (orderId && !wasAlreadyPaid) {
-        const order = (await getOrderById(orderId)) ?? existingOrder;
-
-        if (order?.promo_code) {
-          await incrementPromoCodeUsage(order.promo_code).catch((err) =>
-            console.error("Failed to increment promo code usage (Stripe):", err)
-          );
-          await handlePossibleReferralRedemption(order).catch((err) =>
-            console.error("Failed to process referral redemption (Stripe):", err)
-          );
-        }
-
-        if (order?.email) {
-          try {
-            await sendEmailWithResend({
-              to: order.email,
-              subject: `AfroBirthday order confirmation (${order.id})`,
-              html: renderOrderConfirmationEmailHtml(order),
-              text: renderOrderConfirmationEmailText(order),
-            });
-          } catch (emailErr) {
-            console.error("Failed to send order confirmation email (Stripe):", emailErr);
-          }
-        }
-
+      if (orderId && session.payment_status === "paid") {
+        const paymentIntentId = (session.payment_intent as string | null) ?? null;
+        const claimed = await markOrderPaid(orderId, paymentIntentId);
+        const order = claimed ? await getOrderById(orderId) : null;
         if (order) {
-          await notifyOrderPaid({
-            order,
+          await runPaidOrderSideEffects(order, {
             provider: "Stripe",
             amountLabel:
               session.amount_total != null
                 ? formatStripeAmount(session.amount_total, session.currency ?? "usd")
                 : "-",
-            paymentRef: (session.payment_intent as string | null) ?? session.id,
+            paymentRef: paymentIntentId ?? session.id,
           });
         }
       }
@@ -170,7 +95,7 @@ export async function POST(request: Request) {
       const session = event.data.object as Stripe.Checkout.Session;
       const orderId = session.metadata?.orderId;
       if (orderId) {
-        await markOrderCanceled(orderId);
+        await markOrderCanceled(orderId, { sessionId: session.id });
       }
 
       await sendDiscordWebhook({
@@ -188,6 +113,41 @@ export async function POST(request: Request) {
           },
         ],
       });
+    }
+
+    // Refunded or disputed orders must not keep going through production.
+    if (event.type === "charge.refunded" || event.type === "charge.dispute.created") {
+      const charge =
+        event.type === "charge.refunded"
+          ? (event.data.object as Stripe.Charge)
+          : null;
+      const dispute =
+        event.type === "charge.dispute.created"
+          ? (event.data.object as Stripe.Dispute)
+          : null;
+      const paymentIntentId =
+        (charge?.payment_intent as string | null) ??
+        (dispute?.payment_intent as string | null) ??
+        null;
+      const orderId = paymentIntentId
+        ? (await stripe.paymentIntents.retrieve(paymentIntentId)).metadata?.orderId
+        : undefined;
+      const label = dispute ? "⚠️ <b>LITIGE Stripe ouvert</b>" : "↩️ <b>Remboursement Stripe</b>";
+      const amount = dispute
+        ? formatStripeAmount(dispute.amount, dispute.currency)
+        : charge
+          ? formatStripeAmount(charge.amount_refunded, charge.currency)
+          : "-";
+      await sendTelegramMessage(
+        `${label}
+Commande <code>${orderId ?? "?"}</code>
+Montant: ${amount}
+PaymentIntent <code>${paymentIntentId ?? "-"}</code>${
+          dispute ? `
+Motif: ${dispute.reason}` : ""
+        }
+Vérifier la production de cette commande.`
+      ).catch(() => {});
     }
 
     return NextResponse.json({ received: true });

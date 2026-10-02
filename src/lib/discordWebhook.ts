@@ -268,6 +268,8 @@ export async function sendOrderPaidDiscord(params: {
  * (Stripe client confirm, Stripe webhook, PayPal capture) so the MP3 is always
  * attached regardless of which path wins the paid-dedup race.
  */
+const MEDIA_DEADLINE_MS = 30_000;
+
 export async function notifyOrderPaid(params: {
   order: Order;
   provider: "Stripe" | "PayPal";
@@ -329,12 +331,29 @@ export async function notifyOrderPaid(params: {
     }
   })();
 
-  // Persist the voiceover the moment it lands, before waiting on the music.
-  const voiceover = await voicePromise;
-  if (voiceover.ok) await persistMedia({ voiceoverUrl: voiceover.url });
+  // Persist each result the moment it lands, independently of the deadline.
+  const persistedVoice = voicePromise.then(async (result) => {
+    if (result.ok) await persistMedia({ voiceoverUrl: result.url });
+    return result;
+  });
+  const persistedMusic = musicPromise.then(async (url) => {
+    if (url) await persistMedia({ downloadedMusicUrl: url });
+    return url;
+  });
 
-  const downloadedMusicUrl = await musicPromise;
-  if (downloadedMusicUrl) await persistMedia({ downloadedMusicUrl });
+  // The team notification must go out inside the function's 60s budget even
+  // when a music backend is slow: past the deadline, notify with whatever is
+  // ready (the recap page shows media that lands later).
+  const deadline = new Promise<"timeout">((resolve) =>
+    setTimeout(() => resolve("timeout"), MEDIA_DEADLINE_MS)
+  );
+  const voiceRace = await Promise.race([persistedVoice, deadline]);
+  const voiceover: VoiceoverResult =
+    voiceRace === "timeout"
+      ? { ok: false, reason: "exception", detail: "timeout: vocal pas prêt à temps" }
+      : voiceRace;
+  const musicRace = await Promise.race([persistedMusic, deadline]);
+  const downloadedMusicUrl = musicRace === "timeout" ? null : musicRace;
 
   const voiceoverUrl = voiceover.ok ? voiceover.url : null;
   await sendOrderPaidDiscord({ ...params, downloadedMusicUrl, voiceoverUrl });

@@ -237,6 +237,24 @@ async function runEnsureOrdersTable() {
     ALTER TABLE orders
     ADD COLUMN IF NOT EXISTS display_currency text
   `;
+
+  // Set once the order confirmation email is accepted by Resend, so a failed
+  // send can be retried instead of being lost after the paid claim. Orders
+  // paid before the column existed are backfilled in the same step, otherwise
+  // the retry cron would email every recent customer a second time.
+  await sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'orders' AND column_name = 'confirmation_email_sent_at'
+      ) THEN
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS confirmation_email_sent_at timestamptz;
+        UPDATE orders SET confirmation_email_sent_at = created_at WHERE status = 'paid';
+      END IF;
+    END
+    $$
+  `;
 }
 
 export async function ensurePromoCodesTable() {
@@ -559,14 +577,55 @@ export async function markOrderPaidPayPal(
   return claimed.length === 1;
 }
 
-export async function markOrderCanceled(orderId: string) {
+/**
+ * Cancels an unpaid order when the given Stripe intent/session is the one the
+ * order currently points at. One order can accumulate several intents (each
+ * return to the payment step creates one); a stale one being canceled after
+ * the customer paid with another must never flip a paid order to canceled.
+ */
+export async function markOrderCanceled(
+  orderId: string,
+  ref: { paymentIntentId?: string; sessionId?: string }
+) {
   const sql = getSql();
+  const paymentIntentId = ref.paymentIntentId ?? null;
+  const sessionId = ref.sessionId ?? null;
 
   await sql`
     UPDATE orders
     SET status = 'canceled'
     WHERE id = ${orderId}::uuid
+      AND status = 'pending'
+      AND (${paymentIntentId}::text IS NULL OR stripe_payment_intent_id = ${paymentIntentId})
+      AND (${sessionId}::text IS NULL OR stripe_session_id = ${sessionId})
   `;
+}
+
+export async function markConfirmationEmailSent(orderId: string) {
+  const sql = getSql();
+  await sql`
+    UPDATE orders SET confirmation_email_sent_at = now()
+    WHERE id = ${orderId}::uuid
+  `;
+}
+
+/**
+ * Paid orders whose confirmation email never went out. The grace period keeps
+ * the retry cron from racing the payment request that is still sending it.
+ */
+export async function getPaidOrdersMissingConfirmationEmail(): Promise<Order[]> {
+  await ensureOrdersTable();
+  const sql = getSql();
+  const rows = await sql`
+    SELECT * FROM orders
+    WHERE status = 'paid'
+      AND confirmation_email_sent_at IS NULL
+      AND created_at > now() - interval '7 days'
+      AND created_at < now() - interval '10 minutes'
+    ORDER BY created_at ASC
+    LIMIT 50
+  `;
+  return rows as unknown as Order[];
 }
 
 // ============================================
@@ -694,6 +753,7 @@ export type Order = {
   country: string | null;
   final_video_url: string | null;
   final_video_sent_at: string | null;
+  confirmation_email_sent_at: string | null;
   voiceover_url: string | null;
   downloaded_music_url: string | null;
   review_email_sent_at: string | null;
@@ -1032,10 +1092,21 @@ export async function validatePromoCode(code: string): Promise<PromoCode | null>
   return rows.length > 0 ? (rows[0] as unknown as PromoCode) : null;
 }
 
-export async function incrementPromoCodeUsage(code: string) {
+/**
+ * Atomically consumes one use of a promo code at payment time. Checkout only
+ * checks `current_uses < max_uses`, so several concurrent checkouts can all
+ * pass with a single-use code; this returns false for the ones beyond the cap.
+ */
+export async function claimPromoCodeUse(code: string): Promise<boolean> {
   await ensurePromoCodesTable();
   const sql = getSql();
-  await sql`UPDATE promo_codes SET current_uses = current_uses + 1 WHERE UPPER(code) = UPPER(${code})`;
+  const rows = await sql`
+    UPDATE promo_codes SET current_uses = current_uses + 1
+    WHERE UPPER(code) = UPPER(${code})
+      AND (max_uses IS NULL OR current_uses < max_uses)
+    RETURNING id
+  `;
+  return rows.length === 1;
 }
 
 // ============================================

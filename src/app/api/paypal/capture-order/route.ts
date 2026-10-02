@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ensureOrdersTable, getOrderById, markOrderPaidPayPal, incrementPromoCodeUsage } from "@/lib/db";
-import { notifyOrderPaid } from "@/lib/discordWebhook";
-import { handlePossibleReferralRedemption } from "@/lib/referralEmail";
-import { capturePayPalOrder } from "@/lib/paypal";
-import { sendEmailWithResend } from "@/lib/resend";
-import {
-  renderOrderConfirmationEmailHtml,
-  renderOrderConfirmationEmailText,
-} from "@/lib/orderEmailTemplates";
+import { ensureOrdersTable } from "@/lib/db";
+import { fulfillPayPalOrder } from "@/lib/orderFulfillment";
 import { sendTelegramMessage } from "@/lib/telegramBot";
 
 export const runtime = "nodejs";
@@ -32,77 +25,21 @@ export async function POST(request: NextRequest) {
 
     await ensureOrdersTable();
 
-    const pendingOrder = await getOrderById(orderId);
-    if (!pendingOrder) {
+    // Refreshing the return page or navigating back lands here again; an
+    // already-paid order short-circuits instead of failing a second capture.
+    const { result, order } = await fulfillPayPalOrder(orderId, paypalOrderId);
+
+    if (result === "order-not-found") {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
-    if (pendingOrder.paypal_order_id !== paypalOrderId) {
+    if (result === "order-mismatch") {
       return NextResponse.json({ error: "PayPal order mismatch" }, { status: 400 });
     }
-
-    const capture = await capturePayPalOrder(paypalOrderId);
-
-    if (capture.status !== "COMPLETED") {
-      return NextResponse.json(
-        { error: "PayPal capture not completed", status: capture.status },
-        { status: 400 }
-      );
+    if (result === "amount-mismatch") {
+      return NextResponse.json({ error: "Order changed, please try again" }, { status: 409 });
     }
-
-    const expectedCurrency = (pendingOrder.currency || "USD").toUpperCase();
-    const expectedAmount = Number(pendingOrder.total_local ?? pendingOrder.total_usd);
-    if (
-      capture.orderId !== orderId ||
-      capture.currency?.toUpperCase() !== expectedCurrency ||
-      capture.amount == null ||
-      Math.abs(capture.amount - expectedAmount) > 0.001
-    ) {
-      throw new Error(
-        `PayPal capture mismatch for order ${orderId}: expected ${expectedAmount} ${expectedCurrency}`
-      );
-    }
-
-    const shouldProcess = await markOrderPaidPayPal(orderId, capture.captureId);
-
-    const order = await getOrderById(orderId);
-
-    if (shouldProcess && order?.promo_code) {
-      await incrementPromoCodeUsage(order.promo_code).catch((err) =>
-        console.error("Failed to increment promo code usage (PayPal):", err)
-      );
-      await handlePossibleReferralRedemption(order).catch((err) =>
-        console.error("Failed to process referral redemption (PayPal):", err)
-      );
-    }
-
-    if (shouldProcess && order?.email) {
-      try {
-        await sendEmailWithResend({
-          to: order.email,
-          subject: `AfroBirthday order confirmation (${order.id})`,
-          html: renderOrderConfirmationEmailHtml(order),
-          text: renderOrderConfirmationEmailText(order),
-        });
-      } catch (emailErr) {
-        console.error("Failed to send order confirmation email (PayPal):", emailErr);
-      }
-    }
-
-    // Previously this notification was outside the !wasAlreadyPaid guard, so
-    // every repeated PayPal callback resent the complete Telegram bundle.
-    if (shouldProcess && order) {
-      const currency = (order.currency || "USD").toUpperCase();
-      const localAmount = Number(order.total_local ?? order.total_usd);
-      const amountLabel =
-        currency === "USD"
-          ? `$${localAmount.toFixed(2)} USD`
-          : `${localAmount.toFixed(currency === "JPY" ? 0 : 2)} ${currency} (≈ $${Number(order.total_usd).toFixed(2)} USD)`;
-      await notifyOrderPaid({
-        order,
-        provider: "PayPal",
-        amountLabel,
-        paymentRef: capture.captureId ?? paypalOrderId,
-      });
+    if (result === "not-captured") {
+      return NextResponse.json({ error: "PayPal capture not completed" }, { status: 400 });
     }
 
     return NextResponse.json({

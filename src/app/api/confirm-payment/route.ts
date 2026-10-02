@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { ensureOrdersTable, getOrderById, markOrderPaid, incrementPromoCodeUsage } from "@/lib/db";
-import { notifyOrderPaid } from "@/lib/discordWebhook";
-import { handlePossibleReferralRedemption } from "@/lib/referralEmail";
-import { sendEmailWithResend } from "@/lib/resend";
-import {
-  renderOrderConfirmationEmailHtml,
-  renderOrderConfirmationEmailText,
-} from "@/lib/orderEmailTemplates";
-import { formatStripeAmount } from "@/lib/currency";
+import { ensureOrdersTable } from "@/lib/db";
+import { fulfillStripePaymentIntent } from "@/lib/orderFulfillment";
 import { sendTelegramMessage } from "@/lib/telegramBot";
 
 export const runtime = "nodejs";
@@ -58,60 +51,14 @@ export async function POST(request: NextRequest) {
 
     await ensureOrdersTable();
 
-    const existingOrder = await getOrderById(resolvedOrderId);
-    const wasAlreadyPaid = existingOrder?.status === "paid";
-
-    if (wasAlreadyPaid) {
-      // Already processed, just return success
+    const result = await fulfillStripePaymentIntent(paymentIntent);
+    if (result === "amount-mismatch" || result === "order-not-found") {
+      // The team was alerted; the customer still sees success because Stripe
+      // did take the payment, and the order will be resolved by hand.
+      return NextResponse.json({ success: true, needsReview: true });
+    }
+    if (result === "already-processed") {
       return NextResponse.json({ success: true, alreadyProcessed: true });
-    }
-
-    // Mark order as paid
-    await markOrderPaid(resolvedOrderId, paymentIntentId);
-
-    // Get updated order for email
-    const order = (await getOrderById(resolvedOrderId)) ?? existingOrder;
-
-    if (order?.promo_code) {
-      await incrementPromoCodeUsage(order.promo_code).catch((err) =>
-        console.error("Failed to increment promo code usage (confirm-payment):", err)
-      );
-      await handlePossibleReferralRedemption(order).catch((err) =>
-        console.error("Failed to process referral redemption (confirm-payment):", err)
-      );
-    }
-
-    // Send confirmation email
-    if (order?.email) {
-      try {
-        console.log("[confirm-payment] Attempting to send email to:", order.email);
-        console.log("[confirm-payment] RESEND_API_KEY configured:", !!process.env.RESEND_API_KEY);
-        console.log("[confirm-payment] RESEND_FROM_EMAIL configured:", !!process.env.RESEND_FROM_EMAIL);
-        
-        const emailResult = await sendEmailWithResend({
-          to: order.email,
-          subject: `AfroBirthday order confirmation (${order.id})`,
-          html: renderOrderConfirmationEmailHtml(order),
-          text: renderOrderConfirmationEmailText(order),
-        });
-        console.log("[confirm-payment] Email sent successfully:", emailResult);
-      } catch (emailErr) {
-        console.error("[confirm-payment] Failed to send order confirmation email:", emailErr);
-      }
-    } else {
-      console.log("[confirm-payment] No email to send - order.email is missing");
-    }
-
-    // Send Discord notification with the customer's order details
-    if (order) {
-      const usd = paymentIntent.metadata?.totalUsd;
-      const amountLabel = `${formatStripeAmount(paymentIntent.amount, paymentIntent.currency ?? "usd")}${usd ? ` (≈ $${usd})` : ""}`;
-      await notifyOrderPaid({
-        order,
-        provider: "Stripe",
-        amountLabel,
-        paymentRef: paymentIntentId,
-      });
     }
 
     return NextResponse.json({ success: true });

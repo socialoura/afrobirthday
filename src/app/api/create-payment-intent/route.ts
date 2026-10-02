@@ -4,6 +4,7 @@ import {
   attachStripePaymentIntentToOrder,
   createOrder,
   ensureOrdersTable,
+  getOrderById,
   getPricingOverrides,
   getPricingSettings,
   sanitizeAttribution,
@@ -60,6 +61,9 @@ export async function POST(request: NextRequest) {
       getServerExchangeRates(),
       getPricingOverrides(),
     ]);
+    // Each visit to the payment step creates a new intent; remember the one
+    // this order pointed at so it can be canceled once replaced.
+    const previousIntentId = (await getOrderById(orderId))?.stripe_payment_intent_id ?? null;
 
     const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
     const resolvedDanceExtended = danceExtended === true;
@@ -147,6 +151,13 @@ export async function POST(request: NextRequest) {
     });
 
     await attachStripePaymentIntentToOrder(orderId, paymentIntent.id);
+
+    if (previousIntentId && previousIntentId !== paymentIntent.id) {
+      // Best effort: a superseded intent left open could still be paid at its
+      // old amount. The order already points at the new intent, so the
+      // resulting payment_intent.canceled webhook leaves the order alone.
+      stripe.paymentIntents.cancel(previousIntentId).catch(() => {});
+    }
 
     return NextResponse.json({ 
       clientSecret: paymentIntent.client_secret, 

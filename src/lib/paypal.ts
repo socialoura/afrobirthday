@@ -113,10 +113,52 @@ export async function createPayPalOrder(input: {
   return { paypalOrderId: data.id, approveUrl };
 }
 
-export async function getPayPalOrder(paypalOrderId: string) {
+type PayPalOrderPayload = {
+  id?: string;
+  status?: string;
+  purchase_units?: Array<{
+    reference_id?: string;
+    custom_id?: string;
+    amount?: { currency_code?: string; value?: string };
+    payments?: {
+      captures?: Array<{
+        id: string;
+        status?: string;
+        amount?: { currency_code?: string; value?: string };
+      }>;
+    };
+  }>;
+};
+
+export type PayPalOrderSummary = {
+  /** PayPal order status: CREATED, APPROVED, COMPLETED, ... */
+  status: string | null;
+  captureId: string | null;
+  captureStatus: string | null;
+  /** Our order id, from custom_id / reference_id. */
+  orderId: string | null;
+  currency: string | null;
+  amount: number | null;
+};
+
+function summarizePayPalOrder(data: PayPalOrderPayload): PayPalOrderSummary {
+  const purchaseUnit = data.purchase_units?.[0];
+  const capture = purchaseUnit?.payments?.captures?.[0];
+  const amount = capture?.amount ?? purchaseUnit?.amount;
+  return {
+    status: data.status ?? null,
+    captureId: capture?.id ?? null,
+    captureStatus: capture?.status ?? null,
+    orderId: purchaseUnit?.custom_id ?? purchaseUnit?.reference_id ?? null,
+    currency: amount?.currency_code ?? null,
+    amount: amount?.value != null ? Number(amount.value) : null,
+  };
+}
+
+export async function getPayPalOrder(paypalOrderId: string): Promise<PayPalOrderSummary> {
   const accessToken = await getPayPalAccessToken();
 
-  const res = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders/${paypalOrderId}`, {
+  const res = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -129,48 +171,73 @@ export async function getPayPalOrder(paypalOrderId: string) {
     throw new Error(`PayPal get order failed: ${res.status} ${text}`);
   }
 
-  return (await res.json()) as unknown;
+  return summarizePayPalOrder((await res.json()) as PayPalOrderPayload);
 }
 
-export async function capturePayPalOrder(paypalOrderId: string) {
+/**
+ * Captures an approved order. A second capture (page refresh, webhook racing
+ * the return page, retry after a crash) gets 422 ORDER_ALREADY_CAPTURED from
+ * PayPal: that is not a failure, so the existing capture is returned instead.
+ */
+export async function capturePayPalOrder(paypalOrderId: string): Promise<PayPalOrderSummary> {
   const accessToken = await getPayPalAccessToken();
 
-  const res = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders/${paypalOrderId}/capture`, {
+  const res = await fetch(
+    `${getPayPalBaseUrl()}/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}/capture`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        // Makes concurrent/retried captures of the same order idempotent.
+        "PayPal-Request-Id": `capture-${paypalOrderId}`,
+      },
+    }
+  );
+
+  const text = await res.text().catch(() => "");
+  if (!res.ok) {
+    if (res.status === 422 && text.includes("ORDER_ALREADY_CAPTURED")) {
+      return getPayPalOrder(paypalOrderId);
+    }
+    throw new Error(`PayPal capture failed: ${res.status} ${text}`);
+  }
+
+  return summarizePayPalOrder(JSON.parse(text) as PayPalOrderPayload);
+}
+
+/**
+ * Verifies a webhook delivery with PayPal's verify-webhook-signature API.
+ * Requires PAYPAL_WEBHOOK_ID (shown next to the webhook in the developer
+ * dashboard).
+ */
+export async function verifyPayPalWebhook(
+  headers: Headers,
+  rawBody: string
+): Promise<boolean> {
+  const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+  if (!webhookId) {
+    console.error("PAYPAL_WEBHOOK_ID is not configured");
+    return false;
+  }
+  const accessToken = await getPayPalAccessToken();
+  const res = await fetch(`${getPayPalBaseUrl()}/v1/notifications/verify-webhook-signature`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
+    body: JSON.stringify({
+      auth_algo: headers.get("paypal-auth-algo"),
+      cert_url: headers.get("paypal-cert-url"),
+      transmission_id: headers.get("paypal-transmission-id"),
+      transmission_sig: headers.get("paypal-transmission-sig"),
+      transmission_time: headers.get("paypal-transmission-time"),
+      webhook_id: webhookId,
+      webhook_event: JSON.parse(rawBody),
+    }),
   });
-
-  const text = await res.text().catch(() => "");
-  if (!res.ok) {
-    throw new Error(`PayPal capture failed: ${res.status} ${text}`);
-  }
-
-  const data = JSON.parse(text) as {
-    status?: string;
-    purchase_units?: Array<{
-      reference_id?: string;
-      custom_id?: string;
-      payments?: {
-        captures?: Array<{
-          id: string;
-          status?: string;
-          amount?: { currency_code?: string; value?: string };
-        }>;
-      };
-    }>;
-  };
-
-  const purchaseUnit = data.purchase_units?.[0];
-  const capture = purchaseUnit?.payments?.captures?.[0];
-  return {
-    status: data.status ?? null,
-    captureId: capture?.id ?? null,
-    orderId: purchaseUnit?.custom_id ?? purchaseUnit?.reference_id ?? null,
-    currency: capture?.amount?.currency_code ?? null,
-    amount: capture?.amount?.value != null ? Number(capture.amount.value) : null,
-    raw: data,
-  };
+  if (!res.ok) return false;
+  const data = (await res.json()) as { verification_status?: string };
+  return data.verification_status === "SUCCESS";
 }

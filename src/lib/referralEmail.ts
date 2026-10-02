@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import {
   type Order,
   createPromoCode,
@@ -5,6 +6,7 @@ import {
   getSetting,
   isEmailOptedOut,
   markReferralEmailSent,
+  normalizeEmail,
   recordPromoCodeRedemption,
 } from "@/lib/db";
 import { sendEmailWithResend } from "@/lib/resend";
@@ -16,8 +18,11 @@ import {
   renderReferralRewardEmailText,
 } from "@/lib/orderEmailTemplates";
 
+// Unambiguous alphabet (no 0/O/1/I); crypto-random so codes can't be predicted.
+const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
 function randomCodeSuffix() {
-  return Math.random().toString(36).slice(2, 8).toUpperCase();
+  return Array.from(randomBytes(8), (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join("");
 }
 
 /**
@@ -65,6 +70,8 @@ export async function handlePossibleReferralRedemption(redeemedOrder: Order): Pr
 
   const promoCode = await getPromoCodeByCode(code);
   if (!promoCode?.owner_email) return;
+  // Using your own referral code is a discount, not a referral: no reward.
+  if (normalizeEmail(promoCode.owner_email) === normalizeEmail(redeemedOrder.email)) return;
 
   await recordPromoCodeRedemption({
     code: promoCode.code,
