@@ -11,6 +11,7 @@ import {
 import { applyPromoToCharge, usdDiscountAmount } from "@/lib/promo";
 import { createPayPalOrder, isPayPalSupportedCurrency } from "@/lib/paypal";
 import { deviceTypeFromUserAgent } from "@/lib/device";
+import { validateOrderInput } from "@/lib/orderInput";
 import { SITE_URL } from "@/lib/siteUrl";
 import {
   getServerExchangeRates,
@@ -33,29 +34,29 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
-      orderId,
-      email,
-      message,
       totalPrice,
       hasCustomSong,
       isExpress,
       danceExtended,
-      musicOption,
-      musicLink,
-      musicFileUrl,
       deliveryMethod,
-      photoUrl,
       promoCode: requestedPromoCode,
       attribution: rawAttribution,
       currency: requestedCurrency,
     } = body;
 
-    if (!orderId || typeof orderId !== "string") {
-      return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
+    const input = validateOrderInput(body);
+    if (!input.ok) {
+      return NextResponse.json({ error: input.error }, { status: 400 });
     }
-    if (!photoUrl || typeof photoUrl !== "string") {
-      return NextResponse.json({ error: "Missing photoUrl" }, { status: 400 });
-    }
+    const {
+      orderId,
+      email,
+      message,
+      photoUrl,
+      musicLink,
+      musicFileUrl,
+      musicOption: resolvedMusicOption,
+    } = input.value;
 
     await ensureOrdersTable();
 
@@ -74,7 +75,6 @@ export async function POST(request: NextRequest) {
       priceTest && isControlCurrency(priceTest, displayCurrency)
         ? priceTest.legacyUsdPricing
         : livePricing;
-    const resolvedMusicOption = musicOption ?? (hasCustomSong ? "custom" : "default");
     const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
     const resolvedDanceExtended = danceExtended === true;
     const charge = resolveLocalCharge({

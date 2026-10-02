@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
+import { rejectUnauthorizedCron } from "@/lib/cronAuth";
 import { ensureAutomatedEmailColumns, getAllOrders, getSetting } from "@/lib/db";
 import { dedupeByEmail, getSuppressedEmails, isSuppressed } from "@/lib/emailOptOut";
 import { sendAnnualReminderEmail } from "@/lib/annualReminderEmail";
 import { withCronRun } from "@/lib/cronRun";
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const unauthorized = rejectUnauthorizedCron(request, "annual-reminder");
+  if (unauthorized) return unauthorized;
 
   try {
     return await withCronRun("annual-reminder", async () => {

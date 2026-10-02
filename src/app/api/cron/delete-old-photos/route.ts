@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rejectUnauthorizedCron } from "@/lib/cronAuth";
 import { getAllOrders, clearOrderPhoto } from "@/lib/db";
 import { deletePhotoByUrl } from "@/lib/storage";
 import { withCronRun } from "@/lib/cronRun";
@@ -8,12 +9,8 @@ export const runtime = "nodejs";
 const RETENTION_DAYS = 30;
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const unauthorized = rejectUnauthorizedCron(request, "delete-old-photos");
+  if (unauthorized) return unauthorized;
 
   try {
     return await withCronRun("delete-old-photos", async () => {

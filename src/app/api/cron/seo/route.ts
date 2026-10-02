@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runSeoStep, type SeoStep } from "@/lib/seoEngine";
+import { rejectUnauthorizedCron } from "@/lib/cronAuth";
 
 export const runtime = "nodejs";
 export const maxDuration = 800;
@@ -10,21 +11,8 @@ export const maxDuration = 800;
 const DAILY_STEPS: SeoStep[] = ["ai-referrals", "indexation", "funnel", "citations"];
 
 export async function GET(request: Request) {
-  // Fails CLOSED, unlike the older crons in this directory. Those use
-  // `if (cronSecret && authHeader !== ...)`, which silently makes the endpoint
-  // public whenever CRON_SECRET is unset — the same shape of guard that caused
-  // the 2026-08-22 duplicate-email incident documented in src/lib/db.ts.
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
-    console.error("SEO cron refused to run: CRON_SECRET is not configured");
-    return NextResponse.json(
-      { error: "CRON_SECRET not configured" },
-      { status: 500 }
-    );
-  }
-  if (request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const unauthorized = rejectUnauthorizedCron(request, "seo");
+  if (unauthorized) return unauthorized;
 
   const startedAt = Date.now();
   const results: Record<string, unknown> = {};

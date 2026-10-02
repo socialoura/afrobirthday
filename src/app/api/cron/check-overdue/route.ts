@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
+import { rejectUnauthorizedCron } from "@/lib/cronAuth";
 import { getAllOrders } from "@/lib/db";
 import { getOverdueOrders, sendOverdueAlerts } from "@/lib/telegramBot";
 import { withCronRun } from "@/lib/cronRun";
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const unauthorized = rejectUnauthorizedCron(request, "check-overdue");
+  if (unauthorized) return unauthorized;
 
   try {
     return await withCronRun("check-overdue", async () => {

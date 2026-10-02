@@ -8,6 +8,7 @@ import {
   getOverdueOrders,
   sendOverdueAlerts,
 } from "@/lib/telegramBot";
+import { safeEqual } from "@/lib/cronAuth";
 
 export const runtime = "nodejs";
 // /vocal runs OpenAI TTS + a Supabase upload, well past the default 10s budget.
@@ -21,7 +22,30 @@ type TelegramUpdate = {
   };
 };
 
+// Chats allowed to run commands: the team chat plus an optional comma list.
+function isAuthorizedChat(chatId: string): boolean {
+  const allowed = [
+    process.env.TELEGRAM_CHAT_ID,
+    ...(process.env.TELEGRAM_ADMIN_CHAT_IDS ?? "").split(","),
+  ]
+    .map((id) => id?.trim())
+    .filter(Boolean);
+  return allowed.includes(chatId);
+}
+
 export async function POST(request: Request) {
+  // Telegram echoes the secret_token given to setWebhook in this header.
+  // Without it anyone could POST a fake update to this public route.
+  const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (webhookSecret) {
+    const received = request.headers.get("x-telegram-bot-api-secret-token") ?? "";
+    if (!safeEqual(received, webhookSecret)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } else {
+    console.warn("TELEGRAM_WEBHOOK_SECRET is not set: Telegram webhook is not authenticated");
+  }
+
   try {
     const update: TelegramUpdate = await request.json();
     const message = update.message;
@@ -29,6 +53,12 @@ export async function POST(request: Request) {
 
     const chatId = String(message.chat.id);
     const text = message.text.trim();
+
+    // Order data, paid AI and TTS calls are for the team only. /chatid stays
+    // open so a new admin can find the id to add to the allowlist.
+    if (!isAuthorizedChat(chatId) && text !== "/chatid") {
+      return NextResponse.json({ ok: true });
+    }
 
     if (text === "/start") {
       await sendTelegramMessage(

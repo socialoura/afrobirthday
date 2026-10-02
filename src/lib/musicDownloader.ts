@@ -25,6 +25,10 @@ export async function downloadMusicFromLink(
     return { success: false, error: "Auto-download disabled" };
   }
 
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId)) {
+    return { success: false, error: "Invalid order id" };
+  }
+
   try {
     // Detect the platform
     const platform = detectPlatform(musicLink);
@@ -62,16 +66,49 @@ export async function downloadMusicFromLink(
  * Detects the music platform from URL
  */
 function detectPlatform(url: string): "youtube" | "spotify" | "soundcloud" | null {
-  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+  // Match the parsed hostname exactly: a substring test would accept
+  // "https://evil.example/?youtube.com" and forward it to the download APIs.
+  let host: string;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+    host = parsed.hostname.toLowerCase().replace(/^www./, "").replace(/^m./, "");
+  } catch {
+    return null;
+  }
+  if (host === "youtube.com" || host === "music.youtube.com" || host === "youtu.be") {
     return "youtube";
   }
-  if (url.includes("spotify.com")) {
+  if (host === "open.spotify.com" || host === "spotify.com" || host === "spotify.link") {
     return "spotify";
   }
-  if (url.includes("soundcloud.com")) {
+  if (host === "soundcloud.com" || host === "on.soundcloud.com") {
     return "soundcloud";
   }
   return null;
+}
+
+const FETCH_TIMEOUT_MS = 15_000;
+// Birthday songs are a few MB; anything far larger is not a single track.
+const MAX_AUDIO_BYTES = 30 * 1024 * 1024;
+
+/** fetch() that cannot hang the post-payment pipeline past FETCH_TIMEOUT_MS. */
+function timedFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  return fetch(input, { ...init, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+}
+
+async function readCappedAudio(response: Response): Promise<Buffer | null> {
+  const declared = Number(response.headers.get("content-length") || 0);
+  if (declared > MAX_AUDIO_BYTES) {
+    console.error("Music download too large:", declared);
+    return null;
+  }
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (buffer.length > MAX_AUDIO_BYTES) {
+    console.error("Music download too large:", buffer.length);
+    return null;
+  }
+  return buffer;
 }
 
 /**
@@ -160,7 +197,7 @@ async function getSpotifyTrackMeta(
 
   // Fallback: oEmbed gives the track title (no artist), still enough to search.
   try {
-    const res = await fetch(
+    const res = await timedFetch(
       `https://open.spotify.com/oembed?url=${encodeURIComponent(spotifyUrl)}`
     );
     if (res.ok) {
@@ -201,7 +238,7 @@ async function searchYoutubeVideoId(query: string): Promise<string | null> {
 
 /** Fetches a URL as text with a browser-like User-Agent. */
 async function fetchText(url: string): Promise<string | null> {
-  const res = await fetch(url, {
+  const res = await timedFetch(url, {
     headers: {
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
@@ -232,7 +269,7 @@ async function downloadFromApi(
   const apiUrl = process.env.MUSIC_DOWNLOAD_API_URL || "https://co.wuk.sh/api/json";
 
   try {
-    const response = await fetch(apiUrl, {
+    const response = await timedFetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -258,15 +295,14 @@ async function downloadFromApi(
     // Cobalt API returns download URL
     if (data.status === "redirect" || data.status === "stream") {
       const downloadUrl = data.url;
-      const audioResponse = await fetch(downloadUrl);
+      const audioResponse = await timedFetch(downloadUrl);
 
       if (!audioResponse.ok) {
         console.error("Download error:", audioResponse.status);
         return null;
       }
 
-      const arrayBuffer = await audioResponse.arrayBuffer();
-      return Buffer.from(arrayBuffer);
+      return readCappedAudio(audioResponse);
     }
 
     return null;
@@ -306,7 +342,7 @@ async function downloadWithRapidapi(url: string): Promise<Buffer | null> {
 
   try {
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-      const response = await fetch(endpoint, { method: "GET", headers });
+      const response = await timedFetch(endpoint, { method: "GET", headers });
 
       if (!response.ok) {
         console.error(
@@ -326,7 +362,7 @@ async function downloadWithRapidapi(url: string): Promise<Buffer | null> {
       if (data.status === "ok" && data.link) {
         // The mirror hosts (e.g. 123tokyo.xyz) return 404 unless the request
         // carries a Referer pointing back at the API host — hotlink protection.
-        const audioResponse = await fetch(data.link, {
+        const audioResponse = await timedFetch(data.link, {
           headers: {
             Referer: "https://youtube-mp36.p.rapidapi.com/",
             "User-Agent":
@@ -337,8 +373,7 @@ async function downloadWithRapidapi(url: string): Promise<Buffer | null> {
           console.error("Rapidapi audio download error:", audioResponse.status);
           return null;
         }
-        const arrayBuffer = await audioResponse.arrayBuffer();
-        return Buffer.from(arrayBuffer);
+        return readCappedAudio(audioResponse);
       }
 
       // Still transcoding — wait and retry.
@@ -396,7 +431,7 @@ export async function getMusicInfo(url: string): Promise<{
 
     const apiUrl = process.env.MUSIC_DOWNLOAD_API_URL || "https://co.wuk.sh/api/json";
 
-    const response = await fetch(apiUrl, {
+    const response = await timedFetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url }),

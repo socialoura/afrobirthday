@@ -16,6 +16,7 @@ import {
 } from "@/lib/currency";
 import { applyPromoToCharge, usdDiscountAmount } from "@/lib/promo";
 import { deviceTypeFromUserAgent } from "@/lib/device";
+import { validateOrderInput } from "@/lib/orderInput";
 
 export const runtime = "nodejs";
 
@@ -27,29 +28,29 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
-      orderId,
-      email,
-      message,
       totalPrice,
       hasCustomSong,
       isExpress,
       danceExtended,
-      musicOption,
-      musicLink,
-      musicFileUrl,
       deliveryMethod,
-      photoUrl,
       currency: requestedCurrency,
       promoCode: requestedPromoCode,
       attribution: rawAttribution,
     } = body;
 
-    if (!orderId || typeof orderId !== "string") {
-      return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
+    const input = validateOrderInput(body);
+    if (!input.ok) {
+      return NextResponse.json({ error: input.error }, { status: 400 });
     }
-    if (!photoUrl || typeof photoUrl !== "string") {
-      return NextResponse.json({ error: "Missing photoUrl" }, { status: 400 });
-    }
+    const {
+      orderId,
+      email,
+      message,
+      photoUrl,
+      musicLink,
+      musicFileUrl,
+      musicOption: resolvedMusicOption,
+    } = input.value;
 
     // These four are independent; running them in series added a full round
     // trip each to the wait before the payment form can even start rendering.
@@ -60,7 +61,6 @@ export async function POST(request: NextRequest) {
       getPricingOverrides(),
     ]);
 
-    const resolvedMusicOption = musicOption ?? (hasCustomSong ? "custom" : "default");
     const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
     const resolvedDanceExtended = danceExtended === true;
 
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
         orderId,
         email,
         message,
-        hasCustomSong: hasCustomSong ? "true" : "false",
+        hasCustomSong: resolvedMusicOption === "custom" ? "true" : "false",
         isExpress: isExpress ? "true" : "false",
         danceExtended: resolvedDanceExtended ? "true" : "false",
         currency: finalCharge.currency,
