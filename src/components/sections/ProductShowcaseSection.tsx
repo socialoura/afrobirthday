@@ -4,29 +4,30 @@ import { useState } from "react";
 import Image from "next/image";
 import { Play } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { siteMedia } from "@/lib/siteMedia";
 
 const videos = [
   {
-    src: "/blessing_video1.mp4",
-    poster: "/showcase_1-poster.webp",
+    src: siteMedia("blessing_video1.mp4"),
+    poster: siteMedia("showcase_1-poster.webp"),
     titleKey: "videos.0.title",
     viewsKey: "videos.0.views",
   },
   {
-    src: "/blessing_video2.mp4",
-    poster: "/showcase_2.jpg",
+    src: siteMedia("blessing_video2.mp4"),
+    poster: siteMedia("showcase_2.jpg"),
     titleKey: "videos.1.title",
     viewsKey: "videos.1.views",
   },
   {
-    src: "/blessing_video3.mp4",
-    poster: "/showcase_3.jpg",
+    src: siteMedia("blessing_video3.mp4"),
+    poster: siteMedia("showcase_3.jpg"),
     titleKey: "videos.2.title",
     viewsKey: "videos.2.views",
   },
   {
-    src: "/blessing_video4.mp4",
-    poster: "/showcase_1-poster.webp",
+    src: siteMedia("blessing_video4.mp4"),
+    poster: siteMedia("showcase_1-poster.webp"),
     titleKey: "videos.3.title",
     viewsKey: "videos.3.views",
   },

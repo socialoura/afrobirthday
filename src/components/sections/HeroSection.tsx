@@ -18,6 +18,7 @@ import RecentOrdersBadge from "@/components/RecentOrdersBadge";
 import { type CurrencyCode, currencyFromLocale, PRICES } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
 import { resolveLocalPriceComponent } from "@/lib/currency";
+import { siteMedia } from "@/lib/siteMedia";
 import { useTranslations } from "next-intl";
 
 export default function HeroSection() {
@@ -231,8 +232,8 @@ export default function HeroSection() {
               {/* Phone-style video card */}
               <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 bg-black aspect-[9/16] lg:rotate-2 transition-transform duration-500 hover:rotate-0">
                 <OptimizedVideo
-                  src="/blessing_video_principal.mp4"
-                  poster="/showcase_1-poster.webp"
+                  src={siteMedia("blessing_video_principal.mp4")}
+                  poster={siteMedia("showcase_1-poster.webp")}
                   isHero
                   muted={isMuted}
                   className="w-full h-full"

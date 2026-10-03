@@ -7,6 +7,7 @@ import { DM_Sans, Space_Grotesk } from "next/font/google";
 import { getTextDirection } from "@/i18n/config";
 import { SITE_URL } from "@/lib/siteUrl";
 import { CONSENT_COUNTRIES } from "@/lib/consent";
+import { SITE_MEDIA_ORIGIN } from "@/lib/siteMedia";
 import OpenAIPixel from "@/components/OpenAIPixel";
 
 const siteUrl = SITE_URL;
@@ -106,6 +107,9 @@ export default function RootDocument({
       className={`${dmSans.variable} ${spaceGrotesk.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {SITE_MEDIA_ORIGIN && <link rel="preconnect" href={SITE_MEDIA_ORIGIN} />}
+      </head>
       <body>
         <Script id="gtag-init" strategy="afterInteractive">
           {`window.dataLayer = window.dataLayer || [];
