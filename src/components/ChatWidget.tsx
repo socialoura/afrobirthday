@@ -11,7 +11,10 @@ export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [stickyCtaVisible, setStickyCtaVisible] = useState(false);
   const [overlapsCta, setOverlapsCta] = useState(false);
-  const lifted = stickyCtaVisible || overlapsCta;
+  // Lifting clears the sticky bar, but over the form's own buttons a fixed
+  // lift just lands on the next button up (it covered "Pay" on a 390px
+  // phone), so the bubble steps aside while an action row is under it.
+  const lifted = stickyCtaVisible;
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
   useEffect(() => {
@@ -90,6 +93,7 @@ export default function ChatWidget() {
           "hover:bg-primary-600 transition-all duration-300",
           "touch-manipulation",
           lifted ? "bottom-24" : "bottom-4",
+          overlapsCta && !isOpen && "opacity-0 pointer-events-none",
           isOpen && "hidden"
         )}
         aria-label={t("open")}

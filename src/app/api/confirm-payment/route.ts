@@ -27,7 +27,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify payment status directly with Stripe
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    // An unknown or malformed id is the caller's mistake, not a lost payment:
+    // answer 400 instead of falling through to the Telegram "payment may have
+    // succeeded" alert, which anyone could otherwise trigger at will.
+    let paymentIntent: Stripe.PaymentIntent;
+    try {
+      paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    } catch (err) {
+      if (err instanceof Stripe.errors.StripeInvalidRequestError) {
+        return NextResponse.json({ error: "Unknown payment" }, { status: 400 });
+      }
+      throw err;
+    }
 
     if (paymentIntent.status !== "succeeded") {
       return NextResponse.json(
