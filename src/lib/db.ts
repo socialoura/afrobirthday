@@ -251,22 +251,36 @@ async function runEnsureOrdersTable() {
   `;
 
   // Set once the order confirmation email is accepted by Resend, so a failed
-  // send can be retried instead of being lost after the paid claim. Orders
-  // paid before the column existed are backfilled in the same step, otherwise
-  // the retry cron would email every recent customer a second time.
+  // send can be retried instead of being lost after the paid claim.
   await sql`
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'orders' AND column_name = 'confirmation_email_sent_at'
-      ) THEN
-        ALTER TABLE orders ADD COLUMN IF NOT EXISTS confirmation_email_sent_at timestamptz;
-        UPDATE orders SET confirmation_email_sent_at = created_at WHERE status = 'paid';
-      END IF;
-    END
-    $
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS confirmation_email_sent_at timestamptz
   `;
+
+  // Orders paid before the column existed must be backfilled exactly once,
+  // otherwise the retry cron would email every recent customer a second
+  // time. The settings row is the "done" marker: only the cold start that
+  // inserts it runs the backfill, and a failed backfill removes it so the
+  // next cold start tries again. (A plpgsql DO block was used first; plain
+  // statements avoid depending on dollar-quoting through the driver.)
+  await ensureSettingsTable();
+  const backfillClaim = await sql`
+    INSERT INTO settings (key, value)
+    VALUES ('confirmation_email_backfilled_at', now()::text)
+    ON CONFLICT (key) DO NOTHING
+    RETURNING key
+  `;
+  if (backfillClaim.length === 1) {
+    try {
+      await sql`
+        UPDATE orders SET confirmation_email_sent_at = created_at
+        WHERE status = 'paid' AND confirmation_email_sent_at IS NULL
+      `;
+    } catch (err) {
+      await sql`DELETE FROM settings WHERE key = 'confirmation_email_backfilled_at'`.catch(() => {});
+      throw err;
+    }
+  }
 
   // Ads measurement: full first touch (term/content/click id), the last
   // marketing touch before the order, the storefront locale, and what the
