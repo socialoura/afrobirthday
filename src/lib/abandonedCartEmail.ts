@@ -9,7 +9,9 @@ import { EMAIL_CAMPAIGNS, withCampaign } from "@/lib/campaign";
 import { trackEmailSent } from "@/lib/analyticsServer";
 
 export async function sendAbandonedCartEmail(order: Order): Promise<void> {
-  const resumeUrl = withCampaign("/#order", EMAIL_CAMPAIGNS.ABANDONED_CART);
+  // Back to the storefront in the customer's language (orders record it since
+  // October 2026); "/" used to redirect everyone by browser language instead.
+  const resumeUrl = withCampaign(`/${order.locale ?? "en"}#order`, EMAIL_CAMPAIGNS.ABANDONED_CART);
 
   await sendEmailWithResend({
     to: order.email,

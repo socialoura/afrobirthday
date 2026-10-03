@@ -75,14 +75,6 @@ export default async function StructuredData({ type, locale, pageName, path }: S
   };
 
   if (type === "home") {
-    const tTest = await getTranslations({ locale, namespace: "Testimonials" });
-    const items = tTest.raw("items") as Array<{ rating: number }>;
-    const reviewCount = items?.length ?? 0;
-    const ratingValue =
-      reviewCount > 0
-        ? (items.reduce((s, i) => s + (i.rating ?? 5), 0) / reviewCount).toFixed(1)
-        : "4.9";
-
     // The advertised price has to match the charged one, or Google flags the
     // offer. It reads the settings the checkout charges from, so a price
     // change cannot leave the structured data behind.
@@ -134,16 +126,9 @@ export default async function StructuredData({ type, locale, pageName, path }: S
       },
       // Deliberately no shippingDetails: the product is a video delivered by
       // email, so a shipping block would describe something that doesn't exist.
-      aggregateRating:
-        reviewCount > 0
-          ? {
-              "@type": "AggregateRating",
-              ratingValue,
-              reviewCount,
-              bestRating: 5,
-              worstRating: 1,
-            }
-          : undefined,
+      // No aggregateRating either: it was computed from the testimonials
+      // hardcoded in messages/*.json, which Google's review snippet policy
+      // treats as self-serving markup. Add it back from a real review source.
     };
 
     const breadcrumb = breadcrumbSchema([{ name: "Home", url }]);

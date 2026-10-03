@@ -3,6 +3,7 @@ import { Mail, Instagram, Heart, ArrowUpRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import OrderCtaLink from "@/components/OrderCtaLink";
+import CookieSettingsButton from "@/components/CookieSettingsButton";
 
 const navHrefs = [
   { href: "/how-to-order", key: "Header.nav.howItWorks" },
@@ -125,6 +126,12 @@ export default async function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <CookieSettingsButton
+                  label={tFooter("cookieSettings")}
+                  className="text-white/70 hover:text-white text-xs md:text-sm transition-colors duration-200 py-2.5 min-h-[44px] inline-flex items-center"
+                />
+              </li>
             </ul>
           </div>
 

@@ -12,7 +12,7 @@
     "title1": "The birthday gift",
     "title2": "they'll never forget",
     "subtitle1": "Personalized video messages from real African dancers.",
-    "subtitle2": "Authentic energy, pure joy — delivered in 24 hours.",
+    "subtitle2": "Authentic energy, pure joy — delivered in 24–48h (12–24h with Express).",
     "localCurrencyNote": "Displayed and charged in your local currency",
     "ctaOrder": "Order my video",
     "ctaWatch": "Watch examples",
@@ -52,7 +52,8 @@
       "privacy": "Privacy",
       "refunds": "Refunds",
       "terms": "Terms"
-    }
+    },
+    "cookieSettings": "Cookie settings"
   },
   "HowItWorks": {
     "badge": "Simple Process",
@@ -69,7 +70,7 @@
       },
       "celebrate": {
         "title": "Celebrate",
-        "description": "Receive your video within 24 hours. Share it and watch their face light up with pure joy!"
+        "description": "Receive your video within 24–48 hours. Share it and watch their face light up with pure joy!"
       }
     },
     "cta": "Start Creating Now",
@@ -216,7 +217,7 @@
       },
       {
         "question": "Is the video watermarked?",
-        "answer": "By default, videos include a small, tasteful AfroBirthday logo. If you prefer no watermark, just mention it in your order notes - we're happy to accommodate!"
+        "answer": "By default, videos include a small, tasteful AfroBirthday logo. If you prefer no watermark, email support@afrobirthday.com with your order ID right after ordering and we'll remove it."
       },
       {
         "question": "What music options are available?",
@@ -224,7 +225,7 @@
       },
       {
         "question": "Can I gift this to someone?",
-        "answer": "Yes! During checkout, you can enter the recipient's email address, and we'll send the video directly to them. You can also add a personalized gift message."
+        "answer": "Yes! You receive the video by email with a download link, so you can forward it to them, share it on WhatsApp or social media, or play it at the party. If you'd like us to email it to someone else, contact support@afrobirthday.com with your order ID."
       },
       {
         "question": "Do you ship physical DVDs?",
@@ -749,13 +750,23 @@
         {
           "title": "6. Cookies",
           "paragraphs": [
-            "We use essential cookies for website functionality and analytics cookies (with your consent) to understand how visitors use our site. You can manage cookie preferences through your browser settings."
+            "We use essential cookies to run the site (for example your language and your cookie choice). Visitors in the EEA, the UK and Switzerland are asked first; with consent, we also use measurement cookies from Google Analytics, PostHog and the ChatGPT Ads (OpenAI) pixel to understand visits and measure our advertising. Visitors elsewhere can refuse at any time. You can change your choice at any time with the “Cookie settings” link at the bottom of every page."
           ]
         },
         {
           "title": "7. Third-Party Services",
           "paragraphs": [
-            "We use trusted third-party services, including a payment provider and analytics tools. These services have their own privacy policies and handle data according to their terms."
+            "We share data only with the providers we need to run the service, each for a specific purpose:"
+          ],
+          "items": [
+            "<b>Stripe and PayPal:</b> payment processing",
+            "<b>Vercel:</b> website hosting",
+            "<b>Our own servers:</b> storage of orders, photos, music and videos",
+            "<b>Resend:</b> sending order and delivery emails",
+            "<b>OpenAI:</b> optional voice-over of your message for our dancers and, with your consent, measurement of ChatGPT Ads",
+            "<b>Telegram and Amazon Web Services (Bedrock):</b> internal tools our team uses to manage orders",
+            "<b>RapidAPI:</b> retrieving the song when you give us a music link",
+            "<b>Google Analytics and PostHog:</b> audience measurement, with your consent where required"
           ]
         },
         {

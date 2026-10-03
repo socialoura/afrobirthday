@@ -12,7 +12,7 @@
     "title1": "Il regalo di compleanno che",
     "title2": "diventa virale",
     "subtitle1": "Messaggi video personalizzati da veri ballerini africani.",
-    "subtitle2": "Energia autentica. Gioia pura. Consegnato in 24 ore.",
+    "subtitle2": "Energia autentica. Gioia pura. Consegnato in 24–48 ore (12–24 ore con Express).",
     "localCurrencyNote": "Visualizzato e addebitato nella tua valuta locale",
     "ctaOrder": "Ordina il mio video",
     "ctaWatch": "Guarda esempi",
@@ -52,7 +52,8 @@
       "privacy": "Privacy",
       "refunds": "Rimborsi",
       "terms": "Termini"
-    }
+    },
+    "cookieSettings": "Impostazioni cookie"
   },
   "HowItWorks": {
     "badge": "Processo semplice",
@@ -216,7 +217,7 @@
       },
       {
         "question": "Il video ha un watermark?",
-        "answer": "Di default compare un piccolo brand AfroBirthday. Se lo preferisci senza, scrivilo nelle note dell'ordine."
+        "answer": "Di default i video includono un piccolo logo AfroBirthday discreto. Se lo preferisci senza filigrana, scrivi a support@afrobirthday.com con il numero d'ordine subito dopo l'acquisto e lo rimuoveremo."
       },
       {
         "question": "Quali opzioni musicali sono disponibili?",
@@ -224,7 +225,7 @@
       },
       {
         "question": "Posso regalare il video?",
-        "answer": "Sì! Puoi inviare il video direttamente al destinatario e aggiungere una nota regalo."
+        "answer": "Sì! Ricevi il video via email con un link per scaricarlo: puoi inoltrarlo, condividerlo su WhatsApp o sui social, o proiettarlo alla festa. Se vuoi che lo inviamo a un'altra persona, scrivi a support@afrobirthday.com con il numero d'ordine."
       },
       {
         "question": "Spedite DVD?",
@@ -728,13 +729,23 @@
         {
           "title": "6. Cookie",
           "paragraphs": [
-            "Utilizziamo cookie essenziali per il funzionamento del sito e cookie analitici (con il tuo consenso) per capire come i visitatori usano il nostro sito. Puoi gestire le preferenze sui cookie dalle impostazioni del tuo browser."
+            "Usiamo cookie essenziali per il funzionamento del sito (ad esempio la lingua e la tua scelta sui cookie). Ai visitatori di SEE, Regno Unito e Svizzera chiediamo prima il consenso; con il consenso usiamo anche cookie di misurazione di Google Analytics, PostHog e del pixel ChatGPT Ads (OpenAI) per capire le visite e misurare la nostra pubblicità. Gli altri visitatori possono rifiutare in qualsiasi momento. Puoi cambiare la tua scelta quando vuoi tramite il link «Impostazioni cookie» in fondo a ogni pagina."
           ]
         },
         {
           "title": "7. Servizi di terze parti",
           "paragraphs": [
-            "Utilizziamo servizi di terze parti affidabili, tra cui un fornitore di pagamenti e strumenti di analisi. Questi servizi hanno le proprie informative sulla privacy e trattano i dati secondo i propri termini."
+            "Condividiamo i dati solo con i fornitori necessari al servizio, ciascuno per uno scopo preciso:"
+          ],
+          "items": [
+            "<b>Stripe e PayPal:</b> elaborazione dei pagamenti",
+            "<b>Vercel:</b> hosting del sito",
+            "<b>I nostri server:</b> archiviazione di ordini, foto, musica e video",
+            "<b>Resend:</b> invio delle email di ordine e consegna",
+            "<b>OpenAI:</b> lettura vocale facoltativa del tuo messaggio per i nostri ballerini e, con il tuo consenso, misurazione di ChatGPT Ads",
+            "<b>Telegram e Amazon Web Services (Bedrock):</b> strumenti interni usati dal nostro team per gestire gli ordini",
+            "<b>RapidAPI:</b> recupero della canzone quando ci fornisci un link musicale",
+            "<b>Google Analytics e PostHog:</b> misurazione dell'audience, con il tuo consenso ove richiesto"
           ]
         },
         {

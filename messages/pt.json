@@ -12,7 +12,7 @@
     "title1": "O presente de aniversário que",
     "title2": "viraliza",
     "subtitle1": "Mensagens de vídeo personalizadas de verdadeiros dançarinos africanos.",
-    "subtitle2": "Energia autêntica. Alegria pura. Entregue em 24 horas.",
+    "subtitle2": "Energia autêntica. Alegria pura. Entregue em 24–48h (12–24h com Express).",
     "localCurrencyNote": "Exibido e cobrado na sua moeda local",
     "ctaOrder": "Pedir meu vídeo",
     "ctaWatch": "Ver exemplos",
@@ -52,7 +52,8 @@
       "privacy": "Privacidade",
       "refunds": "Reembolsos",
       "terms": "Termos"
-    }
+    },
+    "cookieSettings": "Definições de cookies"
   },
   "HowItWorks": {
     "badge": "Processo simples",
@@ -216,7 +217,7 @@
       },
       {
         "question": "O vídeo tem marca d'água?",
-        "answer": "Por padrão, há uma pequena marca da AfroBirthday. Se preferir sem, informe nas notas do pedido."
+        "answer": "Por defeito, os vídeos incluem um pequeno logótipo AfroBirthday discreto. Se preferir sem marca de água, escreva para support@afrobirthday.com com o número da encomenda logo após encomendar e nós retiramo-lo."
       },
       {
         "question": "Quais opções de música existem?",
@@ -224,7 +225,7 @@
       },
       {
         "question": "Posso dar o vídeo de presente?",
-        "answer": "Sim! Você pode enviar o vídeo diretamente para o destinatário e adicionar uma mensagem de presente."
+        "answer": "Sim! Recebe o vídeo por email com um link de download, por isso pode reencaminhá-lo, partilhá-lo no WhatsApp ou nas redes sociais, ou mostrá-lo na festa. Se quiser que o enviemos a outra pessoa, escreva para support@afrobirthday.com com o número da encomenda."
       },
       {
         "question": "Vocês enviam DVD?",
@@ -728,13 +729,23 @@
         {
           "title": "6. Cookies",
           "paragraphs": [
-            "Usamos cookies essenciais para o funcionamento do site e cookies analíticos (com o seu consentimento) para perceber como os visitantes usam o nosso site. Pode gerir as preferências de cookies nas definições do seu navegador."
+            "Utilizamos cookies essenciais para o funcionamento do site (por exemplo, o seu idioma e a sua escolha de cookies). Aos visitantes do EEE, Reino Unido e Suíça pedimos primeiro o consentimento; com ele, usamos também cookies de medição do Google Analytics, PostHog e do pixel ChatGPT Ads (OpenAI) para compreender as visitas e medir a nossa publicidade. Os restantes visitantes podem recusar a qualquer momento. Pode alterar a sua escolha a qualquer momento através do link «Definições de cookies» no fundo de cada página."
           ]
         },
         {
           "title": "7. Serviços de terceiros",
           "paragraphs": [
-            "Usamos serviços de terceiros de confiança, incluindo um fornecedor de pagamentos e ferramentas de análise. Estes serviços têm as suas próprias políticas de privacidade e tratam os dados de acordo com os seus termos."
+            "Só partilhamos dados com os fornecedores necessários ao serviço, cada um com uma finalidade específica:"
+          ],
+          "items": [
+            "<b>Stripe e PayPal:</b> processamento de pagamentos",
+            "<b>Vercel:</b> alojamento do site",
+            "<b>Os nossos próprios servidores:</b> armazenamento de encomendas, fotos, músicas e vídeos",
+            "<b>Resend:</b> envio de emails de encomenda e entrega",
+            "<b>OpenAI:</b> leitura em voz opcional da sua mensagem para os nossos dançarinos e, com o seu consentimento, medição do ChatGPT Ads",
+            "<b>Telegram e Amazon Web Services (Bedrock):</b> ferramentas internas usadas pela nossa equipa para gerir encomendas",
+            "<b>RapidAPI:</b> obtenção da música quando nos envia um link",
+            "<b>Google Analytics e PostHog:</b> medição de audiência, com o seu consentimento quando exigido"
           ]
         },
         {

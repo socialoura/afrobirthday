@@ -12,7 +12,7 @@
     "title1": "Das Geburtstagsgeschenk",
     "title2": "das sie nie vergessen werden",
     "subtitle1": "Personalisierte Videobotschaften von echten afrikanischen Tänzern.",
-    "subtitle2": "Authentische Energie, pure Freude — Lieferung in 24 Stunden.",
+    "subtitle2": "Authentische Energie, pure Freude — Lieferung in 24–48 Std. (12–24 Std. mit Express).",
     "localCurrencyNote": "Anzeige und Abrechnung in deiner lokalen Währung",
     "ctaOrder": "Mein Video bestellen",
     "ctaWatch": "Beispiele ansehen",
@@ -52,7 +52,8 @@
       "privacy": "Datenschutz",
       "refunds": "Rückerstattungen",
       "terms": "AGB"
-    }
+    },
+    "cookieSettings": "Cookie-Einstellungen"
   },
   "HowItWorks": {
     "badge": "Einfacher Ablauf",
@@ -216,7 +217,7 @@
       },
       {
         "question": "Hat das Video ein Wasserzeichen?",
-        "answer": "Standardmäßig gibt es ein kleines AfroBirthday-Branding. Wenn du es ohne möchtest, schreibe es in deine Bestellnotizen."
+        "answer": "Standardmäßig enthalten die Videos ein kleines, dezentes AfroBirthday-Logo. Wenn du kein Wasserzeichen möchtest, schreib direkt nach der Bestellung mit deiner Bestellnummer an support@afrobirthday.com und wir entfernen es."
       },
       {
         "question": "Welche Musikoptionen gibt es?",
@@ -224,7 +225,7 @@
       },
       {
         "question": "Kann ich das Video verschenken?",
-        "answer": "Ja! Du kannst das Video direkt an den Empfänger senden und eine Geschenknotiz hinzufügen."
+        "answer": "Ja! Du erhältst das Video per E-Mail mit einem Download-Link und kannst es weiterleiten, auf WhatsApp oder Social Media teilen oder auf der Party abspielen. Sollen wir es an jemand anderen schicken, schreib an support@afrobirthday.com mit deiner Bestellnummer."
       },
       {
         "question": "Verschickt ihr DVDs?",
@@ -749,13 +750,23 @@
         {
           "title": "6. Cookies",
           "paragraphs": [
-            "Wir verwenden essenzielle Cookies für die Funktion der Website und Analyse-Cookies (mit deiner Einwilligung), um zu verstehen, wie Besucher unsere Website nutzen. Deine Cookie-Einstellungen kannst du in deinem Browser verwalten."
+            "Wir verwenden technisch notwendige Cookies für den Betrieb der Website (zum Beispiel deine Sprache und deine Cookie-Auswahl). Besucher aus dem EWR, dem Vereinigten Königreich und der Schweiz werden zuerst gefragt; mit Einwilligung nutzen wir außerdem Mess-Cookies von Google Analytics, PostHog und dem ChatGPT-Ads-Pixel (OpenAI), um Besuche zu verstehen und unsere Werbung zu messen. Andere Besucher können jederzeit widersprechen. Du kannst deine Auswahl jederzeit über den Link „Cookie-Einstellungen“ unten auf jeder Seite ändern."
           ]
         },
         {
           "title": "7. Dienste Dritter",
           "paragraphs": [
-            "Wir nutzen vertrauenswürdige Dienste Dritter, darunter einen Zahlungsanbieter und Analysetools. Diese Dienste haben eigene Datenschutzrichtlinien und verarbeiten Daten gemäß ihren Bedingungen."
+            "Wir geben Daten nur an Dienstleister weiter, die wir für den Service benötigen, jeweils für einen bestimmten Zweck:"
+          ],
+          "items": [
+            "<b>Stripe und PayPal:</b> Zahlungsabwicklung",
+            "<b>Vercel:</b> Hosting der Website",
+            "<b>Unsere eigenen Server:</b> Speicherung von Bestellungen, Fotos, Musik und Videos",
+            "<b>Resend:</b> Versand von Bestell- und Liefer-E-Mails",
+            "<b>OpenAI:</b> optionale Sprachausgabe deiner Nachricht für unsere Tänzer und, mit deiner Einwilligung, Messung von ChatGPT Ads",
+            "<b>Telegram und Amazon Web Services (Bedrock):</b> interne Werkzeuge unseres Teams zur Bestellverwaltung",
+            "<b>RapidAPI:</b> Abruf des Songs, wenn du uns einen Musiklink gibst",
+            "<b>Google Analytics und PostHog:</b> Reichweitenmessung, mit Einwilligung, wo erforderlich"
           ]
         },
         {

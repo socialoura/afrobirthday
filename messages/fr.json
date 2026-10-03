@@ -12,7 +12,7 @@
     "title1": "Le cadeau d'anniversaire",
     "title2": "qu'on n'oublie jamais",
     "subtitle1": "Des messages vidéo personnalisés par de vrais danseurs africains.",
-    "subtitle2": "Énergie authentique, joie pure — livré en 24 heures.",
+    "subtitle2": "Énergie authentique, joie pure — livré en 24–48 h (12–24 h en Express).",
     "localCurrencyNote": "Affiché et facturé dans votre devise locale",
     "ctaOrder": "Commander ma vidéo",
     "ctaWatch": "Voir des exemples",
@@ -52,7 +52,8 @@
       "privacy": "Confidentialité",
       "refunds": "Remboursements",
       "terms": "Conditions"
-    }
+    },
+    "cookieSettings": "Paramètres cookies"
   },
   "HowItWorks": {
     "badge": "Processus simple",
@@ -69,7 +70,7 @@
       },
       "celebrate": {
         "title": "Célébrez",
-        "description": "Recevez votre vidéo sous 24 h. Partagez-la et regardez son visage s'illuminer de joie !"
+        "description": "Recevez votre vidéo sous 24 à 48 h. Partagez-la et regardez son visage s'illuminer de joie !"
       }
     },
     "cta": "Commencer maintenant",
@@ -216,7 +217,7 @@
       },
       {
         "question": "La vidéo est-elle marquée ?",
-        "answer": "Par défaut, une petite marque AfroBirthday apparaît. Si vous préférez sans, dites-le dans vos notes de commande."
+        "answer": "Par défaut, les vidéos comportent un petit logo AfroBirthday discret. Si vous préférez sans filigrane, écrivez à support@afrobirthday.com avec votre numéro de commande juste après avoir commandé et nous le retirerons."
       },
       {
         "question": "Quelles options de musique sont disponibles ?",
@@ -224,7 +225,7 @@
       },
       {
         "question": "Puis-je offrir la vidéo ?",
-        "answer": "Oui ! Vous pouvez envoyer la vidéo directement au destinataire et ajouter un message cadeau."
+        "answer": "Oui ! Vous recevez la vidéo par e-mail avec un lien de téléchargement : vous pouvez la transférer, la partager sur WhatsApp ou les réseaux sociaux, ou la diffuser pendant la fête. Si vous souhaitez que nous l'envoyions à quelqu'un d'autre, écrivez à support@afrobirthday.com avec votre numéro de commande."
       },
       {
         "question": "Envoyez-vous des DVD ?",
@@ -749,13 +750,23 @@
         {
           "title": "6. Cookies",
           "paragraphs": [
-            "Nous utilisons des cookies essentiels au fonctionnement du site et des cookies d'analyse (avec votre consentement) pour comprendre comment les visiteurs utilisent notre site. Vous pouvez gérer vos préférences de cookies dans les paramètres de votre navigateur."
+            "Nous utilisons des cookies essentiels au fonctionnement du site (par exemple votre langue et votre choix de cookies). Les visiteurs de l'EEE, du Royaume-Uni et de Suisse sont consultés d'abord ; avec leur accord, nous utilisons aussi des cookies de mesure de Google Analytics, PostHog et du pixel ChatGPT Ads (OpenAI) pour comprendre les visites et mesurer nos publicités. Les autres visiteurs peuvent refuser à tout moment. Vous pouvez modifier votre choix à tout moment via le lien « Paramètres cookies » en bas de chaque page."
           ]
         },
         {
           "title": "7. Services tiers",
           "paragraphs": [
-            "Nous faisons appel à des services tiers de confiance, dont un prestataire de paiement et des outils d'analyse. Ces services disposent de leurs propres politiques de confidentialité et traitent les données conformément à leurs conditions."
+            "Nous ne partageons des données qu'avec les prestataires nécessaires au service, chacun pour un usage précis :"
+          ],
+          "items": [
+            "<b>Stripe et PayPal :</b> traitement des paiements",
+            "<b>Vercel :</b> hébergement du site",
+            "<b>Nos propres serveurs :</b> stockage des commandes, photos, musiques et vidéos",
+            "<b>Resend :</b> envoi des e-mails de commande et de livraison",
+            "<b>OpenAI :</b> lecture vocale facultative de votre message pour nos danseurs et, avec votre accord, mesure des publicités ChatGPT Ads",
+            "<b>Telegram et Amazon Web Services (Bedrock) :</b> outils internes utilisés par notre équipe pour gérer les commandes",
+            "<b>RapidAPI :</b> récupération de la chanson quand vous nous donnez un lien musical",
+            "<b>Google Analytics et PostHog :</b> mesure d'audience, avec votre accord lorsque requis"
           ]
         },
         {

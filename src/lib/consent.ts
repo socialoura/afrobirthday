@@ -16,6 +16,8 @@ export const CONSENT_COUNTRIES = [
 export const GEO_COOKIE = "ab_geo";
 const CONSENT_COOKIE = "ab_consent";
 export const CONSENT_EVENT = "afrobirthday:consent";
+/** Dispatched by the footer "Cookie settings" link to show the banner again. */
+export const OPEN_CONSENT_EVENT = "afrobirthday:open-consent";
 
 export type ConsentState = "granted" | "denied";
 

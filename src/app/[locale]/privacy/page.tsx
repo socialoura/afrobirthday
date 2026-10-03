@@ -39,5 +39,5 @@ export default async function PrivacyPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <LegalPage locale={locale} page="privacy" updated="2024-01-15" />;
+  return <LegalPage locale={locale} page="privacy" updated="2026-10-03" />;
 }

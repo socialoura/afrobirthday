@@ -20,7 +20,14 @@ export default function OpenAIPixel() {
   useEffect(() => {
     if (!PIXEL_ID) return;
     setEnabled(hasAdsConsent());
-    const onConsent = () => setEnabled(hasAdsConsent());
+    const onConsent = () => {
+      const allowed = hasAdsConsent();
+      setEnabled(allowed);
+      // Already loaded and consent withdrawn (or given again): the pixel's own
+      // switch stops or resumes measurement without a reload.
+      const oaiq = (window as unknown as { oaiq?: (...args: unknown[]) => void }).oaiq;
+      oaiq?.("consent", allowed);
+    };
     window.addEventListener(CONSENT_EVENT, onConsent);
     return () => window.removeEventListener(CONSENT_EVENT, onConsent);
   }, []);

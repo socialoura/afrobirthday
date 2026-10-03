@@ -12,7 +12,7 @@
     "title1": "Het verjaardagscadeau dat",
     "title2": "viraal gaat",
     "subtitle1": "Gepersonaliseerde videoberichten van echte Afrikaanse dansers.",
-    "subtitle2": "Authentieke energie. Pure vreugde. Geleverd binnen 24 uur.",
+    "subtitle2": "Authentieke energie. Pure vreugde. Geleverd binnen 24–48 uur (12–24 uur met Express).",
     "localCurrencyNote": "Getoond en afgerekend in je lokale valuta",
     "ctaOrder": "Bestel mijn video",
     "ctaWatch": "Bekijk voorbeelden",
@@ -52,7 +52,8 @@
       "privacy": "Privacy",
       "refunds": "Terugbetalingen",
       "terms": "Voorwaarden"
-    }
+    },
+    "cookieSettings": "Cookie-instellingen"
   },
   "HowItWorks": {
     "badge": "Eenvoudig proces",
@@ -216,7 +217,7 @@
       },
       {
         "question": "Heeft de video een watermark?",
-        "answer": "Standaard staat er een kleine AfroBirthday-branding op. Wil je het zonder? Zet het in je ordernotities."
+        "answer": "Standaard bevatten de video's een klein, subtiel AfroBirthday-logo. Liever zonder watermerk? Mail direct na je bestelling support@afrobirthday.com met je bestelnummer en we halen het weg."
       },
       {
         "question": "Welke muziekopties zijn er?",
@@ -224,7 +225,7 @@
       },
       {
         "question": "Kan ik de video cadeau doen?",
-        "answer": "Ja! Je kunt de video rechtstreeks naar de ontvanger sturen en een cadeaubericht toevoegen."
+        "answer": "Ja! Je ontvangt de video per e-mail met een downloadlink, zodat je hem kunt doorsturen, delen via WhatsApp of social media, of afspelen op het feest. Wil je dat we hem naar iemand anders sturen? Mail support@afrobirthday.com met je bestelnummer."
       },
       {
         "question": "Versturen jullie dvd's?",
@@ -728,13 +729,23 @@
         {
           "title": "6. Cookies",
           "paragraphs": [
-            "We gebruiken essentiële cookies voor de werking van de website en analytische cookies (met je toestemming) om te begrijpen hoe bezoekers onze site gebruiken. Je cookievoorkeuren beheer je via de instellingen van je browser."
+            "We gebruiken noodzakelijke cookies om de site te laten werken (bijvoorbeeld je taal en je cookiekeuze). Bezoekers uit de EER, het VK en Zwitserland vragen we eerst om toestemming; met toestemming gebruiken we ook meetcookies van Google Analytics, PostHog en de ChatGPT Ads-pixel (OpenAI) om bezoeken te begrijpen en onze advertenties te meten. Andere bezoekers kunnen op elk moment weigeren. Je kunt je keuze altijd wijzigen via de link ‘Cookie-instellingen’ onderaan elke pagina."
           ]
         },
         {
           "title": "7. Diensten van derden",
           "paragraphs": [
-            "We maken gebruik van betrouwbare diensten van derden, waaronder een betaalprovider en analysetools. Deze diensten hebben hun eigen privacybeleid en verwerken gegevens volgens hun eigen voorwaarden."
+            "We delen gegevens alleen met de dienstverleners die we nodig hebben voor de service, elk voor een specifiek doel:"
+          ],
+          "items": [
+            "<b>Stripe en PayPal:</b> betalingsverwerking",
+            "<b>Vercel:</b> hosting van de website",
+            "<b>Onze eigen servers:</b> opslag van bestellingen, foto's, muziek en video's",
+            "<b>Resend:</b> verzenden van bestel- en leveringsmails",
+            "<b>OpenAI:</b> optionele voorleesversie van je bericht voor onze dansers en, met je toestemming, meting van ChatGPT Ads",
+            "<b>Telegram en Amazon Web Services (Bedrock):</b> interne tools waarmee ons team bestellingen beheert",
+            "<b>RapidAPI:</b> ophalen van het nummer als je ons een muzieklink geeft",
+            "<b>Google Analytics en PostHog:</b> bezoekersmeting, met je toestemming waar vereist"
           ]
         },
         {

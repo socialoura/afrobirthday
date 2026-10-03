@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { consentRequired, getStoredConsent, setConsent } from "@/lib/consent";
+import { OPEN_CONSENT_EVENT, consentRequired, getStoredConsent, setConsent } from "@/lib/consent";
 
 /**
  * Opt-in banner for visitors from the EEA, UK and Switzerland. Until they
@@ -16,6 +16,10 @@ export default function ConsentBanner() {
 
   useEffect(() => {
     setVisible(consentRequired() && getStoredConsent() === null);
+    // Anyone can reopen it from the footer to change or withdraw consent.
+    const open = () => setVisible(true);
+    window.addEventListener(OPEN_CONSENT_EVENT, open);
+    return () => window.removeEventListener(OPEN_CONSENT_EVENT, open);
   }, []);
 
   if (!visible) return null;
