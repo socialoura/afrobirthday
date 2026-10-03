@@ -5,7 +5,12 @@
       "ourStory": "Nuestra historia",
       "faq": "Preguntas frecuentes"
     },
-    "cta": "Consigue tu vídeo"
+    "cta": "Consigue tu vídeo",
+    "a11y": {
+      "openMenu": "Abrir menú",
+      "closeMenu": "Cerrar menú",
+      "home": "Inicio de AfroBirthday"
+    }
   },
   "Hero": {
     "badge": "Más de 500 cumpleaños inolvidables",

@@ -5,7 +5,12 @@
       "ourStory": "La nostra storia",
       "faq": "FAQ"
     },
-    "cta": "Ottieni il tuo video"
+    "cta": "Ottieni il tuo video",
+    "a11y": {
+      "openMenu": "Apri menu",
+      "closeMenu": "Chiudi menu",
+      "home": "Home di AfroBirthday"
+    }
   },
   "Hero": {
     "badge": "Scelto da oltre 500 clienti felici",

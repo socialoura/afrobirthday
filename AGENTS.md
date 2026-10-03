@@ -39,7 +39,7 @@ Versions/pièges d'environnement :
 .
 ├── middleware.ts                  # next-intl middleware ; exclut api/admin/success/paypal/v/fichiers
 ├── next.config.mjs                # images, cache headers, optimizePackageImports
-├── vercel.json                    # cron quotidien /api/cron/check-overdue à 09:00 UTC
+├── vercel.json                    # vide : les crons sont appelés par le crontab du VPS
 ├── package.json                   # scripts dev/build/start/lint + scripts vidéo
 ├── messages/                      # traductions next-intl (10 langues)
 ├── public/                        # assets statiques + vidéos optimisées
@@ -50,12 +50,11 @@ Versions/pièges d'environnement :
 │   └── optimize/check videos + install FFmpeg (scripts Windows PowerShell)
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx             # metadata, fonts, Analytics, tags Google
-│   │   ├── page.tsx               # redirect / -> /en (fallback si middleware off)
-│   │   ├── [locale]/              # pages publiques localisées + success
-│   │   ├── admin/                 # login, dashboard, pages magiques upload/recap
-│   │   ├── api/                   # 27 route handlers (voir §6)
-│   │   ├── paypal/success/        # retour PayPal -> capture côté client
+│   │   ├── [locale]/              # layout RACINE de la vitrine (<html> par locale, ISR 5 min) + success
+│   │   ├── (site)/                # 2e layout racine : admin, paypal/success, success (legacy), page.tsx
+│   │   ├── global-not-found.tsx   # 404 des URL hors layout (experimental.globalNotFound)
+│   │   ├── llms.txt/route.ts      # résumé pour assistants IA, prix lus en cache
+│   │   ├── api/                   # route handlers (voir §6)
 │   │   └── v/[id]/route.ts        # redirect public vers final_video_url
 │   ├── components/                # sections landing, payment modal, admin analytics
 │   ├── i18n/                      # locales, navigation, request config
@@ -71,9 +70,9 @@ Particularités :
 ## 4) Points d'entrée de l'app
 
 - `middleware.ts` : applique `next-intl` sur les pages publiques ; matcher exclut `api`, `_next`, `admin`, `success`, `paypal`, `v/`, fichiers statiques.
-- `src/app/layout.tsx` : layout racine, metadata SEO, fonts, Vercel Analytics/Speed Insights, scripts Google.
-- `src/app/page.tsx` : redirect de secours vers `/${defaultLocale}` (`en`).
-- `src/app/[locale]/layout.tsx` : provider `next-intl`, `Header`, `Footer`, `ChatWidgetWrapper`.
+- `src/components/RootDocument.tsx` : shell `<html>` partagé (metadata SEO, fonts, Consent Mode v2 + gtag, pixel ChatGPT Ads, Vercel Analytics). Il n'y a **plus** de `src/app/layout.tsx` : un layout racine unique lisait la locale dans les headers et rendait tout le site dynamique.
+- `src/app/(site)/page.tsx` : redirect de secours vers `/${defaultLocale}` (`en`).
+- `src/app/[locale]/layout.tsx` : layout racine localisé (`dynamicParams = false`, `revalidate = 300`), provider `next-intl`, `Header`, `Footer`, `ChatWidgetWrapper`, `ConsentBanner`. Chaque page appelle `setRequestLocale` ; les lectures DB du rendu passent par `src/lib/cachedContent.ts`.
 - `src/app/[locale]/page.tsx` : home = `HeroSection`, `ProductShowcaseSection`, `OrderFormSection`, `HowItWorksSection`, `FAQQuickSection`, `TestimonialsSection`, `StructuredData`.
 - `src/components/sections/OrderFormSection.tsx` : formulaire commande client ; upload photo/musique ; choix Stripe/PayPal.
 - `src/components/CustomPaymentModal.tsx` : paiement carte via Stripe PaymentIntent.
@@ -98,9 +97,13 @@ Particularités :
 
 `/api/stripe-webhook` fait le même traitement idempotent pour `payment_intent.succeeded`, `checkout.session.completed`, `payment_intent.canceled`, `checkout.session.expired`. Il peut donc confirmer une commande même si l'appel client `/api/confirm-payment` échoue.
 
-### Flux Stripe alternatif présent mais non utilisé par l'UI actuelle
+### Traitement post-paiement (`src/lib/orderFulfillment.ts`)
 
-- **`/api/create-checkout`** crée une Stripe Checkout Session embedded (`ui_mode: "embedded"`). Aucun composant actuel ne l'appelle ; le flux UI utilise `create-payment-intent` + `CustomPaymentModal`.
+- `confirm-payment`, `stripe-webhook` et PayPal passent tous par ce module : seul l'appelant qui gagne le claim atomique (`markOrderPaid*` renvoie `true`) déclenche email, promo, parrainage, Conversions API OpenAI et notification.
+- Stripe : montant + devise du PaymentIntent doivent correspondre à la commande, sinon alerte Telegram et commande laissée `pending`.
+- PayPal : montant vérifié **avant** capture ; `ORDER_ALREADY_CAPTURED` = succès ; webhook signé `/api/paypal/webhook` en filet de sécurité.
+- `/api/create-checkout` (Checkout embedded) a été supprimée ; le webhook gère encore les sessions legacy.
+- Le Payment Element inline (Apple/Google Pay) a été retiré exprès le 2026-08-29 (conversion carte 10 % → 3 %) : ne pas le remettre sans test A/B.
 
 ### PayPal
 
@@ -128,8 +131,8 @@ Particularités :
 ### Production / relances
 
 - Définition "en attente" utilisée par Telegram : `status='paid'`, `order_status` ni `completed` ni `cancelled`, `final_video_url` vide.
-- Cron Vercel `0 9 * * *` -> `/api/cron/check-overdue` ; alerte Telegram si express > 24h ou standard > 48h.
-- Bot Telegram : `/orders`, `/overdue`, `/stats`, `/vocal [id]`, `/chatid`, sinon Q/R via AWS Bedrock avec outils `query_orders`/`get_stats`.
+- Crons `/api/cron/*` appelés par le crontab du VPS (`vercel-cron.sh`), tous **fail-closed** sans `CRON_SECRET` (`src/lib/cronAuth.ts`). `check-overdue` alerte si express > 24h ou standard > 48h ; `confirmation-emails` (à planifier ~15 min) renvoie les emails de confirmation échoués.
+- Bot Telegram : `/orders`, `/overdue`, `/stats`, `/vocal [id]`, `/chatid`, sinon Q/R via AWS Bedrock avec outils `query_orders`/`get_stats`. Webhook protégé par `TELEGRAM_WEBHOOK_SECRET` + liste blanche de chats (`TELEGRAM_CHAT_ID`, `TELEGRAM_ADMIN_CHAT_IDS`).
 
 ### Promo codes
 
@@ -153,18 +156,18 @@ Les tables/routes admin promo existent, mais `validatePromoCode` / `incrementPro
 | `/api/admin/promo-settings` | GET, PUT | Bearer admin ; toggle `promo_enabled` |
 | `/api/admin/stripe-settings` | GET, PUT | Bearer admin ; stocke clés Stripe en table `settings` (mais voir piège §11) |
 | `/api/confirm-payment` | POST | public ; vérifie PaymentIntent Stripe puis marque paid |
-| `/api/create-checkout` | POST | public ; Stripe Checkout Session embedded (non utilisé UI actuelle) |
 | `/api/create-payment-intent` | POST | public ; flux carte UI actuel |
-| `/api/cron/check-overdue` | GET | Bearer `CRON_SECRET` si défini ; alertes retard |
-| `/api/download-music` | POST | public ; wrapper download musique externe (utilisé aussi en interne après paiement) |
+| `/api/cron/*` | GET | Bearer `CRON_SECRET` obligatoire (refus si absent) |
 | `/api/exchange-rates` | GET | public ; taux Frankfurter + fallback statique |
 | `/api/paypal/capture-order` | POST | public ; capture PayPal puis marque paid |
 | `/api/paypal/create-order` | POST | public ; crée commande + ordre PayPal |
+| `/api/paypal/webhook` | POST | signature PayPal (`PAYPAL_WEBHOOK_ID`) ; capture/valide si l'onglet a été fermé |
+| `/api/order-summary` | GET | public (UUID) ; statut/montant/devise pour la page succès |
 | `/api/pricing` | GET | public ; prix + overrides pour affichage |
 | `/api/recap/download` | GET | upload token ; proxy download photo/musique/vocal |
 | `/api/recap/regenerate-voiceover` | POST | upload token ; régénère vocal OpenAI |
 | `/api/stripe-webhook` | POST | signature Stripe `STRIPE_WEBHOOK_SECRET` |
-| `/api/telegram/webhook` | POST | public ; webhook bot Telegram |
+| `/api/telegram/webhook` | POST | header secret Telegram + chats autorisés |
 | `/api/upload` | POST | public rate-limit ; folders allowlistés ; `admin/videos` exige admin |
 | `/api/upload-final/order` | GET | upload token ; résumé commande pour pages magiques |
 | `/api/upload-final/save` | POST | upload token ; save final video + option email client |
@@ -281,7 +284,10 @@ Aucun `.env*` n'est tracké (`.gitignore` exclut `.env*` / `.env*.local`). Varia
 
 - `ADMIN_USERNAME`, `ADMIN_PASSWORD` : login dashboard.
 - `ADMIN_TOKEN_SECRET` : obligatoire, >= 32 chars ; signe sessions admin et magic links upload/recap.
-- `CRON_SECRET` : si défini, requis en Bearer sur `/api/cron/check-overdue`.
+- `CRON_SECRET` : obligatoire, requis en Bearer sur tous les `/api/cron/*`.
+- `TELEGRAM_WEBHOOK_SECRET` (obligatoire), `TELEGRAM_ADMIN_CHAT_IDS` (optionnel).
+- `PAYPAL_WEBHOOK_ID` : vérification du webhook PayPal.
+- `NEXT_PUBLIC_OPENAI_PIXEL_ID`, `OPENAI_ADS_API_KEY` : pixel ChatGPT Ads + Conversions API (désactivés si absents).
 - `RAPIDAPI_KEY` : backend YouTube MP3 préféré si présent.
 - `MUSIC_DOWNLOAD_API_URL` : fallback/endpoint Cobalt-style ; défaut historique `https://co.wuk.sh/api/json`.
 - `DISABLE_MUSIC_AUTO_DOWNLOAD=true` : désactive le téléchargement auto.
@@ -320,7 +326,7 @@ Aucun `.env*` n'est tracké (`.gitignore` exclut `.env*` / `.env*.local`). Varia
 6. **`.hermes.md`** : globalement exact pour la table `orders` et les liens magiques, mais incomplet : il manque `device`, `currency`, `total_local`, `exchange_rate`, `voiceover_url`, `downloaded_music_url`, `cost`, `final_video_sent_at`, et les tables `settings`, `promo_codes`, `google_ads_expenses`.
 7. **Stripe settings admin vs paiement** : le dashboard peut sauvegarder `stripe_secret_key`/`stripe_publishable_key` en DB, mais `/api/create-payment-intent`, `/api/create-checkout`, `/api/confirm-payment`, `/api/stripe-webhook` utilisent `process.env.STRIPE_SECRET_KEY`. Le formulaire admin Stripe ne pilote donc pas les clés réellement utilisées.
 8. **Promo codes** : admin + tables présents, mais aucun flux checkout ne valide/applique un code ni n'incrémente l'usage. `promo_enabled` n'a pas d'effet visible dans `OrderFormSection`.
-9. **Deux flux Stripe coexistent** : `/api/create-checkout` existe mais n'est pas appelé par le client actuel ; le flux réel est `/api/create-payment-intent` + `/api/confirm-payment`.
+9. **Flux Stripe unique** : `/api/create-checkout` a été supprimée (2026-10) ; le flux est `/api/create-payment-intent` + `/api/confirm-payment` + webhook.
 10. **Devises** : Stripe facture en devise locale calculée serveur ; PayPal crée toujours l'ordre en USD. Le commentaire `currencyFromLocale` dit "always charging in USD" alors que Stripe charge désormais en local.
 11. **Lint** : `package.json` garde `"lint": "next lint"` avec Next 16 ; `npm run lint` échoue (`Invalid project directory ... /workspace/lint`). Utiliser `npx tsc` et/ou moderniser ESLint.
 12. **Build en petit conteneur** : `npm run build` compile puis est tué (`exit 137`) pendant "Running TypeScript" dans cet environnement ; `npx tsc --noEmit --incremental false` passe avec plus de heap. Ce n'est pas une contradiction de doc, mais un piège de vérification.
@@ -357,7 +363,7 @@ git diff --stat
 
 ## 13) Résumé nouvel agent — 7 points essentiels
 
-1. Le flux carte réel de l'UI est `/api/create-payment-intent` -> `CustomPaymentModal` -> `/api/confirm-payment` ; `/api/create-checkout` existe mais semble legacy/non câblé.
+1. Le flux carte de l'UI est `/api/create-payment-intent` -> `CustomPaymentModal` -> `/api/confirm-payment` ; tout le post-paiement passe par `src/lib/orderFulfillment.ts`.
 2. La DB est code-first dans `src/lib/db.ts` ; pas de `schema.sql`/migrations. La connexion applicative utilise `DATABASE_URL` et le tunnel SSH vers le VPS.
 3. Le PostgreSQL du VPS sert la DB ; Supabase Storage conserve le bucket `orders`. Discord est désactivé, Telegram est le canal actif.
 4. Les montants clients ne sont jamais fiables : le serveur recalcule base/customSong/express + overrides + taux avant de créer Stripe/PayPal.

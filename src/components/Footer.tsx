@@ -38,6 +38,7 @@ const socialLinks = [
 export default async function Footer() {
   const tFooter = await getTranslations("Footer");
   const tNav = await getTranslations("Header.nav");
+  const tHeaderA11y = await getTranslations("Header.a11y");
 
   const navLabel = (key: (typeof navHrefs)[number]["key"]) => {
     if (key === "Header.nav.howItWorks") return tNav("howItWorks");
@@ -59,7 +60,7 @@ export default async function Footer() {
       <div className="section-container relative py-10 md:py-16 px-4">
         <div className="grid grid-cols-2 md:grid-cols-12 gap-6 md:gap-8 lg:gap-12">
           <div className="col-span-2 md:col-span-4">
-            <Link href="/" className="inline-block group mb-4 md:mb-6" aria-label="AfroBirthday home">
+            <Link href="/" className="inline-block group mb-4 md:mb-6" aria-label={tHeaderA11y("home")}>
               <Image
                 src="/logo.png"
                 alt="AfroBirthday"

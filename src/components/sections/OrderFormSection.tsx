@@ -241,12 +241,14 @@ function CardLogos() {
 function StepIndicator({
   currentStep,
   labels,
+  ariaLabel,
 }: {
   currentStep: 1 | 2 | 3;
   labels: [string, string, string];
+  ariaLabel: string;
 }) {
   return (
-    <div className="flex items-start" aria-label="Progress">
+    <div className="flex items-start" role="group" aria-label={ariaLabel}>
       {labels.map((label, i) => {
         const step = (i + 1) as 1 | 2 | 3;
         const isComplete = step < currentStep;
@@ -1157,6 +1159,7 @@ export default function OrderFormSection() {
           <StepIndicator
             currentStep={currentStep}
             labels={[t("sections.video"), t("sections.customize"), t("sections.payment")]}
+            ariaLabel={t("progress", { completed: currentStep - 1, total: 3 })}
           />
         </div>
 
@@ -1244,7 +1247,7 @@ export default function OrderFormSection() {
                           const file = e.target.files?.[0];
                           if (file) handlePhotoSelect(file);
                         }}
-                        className="hidden"
+                        className="sr-only"
                       />
                     </label>
                   )}
@@ -1441,7 +1444,7 @@ export default function OrderFormSection() {
                             beginMusicUpload(file);
                           }
                         }}
-                        className="hidden"
+                        className="sr-only"
                       />
                     </label>
                   </div>

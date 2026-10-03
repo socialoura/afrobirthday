@@ -41,7 +41,7 @@ export default function Header() {
     >
       <nav className="section-container">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center group" aria-label="AfroBirthday home">
+          <Link href="/" className="flex items-center group" aria-label={tHeader("a11y.home")}>
             <div className="relative h-12 w-32 md:h-14 md:w-52">
               <Image
                 src="/logo.png"
@@ -79,7 +79,7 @@ export default function Header() {
               type="button"
               className="p-3 text-white rounded-full bg-white/10 hover:bg-white/20 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-label={mobileMenuOpen ? tHeader("a11y.closeMenu") : tHeader("a11y.openMenu")}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-menu"
             >
@@ -90,6 +90,8 @@ export default function Header() {
 
         <div
           id="mobile-menu"
+          // Collapsed with max-h-0, but its links stayed in the tab order.
+          inert={!mobileMenuOpen}
           className={cn(
             "lg:hidden overflow-hidden transition-all duration-500 ease-out",
             mobileMenuOpen ? "max-h-96 opacity-100 mt-4" : "max-h-0 opacity-0"

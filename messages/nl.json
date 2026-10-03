@@ -5,7 +5,12 @@
       "ourStory": "Ons verhaal",
       "faq": "FAQ"
     },
-    "cta": "Bestel je video"
+    "cta": "Bestel je video",
+    "a11y": {
+      "openMenu": "Menu openen",
+      "closeMenu": "Menu sluiten",
+      "home": "AfroBirthday home"
+    }
   },
   "Hero": {
     "badge": "Vertrouwd door 500+ tevreden klanten",

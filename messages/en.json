@@ -5,7 +5,12 @@
       "ourStory": "Our Story",
       "faq": "FAQ"
     },
-    "cta": "Get Your Video"
+    "cta": "Get Your Video",
+    "a11y": {
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu",
+      "home": "AfroBirthday home"
+    }
   },
   "Hero": {
     "badge": "500+ birthdays made unforgettable",

@@ -5,7 +5,12 @@
       "ourStory": "我们的故事",
       "faq": "常见问题"
     },
-    "cta": "获取你的视频"
+    "cta": "获取你的视频",
+    "a11y": {
+      "openMenu": "打开菜单",
+      "closeMenu": "关闭菜单",
+      "home": "AfroBirthday 首页"
+    }
   },
   "Hero": {
     "badge": "已为 500+ 位寿星送上难忘惊喜",

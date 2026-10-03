@@ -5,7 +5,12 @@
       "ourStory": "Unsere Geschichte",
       "faq": "FAQ"
     },
-    "cta": "Hol dir dein Video"
+    "cta": "Hol dir dein Video",
+    "a11y": {
+      "openMenu": "Menü öffnen",
+      "closeMenu": "Menü schließen",
+      "home": "AfroBirthday Startseite"
+    }
   },
   "Hero": {
     "badge": "Über 500 unvergessliche Geburtstage",
