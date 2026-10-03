@@ -156,7 +156,7 @@ async function runEnsureOrdersTable() {
   const [{ ready }] = await sql`
     SELECT EXISTS (
       SELECT 1 FROM information_schema.columns
-      WHERE table_name = 'orders' AND column_name = 'confirmation_email_sent_at'
+      WHERE table_name = 'orders' AND column_name = 'client_user_agent'
     ) AS ready
   `;
   if (ready) return;
@@ -265,7 +265,27 @@ async function runEnsureOrdersTable() {
         UPDATE orders SET confirmation_email_sent_at = created_at WHERE status = 'paid';
       END IF;
     END
-    $$
+    $
+  `;
+
+  // Ads measurement: full first touch (term/content/click id), the last
+  // marketing touch before the order, the storefront locale, and what the
+  // ChatGPT Ads Conversions API needs (consent, IP, user agent, OpenAI ref).
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS locale text,
+    ADD COLUMN IF NOT EXISTS attribution_term text,
+    ADD COLUMN IF NOT EXISTS attribution_content text,
+    ADD COLUMN IF NOT EXISTS attribution_click_id text,
+    ADD COLUMN IF NOT EXISTS last_touch_source text,
+    ADD COLUMN IF NOT EXISTS last_touch_medium text,
+    ADD COLUMN IF NOT EXISTS last_touch_campaign text,
+    ADD COLUMN IF NOT EXISTS last_touch_click_id text,
+    ADD COLUMN IF NOT EXISTS last_touch_at timestamptz,
+    ADD COLUMN IF NOT EXISTS ads_consent boolean NOT NULL DEFAULT false,
+    ADD COLUMN IF NOT EXISTS oai_ref text,
+    ADD COLUMN IF NOT EXISTS client_ip text,
+    ADD COLUMN IF NOT EXISTS client_user_agent text
   `;
 }
 
@@ -374,6 +394,14 @@ export type OrderCreateInput = {
   danceExtended?: boolean;
   /** First-touch attribution, already narrowed and truncated by the caller. */
   attribution?: OrderAttribution;
+  /** Storefront locale the order was placed from (en, fr, ...). */
+  locale?: string;
+  /** Visitor accepted ad measurement (or is outside the opt-in countries). */
+  adsConsent?: boolean;
+  /** For the ChatGPT Ads Conversions API; only stored with adsConsent. */
+  oaiRef?: string;
+  clientIp?: string;
+  clientUserAgent?: string;
 };
 
 /**
@@ -390,6 +418,16 @@ export type OrderAttribution = {
   landing: string | null;
   referrer: string | null;
   firstSeenAt: string | null;
+  term: string | null;
+  content: string | null;
+  clickId: string | null;
+  last: {
+    source: string | null;
+    medium: string | null;
+    campaign: string | null;
+    clickId: string | null;
+    at: string | null;
+  } | null;
 };
 
 const ATTRIBUTION_LIMITS = {
@@ -398,29 +436,43 @@ const ATTRIBUTION_LIMITS = {
   campaign: 120,
   landing: 200,
   referrer: 200,
+  term: 120,
+  content: 120,
+  clickId: 300,
 } as const;
+
+function sanitizeDate(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const parsed = new Date(raw);
+  // A visitor-supplied date can be anything; only a real one is kept, and
+  // never one in the future.
+  if (Number.isNaN(parsed.getTime()) || parsed.getTime() > Date.now() + 60_000) return null;
+  return parsed.toISOString();
+}
 
 export function sanitizeAttribution(raw: unknown): OrderAttribution | undefined {
   if (!raw || typeof raw !== "object") return undefined;
   const input = raw as Record<string, unknown>;
 
-  const take = (key: keyof typeof ATTRIBUTION_LIMITS) => {
-    const value = input[key];
+  const take = (key: keyof typeof ATTRIBUTION_LIMITS, from: Record<string, unknown> = input) => {
+    const value = from[key];
     if (typeof value !== "string") return null;
     const trimmed = value.trim().slice(0, ATTRIBUTION_LIMITS[key]);
     return trimmed.length ? trimmed : null;
   };
 
-  const firstSeenRaw = input.firstSeenAt;
-  let firstSeenAt: string | null = null;
-  if (typeof firstSeenRaw === "string") {
-    const parsed = new Date(firstSeenRaw);
-    // A visitor-supplied date can be anything; only a real one is kept, and
-    // never one in the future.
-    if (!Number.isNaN(parsed.getTime()) && parsed.getTime() <= Date.now() + 60_000) {
-      firstSeenAt = parsed.toISOString();
-    }
-  }
+  const firstSeenAt = sanitizeDate(input.firstSeenAt);
+  const rawLast =
+    input.last && typeof input.last === "object" ? (input.last as Record<string, unknown>) : null;
+  const last = rawLast
+    ? {
+        source: take("source", rawLast),
+        medium: take("medium", rawLast),
+        campaign: take("campaign", rawLast),
+        clickId: take("clickId", rawLast),
+        at: sanitizeDate(rawLast.at),
+      }
+    : null;
 
   const out: OrderAttribution = {
     source: take("source"),
@@ -429,6 +481,10 @@ export function sanitizeAttribution(raw: unknown): OrderAttribution | undefined 
     landing: take("landing"),
     referrer: take("referrer"),
     firstSeenAt,
+    term: take("term"),
+    content: take("content"),
+    clickId: take("clickId"),
+    last: last && Object.values(last).some((v) => v !== null) ? last : null,
   };
 
   const hasSomething = Object.values(out).some((v) => v !== null);
@@ -463,7 +519,20 @@ export async function createOrder(input: OrderCreateInput) {
       attribution_landing,
       attribution_referrer,
       attribution_first_seen_at,
-      display_currency
+      display_currency,
+      locale,
+      attribution_term,
+      attribution_content,
+      attribution_click_id,
+      last_touch_source,
+      last_touch_medium,
+      last_touch_campaign,
+      last_touch_click_id,
+      last_touch_at,
+      ads_consent,
+      oai_ref,
+      client_ip,
+      client_user_agent
     ) VALUES (
       ${input.id}::uuid,
       ${input.email},
@@ -488,7 +557,20 @@ export async function createOrder(input: OrderCreateInput) {
       ${input.attribution?.landing ?? null},
       ${input.attribution?.referrer ?? null},
       ${input.attribution?.firstSeenAt ?? null},
-      ${input.displayCurrency ?? input.currency ?? "USD"}
+      ${input.displayCurrency ?? input.currency ?? "USD"},
+      ${input.locale ?? null},
+      ${input.attribution?.term ?? null},
+      ${input.attribution?.content ?? null},
+      ${input.attribution?.clickId ?? null},
+      ${input.attribution?.last?.source ?? null},
+      ${input.attribution?.last?.medium ?? null},
+      ${input.attribution?.last?.campaign ?? null},
+      ${input.attribution?.last?.clickId ?? null},
+      ${input.attribution?.last?.at ?? null},
+      ${input.adsConsent ?? false},
+      ${input.adsConsent ? input.oaiRef ?? null : null},
+      ${input.adsConsent ? input.clientIp ?? null : null},
+      ${input.adsConsent ? input.clientUserAgent ?? null : null}
     )
     -- One customer, one order row. The client keeps a stable id for the whole
     -- form session, so switching from card to PayPal — or stepping back to
@@ -512,7 +594,12 @@ export async function createOrder(input: OrderCreateInput) {
       promo_code = EXCLUDED.promo_code,
       discount_amount = EXCLUDED.discount_amount,
       dance_extended = EXCLUDED.dance_extended,
-      display_currency = EXCLUDED.display_currency
+      display_currency = EXCLUDED.display_currency,
+      locale = EXCLUDED.locale,
+      ads_consent = EXCLUDED.ads_consent,
+      oai_ref = EXCLUDED.oai_ref,
+      client_ip = EXCLUDED.client_ip,
+      client_user_agent = EXCLUDED.client_user_agent
     WHERE orders.status = 'pending'
   `;
 }
@@ -779,6 +866,11 @@ export type Order = {
   attribution_landing: string | null;
   attribution_referrer: string | null;
   attribution_first_seen_at: string | null;
+  locale: string | null;
+  ads_consent: boolean;
+  oai_ref: string | null;
+  client_ip: string | null;
+  client_user_agent: string | null;
 };
 
 // Persist best-effort media generated at payment time (voiceover MP3, and the

@@ -821,5 +821,11 @@
     "title": "Página não encontrada",
     "description": "Esta página não existe ou foi movida.",
     "cta": "Voltar ao início"
+  },
+  "Consent": {
+    "text": "Usamos cookies para medir os nossos anúncios e melhorar o site. Pode aceitar ou recusar; o site funciona da mesma forma.",
+    "accept": "Aceitar",
+    "decline": "Recusar",
+    "privacy": "Política de privacidade"
   }
 }

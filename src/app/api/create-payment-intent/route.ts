@@ -18,6 +18,7 @@ import {
 import { applyPromoToCharge, usdDiscountAmount } from "@/lib/promo";
 import { deviceTypeFromUserAgent } from "@/lib/device";
 import { validateOrderInput } from "@/lib/orderInput";
+import { orderRequestContext } from "@/lib/requestContext";
 
 export const runtime = "nodejs";
 
@@ -127,6 +128,7 @@ export async function POST(request: NextRequest) {
       discountAmount: discountUsd,
       danceExtended: resolvedDanceExtended,
       attribution: sanitizeAttribution(rawAttribution),
+      ...orderRequestContext(request, body),
     });
 
     const paymentIntent = await stripe.paymentIntents.create({

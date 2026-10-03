@@ -1,4 +1,5 @@
 import posthog from "posthog-js";
+import { ga4Event, pixelMeasure } from "@/lib/adPixels";
 
 /**
  * Every analytics event name the site emits, declared once.
@@ -59,4 +60,49 @@ export function captureEvent(
   properties?: Record<string, unknown>
 ): void {
   posthog.capture(event, properties);
+  forwardToAdPlatforms(event, properties ?? {});
+}
+
+function num(value: unknown): number | undefined {
+  const n = typeof value === "string" ? Number(value) : value;
+  return typeof n === "number" && Number.isFinite(n) ? n : undefined;
+}
+
+/**
+ * The few funnel steps ad platforms optimise on, mirrored to GA4 ecommerce
+ * and the ChatGPT Ads pixel. ORDER_COMPLETED carries the order id, which both
+ * use to deduplicate (GA4 transaction_id, OpenAI event_id shared with the
+ * server-side Conversions API).
+ */
+function forwardToAdPlatforms(event: AnalyticsEvent, p: Record<string, unknown>): void {
+  try {
+    const currency = typeof p.currency === "string" ? p.currency : undefined;
+    switch (event) {
+      case ANALYTICS_EVENTS.ORDER_FORM_STARTED:
+        pixelMeasure("contents_viewed");
+        break;
+      case ANALYTICS_EVENTS.CHECKOUT_INITIATED: {
+        const value = num(p.total_price_local);
+        ga4Event("begin_checkout", {
+          value,
+          currency,
+          paymentType: typeof p.payment_method === "string" ? p.payment_method : undefined,
+        });
+        pixelMeasure("checkout_started", { value, currency });
+        break;
+      }
+      case ANALYTICS_EVENTS.PAYMENT_SUBMITTED:
+        ga4Event("add_payment_info", { paymentType: "card" });
+        break;
+      case ANALYTICS_EVENTS.ORDER_COMPLETED: {
+        const value = num(p.value);
+        const orderId = typeof p.order_id === "string" ? p.order_id : undefined;
+        ga4Event("purchase", { value, currency, transactionId: orderId });
+        pixelMeasure("order_created", { value, currency, eventId: orderId });
+        break;
+      }
+    }
+  } catch {
+    // Ad signals must never break the funnel.
+  }
 }

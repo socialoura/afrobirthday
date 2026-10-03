@@ -13,6 +13,7 @@ import { Link } from "@/i18n/navigation";
 import dynamic from "next/dynamic";
 import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 import { getAttributionPayload } from "@/lib/attribution";
+import { hasAdsConsent } from "@/lib/consent";
 import { resolveLocalPriceComponent } from "@/lib/currency";
 import { resolveOrderUploads } from "@/lib/orderUploads";
 
@@ -919,6 +920,8 @@ export default function OrderFormSection() {
           // amount and falls back to USD if PayPal does not support it.
           currency: localCurrency,
           attribution: getAttributionPayload(),
+          locale: activeLocale,
+          adsConsent: hasAdsConsent(),
         }),
       });
 
@@ -991,6 +994,8 @@ export default function OrderFormSection() {
           isExpress: deliveryMethod === "express",
           promoCode: appliedPromo?.code,
           attribution: getAttributionPayload(),
+          locale: activeLocale,
+          adsConsent: hasAdsConsent(),
         }),
       });
 

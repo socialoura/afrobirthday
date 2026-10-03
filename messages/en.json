@@ -852,5 +852,11 @@
     "title": "Page not found",
     "description": "This page doesn't exist or has moved.",
     "cta": "Back to home"
+  },
+  "Consent": {
+    "text": "We use cookies to measure our ads and improve the site. You can accept or refuse; the site works either way.",
+    "accept": "Accept",
+    "decline": "Refuse",
+    "privacy": "Privacy policy"
   }
 }

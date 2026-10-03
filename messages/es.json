@@ -842,5 +842,11 @@
     "title": "Página no encontrada",
     "description": "Esta página no existe o se ha movido.",
     "cta": "Volver al inicio"
+  },
+  "Consent": {
+    "text": "Usamos cookies para medir nuestros anuncios y mejorar el sitio. Puedes aceptarlas o rechazarlas; el sitio funciona igual.",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "privacy": "Política de privacidad"
   }
 }

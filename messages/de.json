@@ -842,5 +842,11 @@
     "title": "Seite nicht gefunden",
     "description": "Diese Seite existiert nicht oder wurde verschoben.",
     "cta": "Zur Startseite"
+  },
+  "Consent": {
+    "text": "Wir verwenden Cookies, um unsere Werbung zu messen und die Website zu verbessern. Sie können zustimmen oder ablehnen; die Website funktioniert in beiden Fällen.",
+    "accept": "Akzeptieren",
+    "decline": "Ablehnen",
+    "privacy": "Datenschutzerklärung"
   }
 }

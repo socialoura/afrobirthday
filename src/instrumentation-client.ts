@@ -2,6 +2,7 @@ import posthog from "posthog-js";
 import { trackAttributedWebVitals } from "@/lib/webVitalsAttribution";
 import { captureFirstTouch } from "@/lib/attribution";
 import { redactUrlProperties } from "@/lib/redactUrl";
+import { CONSENT_EVENT, hasAdsConsent } from "@/lib/consent";
 
 const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 
@@ -15,6 +16,10 @@ if (token) {
     // is measured, and a break in the series looks like a change in the
     // business rather than a change in the library.
     defaults: "2026-06-25",
+
+    // No cookies or localStorage until the visitor may be tracked (opt-in
+    // countries ask first, see ConsentBanner); switched on when they accept.
+    persistence: hasAdsConsent() ? "localStorage+cookie" : "memory",
 
     capture_pageview: "history_change",
     autocapture: false,
@@ -42,6 +47,10 @@ if (token) {
   });
 
   trackAttributedWebVitals();
+
+  window.addEventListener(CONSENT_EVENT, () => {
+    posthog.set_config({ persistence: hasAdsConsent() ? "localStorage+cookie" : "memory" });
+  });
 }
 
 // Outside the PostHog guard on purpose: the order's own attribution must not

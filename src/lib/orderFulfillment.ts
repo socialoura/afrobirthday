@@ -17,6 +17,7 @@ import {
 } from "@/lib/orderEmailTemplates";
 import { formatStripeAmount, isSupportedCurrency, toStripeMinor } from "@/lib/currency";
 import { sendTelegramMessage } from "@/lib/telegramBot";
+import { sendOrderCreatedConversion } from "@/lib/openaiConversions";
 
 /**
  * Everything that happens once per paid order, shared by the three paths that
@@ -70,6 +71,9 @@ export async function runPaidOrderSideEffects(
   }
 
   await sendOrderConfirmationEmail(order);
+
+  // Ad conversion before the slow media work, so it always goes out.
+  await sendOrderCreatedConversion(order);
 
   await notifyOrderPaid({ order, ...notification });
 }

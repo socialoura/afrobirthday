@@ -6,6 +6,8 @@ import Script from "next/script";
 import { DM_Sans, Space_Grotesk } from "next/font/google";
 import { getTextDirection } from "@/i18n/config";
 import { SITE_URL } from "@/lib/siteUrl";
+import { CONSENT_COUNTRIES } from "@/lib/consent";
+import OpenAIPixel from "@/components/OpenAIPixel";
 
 const siteUrl = SITE_URL;
 
@@ -109,6 +111,9 @@ export default function RootDocument({
           {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 window.gtag = window.gtag || gtag;
+gtag('consent', 'default', {ad_storage:'granted',ad_user_data:'granted',ad_personalization:'granted',analytics_storage:'granted'});
+gtag('consent', 'default', {ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',region:${JSON.stringify([...CONSENT_COUNTRIES])},wait_for_update:500});
+try{var m=document.cookie.match(/(?:^|; )ab_consent=(granted|denied)/);if(m){var v=m[1];gtag('consent','update',{ad_storage:v,ad_user_data:v,ad_personalization:v,analytics_storage:v});}}catch(e){}
 gtag('js', new Date());
 gtag('config', 'G-8HTHEF5B04');`}
         </Script>
@@ -117,6 +122,7 @@ gtag('config', 'G-8HTHEF5B04');`}
           strategy="afterInteractive"
         />
         {children}
+        <OpenAIPixel />
         <Analytics />
         <SpeedInsights />
       </body>

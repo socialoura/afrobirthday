@@ -5,6 +5,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ChatWidgetWrapper from "@/components/ChatWidgetWrapper";
+import ConsentBanner from "@/components/ConsentBanner";
 import RootDocument, { rootMetadata } from "@/components/RootDocument";
 import { locales } from "@/i18n/config";
 
@@ -42,6 +43,7 @@ export default async function LocaleLayout({
         <main className="min-h-screen">{children}</main>
         <Footer />
         <ChatWidgetWrapper />
+        <ConsentBanner />
       </NextIntlClientProvider>
     </RootDocument>
   );

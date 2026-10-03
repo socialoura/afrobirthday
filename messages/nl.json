@@ -821,5 +821,11 @@
     "title": "Pagina niet gevonden",
     "description": "Deze pagina bestaat niet of is verplaatst.",
     "cta": "Terug naar home"
+  },
+  "Consent": {
+    "text": "We gebruiken cookies om onze advertenties te meten en de site te verbeteren. Je kunt accepteren of weigeren; de site werkt hoe dan ook.",
+    "accept": "Accepteren",
+    "decline": "Weigeren",
+    "privacy": "Privacybeleid"
   }
 }

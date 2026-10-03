@@ -852,5 +852,11 @@
     "title": "Page introuvable",
     "description": "Cette page n'existe pas ou a été déplacée.",
     "cta": "Retour à l'accueil"
+  },
+  "Consent": {
+    "text": "Nous utilisons des cookies pour mesurer nos publicités et améliorer le site. Vous pouvez accepter ou refuser ; le site fonctionne dans les deux cas.",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "privacy": "Politique de confidentialité"
   }
 }

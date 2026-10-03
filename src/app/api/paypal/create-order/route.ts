@@ -12,6 +12,7 @@ import { applyPromoToCharge, usdDiscountAmount } from "@/lib/promo";
 import { createPayPalOrder, isPayPalSupportedCurrency } from "@/lib/paypal";
 import { deviceTypeFromUserAgent } from "@/lib/device";
 import { validateOrderInput } from "@/lib/orderInput";
+import { orderRequestContext } from "@/lib/requestContext";
 import { SITE_URL } from "@/lib/siteUrl";
 import {
   getServerExchangeRates,
@@ -126,6 +127,7 @@ export async function POST(request: NextRequest) {
       discountAmount: discountUsd,
       danceExtended: resolvedDanceExtended,
       attribution: sanitizeAttribution(rawAttribution),
+      ...orderRequestContext(request, body),
     });
 
     const returnUrl = `${origin}/paypal/success?orderId=${encodeURIComponent(orderId)}`;
