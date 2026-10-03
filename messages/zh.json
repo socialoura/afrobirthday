@@ -255,7 +255,9 @@
       "dropHere": "将图片拖拽到这里",
       "or": "或",
       "browse": "选择文件",
-      "formats": "JPG, PNG, WebP • 最大 5MB"
+      "formats": "JPG, PNG, WebP • 最大 5MB",
+      "processing": "正在处理您的照片…",
+      "remove": "移除照片"
     },
     "message": {
       "label": "生日祝福语",
@@ -280,7 +282,8 @@
       },
       "linkPlaceholder": "粘贴 YouTube 或 Spotify 链接",
       "or": "或",
-      "filePlaceholder": "上传音频文件（MP3, WAV）"
+      "filePlaceholder": "上传音频文件（MP3, WAV）",
+      "previewTitle": "音乐预览"
     },
     "delivery": {
       "label": "交付速度",
@@ -322,7 +325,8 @@
       },
       "total": "合计",
       "chargedUsd": "结账时以 USD 扣款",
-      "estimate": "价格为本地货币估算值。"
+      "estimate": "价格为本地货币估算值。",
+      "discount": "折扣 ({code})"
     },
     "terms": {
       "prefix": "我已阅读并同意",
@@ -352,7 +356,10 @@
       "messageMax": "祝福语最多 100 个字符",
       "termsRequired": "你必须同意条款",
       "musicLinkInvalid": "请输入有效的链接（例如 https://...)",
-      "photoUploadFailed": "照片上传失败，请重新选择。"
+      "photoUploadFailed": "照片上传失败，请重新选择。",
+      "musicRequired": "请粘贴歌曲链接或上传音乐文件，或选择由我们为您挑选音乐。",
+      "musicUploadFailed": "音乐文件上传失败。请重试，或改为粘贴链接。",
+      "musicTooLarge": "音乐文件超过 10 MB。请选择较小的文件或粘贴链接。"
     },
     "alerts": {
       "photoTooLarge": "照片必须小于 5MB",
@@ -364,6 +371,15 @@
       "unavailable": "实时汇率不可用，显示估算值。",
       "recent": "汇率已最近更新",
       "updatedAt": "汇率更新于 {time}"
+    },
+    "promo": {
+      "label": "优惠码",
+      "placeholder": "输入优惠码",
+      "apply": "使用",
+      "applying": "验证中...",
+      "invalid": "该优惠码无效或已过期。",
+      "appliedLabel": "已使用优惠码",
+      "remove": "移除"
     }
   },
   "AboutPage": {

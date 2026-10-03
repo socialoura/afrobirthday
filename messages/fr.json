@@ -255,7 +255,9 @@
       "dropHere": "Déposez votre image ici",
       "or": "ou",
       "browse": "parcourir les fichiers",
-      "formats": "JPG, PNG, WebP • Max 5 Mo"
+      "formats": "JPG, PNG, WebP • Max 5 Mo",
+      "processing": "Préparation de votre photo…",
+      "remove": "Retirer la photo"
     },
     "message": {
       "label": "Message d'anniversaire",
@@ -280,7 +282,8 @@
       },
       "linkPlaceholder": "Coller un lien YouTube ou Spotify",
       "or": "ou",
-      "filePlaceholder": "Téléverser un fichier audio (MP3, WAV)"
+      "filePlaceholder": "Téléverser un fichier audio (MP3, WAV)",
+      "previewTitle": "Aperçu de la musique"
     },
     "delivery": {
       "label": "Vitesse de livraison",
@@ -362,7 +365,10 @@
       "messageMax": "Le message doit contenir au maximum 100 caractères",
       "termsRequired": "Vous devez accepter les conditions",
       "musicLinkInvalid": "Merci d'indiquer un lien valide (ex. https://...)",
-      "photoUploadFailed": "L'envoi de votre photo a échoué. Veuillez la sélectionner à nouveau."
+      "photoUploadFailed": "L'envoi de votre photo a échoué. Veuillez la sélectionner à nouveau.",
+      "musicRequired": "Collez le lien d'une chanson ou importez un fichier audio, ou choisissez « Nous choisissons la musique ».",
+      "musicUploadFailed": "Votre fichier audio n'a pas pu être envoyé. Réessayez ou collez plutôt un lien.",
+      "musicTooLarge": "Ce fichier audio dépasse 10 Mo. Choisissez un fichier plus léger ou collez un lien."
     },
     "alerts": {
       "photoTooLarge": "La photo doit faire moins de 5 Mo",

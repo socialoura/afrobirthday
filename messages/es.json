@@ -255,7 +255,9 @@
       "dropHere": "Suelta tu imagen aquí",
       "or": "o",
       "browse": "buscar archivos",
-      "formats": "JPG, PNG, WebP • Máx. 5 MB"
+      "formats": "JPG, PNG, WebP • Máx. 5 MB",
+      "processing": "Preparando tu foto…",
+      "remove": "Quitar la foto"
     },
     "message": {
       "label": "Mensaje de cumpleaños",
@@ -280,7 +282,8 @@
       },
       "linkPlaceholder": "Pega un enlace de YouTube o Spotify",
       "or": "o",
-      "filePlaceholder": "Subir un archivo de audio (MP3, WAV)"
+      "filePlaceholder": "Subir un archivo de audio (MP3, WAV)",
+      "previewTitle": "Vista previa de la música"
     },
     "delivery": {
       "label": "Velocidad de entrega",
@@ -322,7 +325,8 @@
       },
       "total": "Total",
       "chargedUsd": "Se cobra en USD al pagar",
-      "estimate": "Los precios son estimaciones en tu moneda local."
+      "estimate": "Los precios son estimaciones en tu moneda local.",
+      "discount": "Descuento ({code})"
     },
     "terms": {
       "prefix": "Acepto los",
@@ -352,7 +356,10 @@
       "messageMax": "El mensaje debe tener como máximo 100 caracteres",
       "termsRequired": "Debes aceptar los términos",
       "musicLinkInvalid": "Introduce un enlace válido (p. ej. https://...)",
-      "photoUploadFailed": "No pudimos subir tu foto. Vuelve a seleccionarla, por favor."
+      "photoUploadFailed": "No pudimos subir tu foto. Vuelve a seleccionarla, por favor.",
+      "musicRequired": "Pega el enlace de una canción o sube un archivo de música, o elige «Elegimos la música por ti».",
+      "musicUploadFailed": "No se pudo subir tu archivo de música. Inténtalo de nuevo o pega un enlace.",
+      "musicTooLarge": "Este archivo supera los 10 MB. Elige uno más pequeño o pega un enlace."
     },
     "alerts": {
       "photoTooLarge": "La foto debe pesar menos de 5 MB",
@@ -364,6 +371,15 @@
       "unavailable": "Tipos en vivo no disponibles. Mostrando estimación.",
       "recent": "Tipos actualizados recientemente",
       "updatedAt": "Tipos actualizados {time}"
+    },
+    "promo": {
+      "label": "Código promocional",
+      "placeholder": "Introduce el código",
+      "apply": "Aplicar",
+      "applying": "Comprobando...",
+      "invalid": "Este código no es válido o ha caducado.",
+      "appliedLabel": "Código aplicado",
+      "remove": "Quitar"
     }
   },
   "AboutPage": {

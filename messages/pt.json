@@ -255,7 +255,9 @@
       "dropHere": "Solte sua imagem aqui",
       "or": "ou",
       "browse": "procurar arquivos",
-      "formats": "JPG, PNG, WebP • Máx. 5 MB"
+      "formats": "JPG, PNG, WebP • Máx. 5 MB",
+      "processing": "A preparar a sua foto…",
+      "remove": "Remover a foto"
     },
     "message": {
       "label": "Mensagem de aniversário",
@@ -280,7 +282,8 @@
       },
       "linkPlaceholder": "Cole um link do YouTube ou Spotify",
       "or": "ou",
-      "filePlaceholder": "Enviar um arquivo de áudio (MP3, WAV)"
+      "filePlaceholder": "Enviar um arquivo de áudio (MP3, WAV)",
+      "previewTitle": "Pré-visualização da música"
     },
     "delivery": {
       "label": "Velocidade de entrega",
@@ -322,7 +325,8 @@
       },
       "total": "Total",
       "chargedUsd": "Cobrado em USD no pagamento",
-      "estimate": "Os preços são estimativas na sua moeda local."
+      "estimate": "Os preços são estimativas na sua moeda local.",
+      "discount": "Desconto ({code})"
     },
     "terms": {
       "prefix": "Eu aceito os",
@@ -352,7 +356,10 @@
       "messageMax": "A mensagem deve ter no máximo 100 caracteres",
       "termsRequired": "Você precisa aceitar os termos",
       "musicLinkInvalid": "Insira um link válido (ex. https://...)",
-      "photoUploadFailed": "Não conseguimos enviar a sua foto. Selecione-a novamente."
+      "photoUploadFailed": "Não conseguimos enviar a sua foto. Selecione-a novamente.",
+      "musicRequired": "Cole o link de uma música ou carregue um ficheiro de áudio, ou deixe-nos escolher a música.",
+      "musicUploadFailed": "Não foi possível carregar o ficheiro de áudio. Tente novamente ou cole um link.",
+      "musicTooLarge": "Este ficheiro tem mais de 10 MB. Escolha um ficheiro mais pequeno ou cole um link."
     },
     "alerts": {
       "photoTooLarge": "A foto deve ter menos de 5 MB",
@@ -364,6 +371,15 @@
       "unavailable": "Câmbio ao vivo indisponível. Mostrando estimativa.",
       "recent": "Câmbio atualizado recentemente",
       "updatedAt": "Câmbio atualizado {time}"
+    },
+    "promo": {
+      "label": "Código promocional",
+      "placeholder": "Introduza o código",
+      "apply": "Aplicar",
+      "applying": "A verificar...",
+      "invalid": "Este código é inválido ou expirou.",
+      "appliedLabel": "Código aplicado",
+      "remove": "Remover"
     }
   },
   "AboutPage": {
@@ -827,5 +843,26 @@
     "accept": "Aceitar",
     "decline": "Recusar",
     "privacy": "Política de privacidade"
+  },
+  "Success": {
+    "title": "Pagamento concluído!",
+    "intro": "Obrigado pela sua encomenda! Já estamos a criar o seu vídeo de aniversário personalizado.",
+    "nextTitle": "O que acontece a seguir?",
+    "questions": "Dúvidas?",
+    "backHome": "Voltar ao início",
+    "steps": {
+      "email": {
+        "title": "Verifique o seu email",
+        "desc": "Vai receber em breve um email de confirmação com os detalhes da encomenda."
+      },
+      "create": {
+        "title": "Criação do vídeo",
+        "desc": "A nossa equipa vai criar o seu vídeo personalizado em 24-48 horas (12-24 horas com Express)."
+      },
+      "receive": {
+        "title": "Receba o seu vídeo",
+        "desc": "Vai receber um email com o link de download assim que estiver pronto!"
+      }
+    }
   }
 }

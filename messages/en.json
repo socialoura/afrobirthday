@@ -255,7 +255,9 @@
       "dropHere": "Drop your image here",
       "or": "or",
       "browse": "browse files",
-      "formats": "JPG, PNG, WebP • Max 5MB"
+      "formats": "JPG, PNG, WebP • Max 5MB",
+      "processing": "Preparing your photo…",
+      "remove": "Remove photo"
     },
     "message": {
       "label": "Birthday Message",
@@ -280,7 +282,8 @@
       },
       "linkPlaceholder": "Paste YouTube or Spotify link",
       "or": "or",
-      "filePlaceholder": "Upload music file (MP3, WAV)"
+      "filePlaceholder": "Upload music file (MP3, WAV)",
+      "previewTitle": "Music preview"
     },
     "delivery": {
       "label": "Delivery Speed",
@@ -362,7 +365,10 @@
       "messageMax": "Message must be at most 100 characters",
       "termsRequired": "You must accept the terms",
       "musicLinkInvalid": "Please enter a valid link (e.g. https://...)",
-      "photoUploadFailed": "We couldn't upload your photo. Please select it again."
+      "photoUploadFailed": "We couldn't upload your photo. Please select it again.",
+      "musicRequired": "Paste a song link or upload a music file, or choose “We choose music for you”.",
+      "musicUploadFailed": "Your music file could not be uploaded. Please try again or paste a link instead.",
+      "musicTooLarge": "This music file is larger than 10 MB. Please choose a smaller file or paste a link."
     },
     "alerts": {
       "photoTooLarge": "Photo must be less than 5MB",

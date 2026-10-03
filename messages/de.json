@@ -255,7 +255,9 @@
       "dropHere": "Bild hier ablegen",
       "or": "oder",
       "browse": "Dateien auswählen",
-      "formats": "JPG, PNG, WebP • Max. 5 MB"
+      "formats": "JPG, PNG, WebP • Max. 5 MB",
+      "processing": "Dein Foto wird vorbereitet…",
+      "remove": "Foto entfernen"
     },
     "message": {
       "label": "Geburtstagsnachricht",
@@ -280,7 +282,8 @@
       },
       "linkPlaceholder": "YouTube- oder Spotify-Link einfügen",
       "or": "oder",
-      "filePlaceholder": "Audiodatei hochladen (MP3, WAV)"
+      "filePlaceholder": "Audiodatei hochladen (MP3, WAV)",
+      "previewTitle": "Musikvorschau"
     },
     "delivery": {
       "label": "Liefergeschwindigkeit",
@@ -322,7 +325,8 @@
       },
       "total": "Gesamt",
       "chargedUsd": "Abrechnung in USD beim Checkout",
-      "estimate": "Preise sind Schätzungen in deiner lokalen Währung."
+      "estimate": "Preise sind Schätzungen in deiner lokalen Währung.",
+      "discount": "Rabatt ({code})"
     },
     "terms": {
       "prefix": "Ich akzeptiere die",
@@ -352,7 +356,10 @@
       "messageMax": "Die Nachricht darf maximal 100 Zeichen haben",
       "termsRequired": "Du musst die Bedingungen akzeptieren",
       "musicLinkInvalid": "Bitte gib einen gültigen Link ein (z. B. https://...)",
-      "photoUploadFailed": "Dein Foto konnte nicht hochgeladen werden. Bitte wähle es erneut aus."
+      "photoUploadFailed": "Dein Foto konnte nicht hochgeladen werden. Bitte wähle es erneut aus.",
+      "musicRequired": "Füge einen Song-Link ein oder lade eine Musikdatei hoch – oder lass uns die Musik auswählen.",
+      "musicUploadFailed": "Deine Musikdatei konnte nicht hochgeladen werden. Versuche es erneut oder füge einen Link ein.",
+      "musicTooLarge": "Diese Musikdatei ist größer als 10 MB. Wähle eine kleinere Datei oder füge einen Link ein."
     },
     "alerts": {
       "photoTooLarge": "Das Foto muss kleiner als 5 MB sein",
@@ -364,6 +371,15 @@
       "unavailable": "Live-Wechselkurse nicht verfügbar. Schätzung wird angezeigt.",
       "recent": "Wechselkurse wurden kürzlich aktualisiert",
       "updatedAt": "Wechselkurse aktualisiert {time}"
+    },
+    "promo": {
+      "label": "Gutscheincode",
+      "placeholder": "Code eingeben",
+      "apply": "Anwenden",
+      "applying": "Wird geprüft...",
+      "invalid": "Dieser Code ist ungültig oder abgelaufen.",
+      "appliedLabel": "Gutschein angewendet",
+      "remove": "Entfernen"
     }
   },
   "AboutPage": {

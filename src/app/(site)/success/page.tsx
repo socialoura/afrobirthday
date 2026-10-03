@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { defaultLocale } from "@/i18n/config";
+import { defaultLocale, locales } from "@/i18n/config";
 
 export const metadata: Metadata = {
   robots: {
@@ -21,6 +21,10 @@ export default async function LegacySuccess({
     if (typeof v === "string") qs.set(k, v);
     else if (Array.isArray(v) && v[0]) qs.set(k, v[0]);
   }
+  const requested = qs.get("locale");
+  qs.delete("locale");
+  const locale =
+    requested && (locales as readonly string[]).includes(requested) ? requested : defaultLocale;
   const suffix = qs.toString();
-  redirect(`/${defaultLocale}/success${suffix ? `?${suffix}` : ""}`);
+  redirect(`/${locale}/success${suffix ? `?${suffix}` : ""}`);
 }

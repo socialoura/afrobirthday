@@ -299,6 +299,11 @@ export default function OrderFormSection() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  // Compressing a 12 MP / HEIC photo takes seconds on a phone; without a
+  // visible state the customer clicked Continue and got "please upload a photo".
+  const [photoProcessing, setPhotoProcessing] = useState(false);
+  const [musicError, setMusicError] = useState<string | null>(null);
+  const [paypalError, setPaypalError] = useState<string | null>(null);
   const [musicFile, setMusicFile] = useState<File | null>(null);
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   // react-hook-form + zodResolver can populate a field's error the instant
@@ -719,11 +724,13 @@ export default function OrderFormSection() {
         return url;
       });
       upload.catch(() => {
-        if (musicUploadSeqRef.current === seq) musicUploadRef.current = null;
+        if (musicUploadSeqRef.current !== seq) return;
+        musicUploadRef.current = null;
+        setMusicError(t("errors.musicUploadFailed"));
       });
       musicUploadRef.current = upload;
     },
-    [uploadToStorage]
+    [uploadToStorage, t]
   );
 
   // Both payment methods need the same uploaded assets. Uploads start as soon
@@ -765,18 +772,25 @@ export default function OrderFormSection() {
     // bound on what is worth attempting at all. Between this and the 5 MB
     // limit sits the range compression can rescue.
     if (file.size > 25 * 1024 * 1024) {
-      alert(t("alerts.photoTooLarge"));
+      setPhotoError(t("alerts.photoTooLarge"));
       return;
     }
 
     // Compress first, then check the size. Checking the source file turned
     // away photos that compression would have brought well under the limit —
     // and a modern phone camera clears 5 MB without trying.
-    const compressed = await compressImageIfPossible(file);
-    const finalFile = compressed ?? file;
+    setPhotoError(null);
+    setPhotoProcessing(true);
+    let finalFile: File;
+    try {
+      const compressed = await compressImageIfPossible(file);
+      finalFile = compressed ?? file;
+    } finally {
+      setPhotoProcessing(false);
+    }
 
     if (finalFile.size > 5 * 1024 * 1024) {
-      alert(t("alerts.photoTooLarge"));
+      setPhotoError(t("alerts.photoTooLarge"));
       return;
     }
 
@@ -800,6 +814,7 @@ export default function OrderFormSection() {
   // resolver, trigger() re-runs the whole schema and can populate errors for
   // fields on OTHER steps (e.g. termsAccepted) before the user ever sees them.
   const goToStep2 = () => {
+    if (photoProcessing) return;
     let ok = true;
 
     if (!photo) {
@@ -841,6 +856,12 @@ export default function OrderFormSection() {
         return;
       }
     }
+    // "My own song" is a paid extra: without a link or a file there is nothing
+    // to dance to, and the server now rejects the order.
+    if (musicOption === "custom" && !linkValue && !musicFile) {
+      setError("musicLink", { type: "manual", message: t("errors.musicRequired") });
+      return;
+    }
     captureEvent(ANALYTICS_EVENTS.ORDER_FORM_STEP_COMPLETED, { step: 2 });
     // The true denominator for the payment step. checkout_initiated can't play
     // that role: on the card path it only fires once the PaymentIntent exists,
@@ -880,10 +901,12 @@ export default function OrderFormSection() {
   // inline setup used for card (see setupCardPayment below).
   const onSubmit = async (data: OrderFormData) => {
     if (!photo) {
-      alert(t("alerts.photoMissing"));
+      setPhotoError(t("alerts.photoMissing"));
+      setCurrentStep(1);
       return;
     }
     if (data.paymentMethod !== "paypal") return;
+    setPaypalError(null);
 
     captureEvent(ANALYTICS_EVENTS.CHECKOUT_INITIATED, {
       payment_method: data.paymentMethod,
@@ -955,7 +978,7 @@ export default function OrderFormSection() {
         total_price_usd: finalTotalUsd,
         currency: localCurrency,
       });
-      alert(t("alerts.genericError"));
+      setPaypalError(t("alerts.genericError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -1172,7 +1195,12 @@ export default function OrderFormSection() {
                       : "border-white/20 hover:border-primary bg-white/5"
                   )}
                 >
-                  {photoPreview ? (
+                  {photoProcessing ? (
+                    <div className="flex flex-col items-center gap-3 py-6" role="status">
+                      <Loader2 size={28} className="animate-spin text-primary" />
+                      <p className="text-white/80 text-sm">{t("photo.processing")}</p>
+                    </div>
+                  ) : photoPreview ? (
                     <div className="relative inline-block">
                       <img
                         src={photoPreview}
@@ -1182,9 +1210,16 @@ export default function OrderFormSection() {
                       <button
                         type="button"
                         onClick={() => {
+                          // Invalidate the in-flight upload too, or its late
+                          // failure would show an error for a removed photo.
+                          photoUploadSeqRef.current++;
+                          photoUploadRef.current = null;
+                          photoUrlRef.current = null;
                           setPhoto(null);
                           setPhotoPreview(null);
+                          setPhotoError(null);
                         }}
+                        aria-label={t("photo.remove")}
                         className="absolute -top-2 -right-2 w-7 h-7 bg-error text-white rounded-full flex items-center justify-center"
                       >
                         <X size={14} />
@@ -1204,7 +1239,7 @@ export default function OrderFormSection() {
                       </p>
                       <input
                         type="file"
-                        accept="image/jpeg,image/png,image/webp"
+                        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) handlePhotoSelect(file);
@@ -1215,7 +1250,7 @@ export default function OrderFormSection() {
                   )}
                 </div>
                 {photoError && (
-                  <p className="text-red-400 text-sm mt-2">{photoError}</p>
+                  <p className="text-red-400 text-sm mt-2" role="alert">{photoError}</p>
                 )}
               </div>
 
@@ -1355,7 +1390,7 @@ export default function OrderFormSection() {
                         className="w-full aspect-video"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
-                        title="Aperçu musique"
+                        title={t("music.previewTitle")}
                       />
                     </div>
                   )}
@@ -1366,7 +1401,7 @@ export default function OrderFormSection() {
                       className="w-full rounded-xl"
                       style={{ height: 152 }}
                       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                      title="Aperçu musique"
+                      title={t("music.previewTitle")}
                     />
                   )}
                   {musicEmbed?.platform === "soundcloud" && (
@@ -1376,7 +1411,7 @@ export default function OrderFormSection() {
                         src={musicEmbed.embedUrl}
                         className="w-full h-[166px]"
                         allow="autoplay"
-                        title="Aperçu musique"
+                        title={t("music.previewTitle")}
                       />
                     </div>
                   )}
@@ -1389,10 +1424,17 @@ export default function OrderFormSection() {
                       </span>
                       <input
                         type="file"
-                        accept="audio/mpeg,audio/wav"
+                        accept="audio/mpeg,audio/wav,audio/mp4,audio/x-m4a,audio/aac,.m4a"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
+                            setMusicError(null);
+                            // Same ceiling as /api/upload, checked before the upload.
+                            if (file.size > 10 * 1024 * 1024) {
+                              setMusicError(t("errors.musicTooLarge"));
+                              return;
+                            }
+                            clearErrors(["musicLink"]);
                             setMusicFile(file);
                             musicFileUrlRef.current = null;
                             setStripeClientSecret(null);
@@ -1403,6 +1445,9 @@ export default function OrderFormSection() {
                       />
                     </label>
                   </div>
+                  {musicError && (
+                    <p className="text-red-400 text-sm" role="alert">{musicError}</p>
+                  )}
                 </div>
               )}
               </div>
@@ -1681,6 +1726,19 @@ export default function OrderFormSection() {
               </>
               )}
 
+              {/* On phones the summary card renders below the buttons, so the
+                  amount is restated right above the pay button. */}
+              {currentStep === 3 && (
+                <div className="lg:hidden flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white">
+                  <span className="font-semibold">{t("summary.total")}</span>
+                  <span className="text-lg font-bold text-secondary">{formatMoney(finalTotal)}</span>
+                </div>
+              )}
+
+              {paypalError && currentStep === 3 && paymentMethod === "paypal" && (
+                <p className="text-red-400 text-sm text-center" role="alert">{paypalError}</p>
+              )}
+
               {/* Step navigation. data-cta-avoid keeps the chat bubble from
                   parking on top of these buttons — see ChatWidget. */}
               <div className="flex gap-3 pt-2" data-cta-avoid>
@@ -1699,6 +1757,7 @@ export default function OrderFormSection() {
                   <button
                     type="button"
                     onClick={currentStep === 1 ? goToStep2 : goToStep3}
+                    disabled={currentStep === 1 && photoProcessing}
                     className="btn-primary flex-1 py-4 text-base flex items-center justify-center gap-2 min-h-[56px]"
                   >
                     {t("nav.next")}
@@ -1729,11 +1788,16 @@ export default function OrderFormSection() {
                   // PaymentIntent is still being prepared in the background.
                   <button
                     type="button"
-                    onClick={openCardPayment}
-                    disabled={!stripeClientSecret || isPreparingPayment}
+                    onClick={paymentSetupError ? setupCardPayment : openCardPayment}
+                    disabled={(!stripeClientSecret && !paymentSetupError) || isPreparingPayment}
                     className="btn-primary flex-1 py-4 text-base md:text-lg flex items-center justify-center gap-2 min-h-[56px] disabled:opacity-60"
                   >
-                    {!stripeClientSecret ? (
+                    {paymentSetupError && !isPreparingPayment ? (
+                      <>
+                        <Lock size={18} />
+                        {t("payment.retry")}
+                      </>
+                    ) : !stripeClientSecret ? (
                       <>
                         <Loader2 size={20} className="animate-spin" />
                         {t("payment.preparing")}

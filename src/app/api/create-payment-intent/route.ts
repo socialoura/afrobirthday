@@ -18,6 +18,7 @@ import {
 import { applyPromoToCharge, usdDiscountAmount } from "@/lib/promo";
 import { deviceTypeFromUserAgent } from "@/lib/device";
 import { validateOrderInput } from "@/lib/orderInput";
+import { getActivePriceTest, isControlCurrency } from "@/lib/priceTest";
 import { orderRequestContext } from "@/lib/requestContext";
 
 export const runtime = "nodejs";
@@ -56,11 +57,12 @@ export async function POST(request: NextRequest) {
 
     // These four are independent; running them in series added a full round
     // trip each to the wait before the payment form can even start rendering.
-    const [, pricing, rates, overrides] = await Promise.all([
+    const [, livePricing, rates, overrides, priceTest] = await Promise.all([
       ensureOrdersTable(),
       getPricingSettings(),
       getServerExchangeRates(),
       getPricingOverrides(),
+      getActivePriceTest(),
     ]);
     // Each visit to the payment step creates a new intent; remember the one
     // this order pointed at so it can be canceled once replaced.
@@ -78,6 +80,12 @@ export async function POST(request: NextRequest) {
     const currency = isSupportedCurrency(requestedCurrency)
       ? requestedCurrency
       : "USD";
+    // Same arm assignment as PayPal: control currencies keep the old prices
+    // while a price test runs, whichever way the customer pays.
+    const pricing =
+      priceTest && isControlCurrency(priceTest, currency)
+        ? priceTest.legacyUsdPricing
+        : livePricing;
     const charge = resolveLocalCharge({
       usdPricing: pricing,
       hasCustomSong: resolvedMusicOption === "custom",

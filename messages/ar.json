@@ -255,7 +255,9 @@
       "dropHere": "اسحب الصورة هنا",
       "or": "أو",
       "browse": "اختر ملفًا",
-      "formats": "JPG, PNG, WebP • حد 5MB"
+      "formats": "JPG, PNG, WebP • حد 5MB",
+      "processing": "جارٍ تجهيز صورتك…",
+      "remove": "إزالة الصورة"
     },
     "message": {
       "label": "رسالة عيد الميلاد",
@@ -280,7 +282,8 @@
       },
       "linkPlaceholder": "رابط YouTube أو Spotify",
       "or": "أو",
-      "filePlaceholder": "رفع ملف صوتي (MP3, WAV)"
+      "filePlaceholder": "رفع ملف صوتي (MP3, WAV)",
+      "previewTitle": "معاينة الموسيقى"
     },
     "delivery": {
       "label": "سرعة التسليم",
@@ -322,7 +325,8 @@
       },
       "total": "الإجمالي",
       "chargedUsd": "يتم الخصم بالدولار الأمريكي",
-      "estimate": "السعر تقديري بعملتك المحلية."
+      "estimate": "السعر تقديري بعملتك المحلية.",
+      "discount": "خصم ({code})"
     },
     "terms": {
       "prefix": "أوافق على",
@@ -352,7 +356,10 @@
       "messageMax": "الرسالة يجب ألا تتجاوز 100 حرف",
       "termsRequired": "يجب الموافقة على الشروط",
       "musicLinkInvalid": "يرجى إدخال رابط صالح (مثال: https://...)",
-      "photoUploadFailed": "تعذّر رفع صورتك. يرجى اختيارها مرة أخرى."
+      "photoUploadFailed": "تعذّر رفع صورتك. يرجى اختيارها مرة أخرى.",
+      "musicRequired": "الصق رابط أغنية أو حمّل ملفًا صوتيًا، أو اختر أن نختار الموسيقى لك.",
+      "musicUploadFailed": "تعذّر رفع ملف الموسيقى. حاول مرة أخرى أو الصق رابطًا بدلًا من ذلك.",
+      "musicTooLarge": "حجم ملف الموسيقى أكبر من 10 ميغابايت. اختر ملفًا أصغر أو الصق رابطًا."
     },
     "alerts": {
       "photoTooLarge": "يجب أن تكون الصورة أقل من 5MB",
@@ -364,6 +371,15 @@
       "unavailable": "الأسعار الحية غير متاحة. عرض تقدير.",
       "recent": "تم تحديث الأسعار مؤخرًا",
       "updatedAt": "تم تحديث الأسعار {time}"
+    },
+    "promo": {
+      "label": "رمز الخصم",
+      "placeholder": "أدخل الرمز",
+      "apply": "تطبيق",
+      "applying": "جارٍ التحقق...",
+      "invalid": "هذا الرمز غير صالح أو منتهي الصلاحية.",
+      "appliedLabel": "تم تطبيق الخصم",
+      "remove": "إزالة"
     }
   },
   "AboutPage": {

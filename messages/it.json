@@ -255,7 +255,9 @@
       "dropHere": "Trascina qui la tua immagine",
       "or": "oppure",
       "browse": "scegli un file",
-      "formats": "JPG, PNG, WebP • Max 5 MB"
+      "formats": "JPG, PNG, WebP • Max 5 MB",
+      "processing": "Preparazione della foto…",
+      "remove": "Rimuovi la foto"
     },
     "message": {
       "label": "Messaggio di compleanno",
@@ -280,7 +282,8 @@
       },
       "linkPlaceholder": "Incolla un link YouTube o Spotify",
       "or": "oppure",
-      "filePlaceholder": "Carica un file audio (MP3, WAV)"
+      "filePlaceholder": "Carica un file audio (MP3, WAV)",
+      "previewTitle": "Anteprima musicale"
     },
     "delivery": {
       "label": "Velocità di consegna",
@@ -322,7 +325,8 @@
       },
       "total": "Totale",
       "chargedUsd": "Addebitato in USD al checkout",
-      "estimate": "I prezzi sono stime nella tua valuta locale."
+      "estimate": "I prezzi sono stime nella tua valuta locale.",
+      "discount": "Sconto ({code})"
     },
     "terms": {
       "prefix": "Accetto i",
@@ -352,7 +356,10 @@
       "messageMax": "Il messaggio deve contenere al massimo 100 caratteri",
       "termsRequired": "Devi accettare i termini",
       "musicLinkInvalid": "Inserisci un link valido (es. https://...)",
-      "photoUploadFailed": "Non siamo riusciti a caricare la tua foto. Selezionala di nuovo."
+      "photoUploadFailed": "Non siamo riusciti a caricare la tua foto. Selezionala di nuovo.",
+      "musicRequired": "Incolla il link di una canzone o carica un file musicale, oppure lascia scegliere la musica a noi.",
+      "musicUploadFailed": "Impossibile caricare il file musicale. Riprova o incolla un link.",
+      "musicTooLarge": "Questo file supera i 10 MB. Scegline uno più piccolo o incolla un link."
     },
     "alerts": {
       "photoTooLarge": "La foto deve essere inferiore a 5 MB",
@@ -364,6 +371,15 @@
       "unavailable": "Cambi in tempo reale non disponibili. Mostriamo una stima.",
       "recent": "Cambi aggiornati di recente",
       "updatedAt": "Cambi aggiornati {time}"
+    },
+    "promo": {
+      "label": "Codice promozionale",
+      "placeholder": "Inserisci il codice",
+      "apply": "Applica",
+      "applying": "Verifica...",
+      "invalid": "Questo codice non è valido o è scaduto.",
+      "appliedLabel": "Codice applicato",
+      "remove": "Rimuovi"
     }
   },
   "AboutPage": {
@@ -827,5 +843,26 @@
     "accept": "Accetta",
     "decline": "Rifiuta",
     "privacy": "Informativa sulla privacy"
+  },
+  "Success": {
+    "title": "Pagamento riuscito!",
+    "intro": "Grazie per il tuo ordine! Stiamo già lavorando al tuo video di compleanno personalizzato.",
+    "nextTitle": "Cosa succede ora?",
+    "questions": "Domande?",
+    "backHome": "Torna alla home",
+    "steps": {
+      "email": {
+        "title": "Controlla la tua email",
+        "desc": "Riceverai a breve un'email di conferma con i dettagli dell'ordine."
+      },
+      "create": {
+        "title": "Creazione del video",
+        "desc": "Il nostro team creerà il tuo video personalizzato entro 24-48 ore (12-24 ore con Express)."
+      },
+      "receive": {
+        "title": "Ricevi il tuo video",
+        "desc": "Riceverai un'email con il link per scaricarlo appena sarà pronto!"
+      }
+    }
   }
 }

@@ -130,8 +130,12 @@ export async function POST(request: NextRequest) {
       ...orderRequestContext(request, body),
     });
 
-    const returnUrl = `${origin}/paypal/success?orderId=${encodeURIComponent(orderId)}`;
-    const cancelUrl = `${origin}/#order`;
+    // Keep the storefront language through the PayPal round trip: both the
+    // return page and a cancel used to land on the English site.
+    const { locale } = orderRequestContext(request, body);
+    const storefrontLocale = locale ?? "en";
+    const returnUrl = `${origin}/paypal/success?orderId=${encodeURIComponent(orderId)}&locale=${storefrontLocale}`;
+    const cancelUrl = `${origin}/${storefrontLocale}#order`;
 
     const { paypalOrderId, approveUrl } = await createPayPalOrder({
       orderId,

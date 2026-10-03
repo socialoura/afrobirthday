@@ -102,7 +102,9 @@ function PaymentForm({
   currency,
   onSuccess,
   onClose,
+  onProcessingChange,
 }: {
+  onProcessingChange: (processing: boolean) => void;
   clientSecret: string;
   amount: string;
   productName: string;
@@ -118,6 +120,12 @@ function PaymentForm({
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // The parent must not close the modal mid-payment: the customer could then
+  // reopen it and pay a second time while the first confirmation is running.
+  useEffect(() => {
+    onProcessingChange(isProcessing);
+  }, [isProcessing, onProcessingChange]);
   const mountedAtRef = useRef<number>(0);
   if (mountedAtRef.current === 0 && typeof performance !== "undefined") {
     mountedAtRef.current = performance.now();
@@ -337,6 +345,15 @@ export default function CustomPaymentModal({
 }: CustomPaymentModalProps) {
   const t = useTranslations("PaymentModal");
   const modalRef = useRef<HTMLDivElement>(null);
+  const processingRef = useRef(false);
+  const [processing, setProcessing] = useState(false);
+  const handleProcessingChange = useCallback((value: boolean) => {
+    processingRef.current = value;
+    setProcessing(value);
+  }, []);
+  const requestClose = useCallback(() => {
+    if (!processingRef.current) onClose();
+  }, [onClose]);
 
   // Missing publishable key: the modal renders nothing at all, which would
   // otherwise look to the customer like a dead button.
@@ -354,7 +371,7 @@ export default function CustomPaymentModal({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        requestClose();
         return;
       }
       if (e.key !== "Tab" || !modalRef.current) return;
@@ -380,7 +397,7 @@ export default function CustomPaymentModal({
       document.removeEventListener("keydown", handleKeyDown);
       previouslyFocused?.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, requestClose]);
 
   if (!isOpen || !stripePromise) return null;
 
@@ -388,7 +405,7 @@ export default function CustomPaymentModal({
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) requestClose();
       }}
     >
       {/* Overlay */}
@@ -406,8 +423,9 @@ export default function CustomPaymentModal({
         {/* Close Button */}
         <button
           type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 w-8 h-8 rounded-full bg-white/10 hover:bg-red-500/80 flex items-center justify-center transition-colors group z-10"
+          onClick={requestClose}
+          disabled={processing}
+          className="disabled:opacity-30 absolute right-4 top-4 w-8 h-8 rounded-full bg-white/10 hover:bg-red-500/80 flex items-center justify-center transition-colors group z-10"
           aria-label={t("close")}
         >
           <X size={18} className="text-white/70 group-hover:text-white" />
@@ -440,6 +458,7 @@ export default function CustomPaymentModal({
             currency={currency}
             onSuccess={onSuccess}
             onClose={onClose}
+            onProcessingChange={handleProcessingChange}
           />
         </Elements>
       </div>

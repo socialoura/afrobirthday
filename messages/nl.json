@@ -255,7 +255,9 @@
       "dropHere": "Sleep je afbeelding hier",
       "or": "of",
       "browse": "bestanden kiezen",
-      "formats": "JPG, PNG, WebP • Max 5 MB"
+      "formats": "JPG, PNG, WebP • Max 5 MB",
+      "processing": "Je foto wordt voorbereid…",
+      "remove": "Foto verwijderen"
     },
     "message": {
       "label": "Verjaardagsbericht",
@@ -280,7 +282,8 @@
       },
       "linkPlaceholder": "Plak een YouTube- of Spotify-link",
       "or": "of",
-      "filePlaceholder": "Upload een audiobestand (MP3, WAV)"
+      "filePlaceholder": "Upload een audiobestand (MP3, WAV)",
+      "previewTitle": "Muziekvoorbeeld"
     },
     "delivery": {
       "label": "Leversnelheid",
@@ -322,7 +325,8 @@
       },
       "total": "Totaal",
       "chargedUsd": "Afgerond in USD bij betaling",
-      "estimate": "Prijzen zijn schattingen in je lokale valuta."
+      "estimate": "Prijzen zijn schattingen in je lokale valuta.",
+      "discount": "Korting ({code})"
     },
     "terms": {
       "prefix": "Ik ga akkoord met de",
@@ -352,7 +356,10 @@
       "messageMax": "Het bericht mag maximaal 100 tekens bevatten",
       "termsRequired": "Je moet akkoord gaan met de voorwaarden",
       "musicLinkInvalid": "Voer een geldige link in (bijv. https://...)",
-      "photoUploadFailed": "We konden je foto niet uploaden. Selecteer hem opnieuw."
+      "photoUploadFailed": "We konden je foto niet uploaden. Selecteer hem opnieuw.",
+      "musicRequired": "Plak een link naar een nummer of upload een muziekbestand, of laat ons de muziek kiezen.",
+      "musicUploadFailed": "Je muziekbestand kon niet worden geüpload. Probeer het opnieuw of plak een link.",
+      "musicTooLarge": "Dit muziekbestand is groter dan 10 MB. Kies een kleiner bestand of plak een link."
     },
     "alerts": {
       "photoTooLarge": "De foto moet kleiner zijn dan 5 MB",
@@ -364,6 +371,15 @@
       "unavailable": "Live koersen niet beschikbaar. Schatting wordt getoond.",
       "recent": "Koersen onlangs bijgewerkt",
       "updatedAt": "Koersen bijgewerkt {time}"
+    },
+    "promo": {
+      "label": "Kortingscode",
+      "placeholder": "Voer code in",
+      "apply": "Toepassen",
+      "applying": "Controleren...",
+      "invalid": "Deze code is ongeldig of verlopen.",
+      "appliedLabel": "Korting toegepast",
+      "remove": "Verwijderen"
     }
   },
   "AboutPage": {
@@ -827,5 +843,26 @@
     "accept": "Accepteren",
     "decline": "Weigeren",
     "privacy": "Privacybeleid"
+  },
+  "Success": {
+    "title": "Betaling geslaagd!",
+    "intro": "Bedankt voor je bestelling! We zijn al bezig met je persoonlijke verjaardagsvideo.",
+    "nextTitle": "Wat gebeurt er nu?",
+    "questions": "Vragen?",
+    "backHome": "Terug naar home",
+    "steps": {
+      "email": {
+        "title": "Check je e-mail",
+        "desc": "Je ontvangt binnenkort een bevestigingsmail met je bestelgegevens."
+      },
+      "create": {
+        "title": "Video wordt gemaakt",
+        "desc": "Ons team maakt je persoonlijke video binnen 24-48 uur (12-24 uur met Express)."
+      },
+      "receive": {
+        "title": "Ontvang je video",
+        "desc": "Je krijgt een e-mail met de downloadlink zodra hij klaar is!"
+      }
+    }
   }
 }

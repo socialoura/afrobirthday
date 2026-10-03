@@ -17,6 +17,7 @@ import OptimizedVideo from "@/components/OptimizedVideo";
 import RecentOrdersBadge from "@/components/RecentOrdersBadge";
 import { type CurrencyCode, currencyFromLocale, PRICES } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
+import { resolveLocalPriceComponent } from "@/lib/currency";
 import { useTranslations } from "next-intl";
 
 export default function HeroSection() {
@@ -75,29 +76,23 @@ export default function HeroSection() {
     };
   }, []);
 
-  const formatLocal = useMemo(() => {
-    return (priceUsd: number) => {
-      const converted =
-        localCurrency === "USD" ? priceUsd : priceUsd * rates[localCurrency];
-      return new Intl.NumberFormat(browserLocale, {
-        style: "currency",
-        currency: localCurrency,
-        maximumFractionDigits: 2,
-      }).format(converted);
-    };
-  }, [browserLocale, localCurrency, rates]);
-
+  // Same rule as the order form and the payment routes (EUR parity, then
+  // overrides, then the live rate), so the hero never advertises a price the
+  // checkout does not charge.
   const displayPrice = useMemo(() => {
-    const override = baseOverrides[localCurrency];
-    if (localCurrency !== "USD" && typeof override === "number") {
-      return new Intl.NumberFormat(browserLocale, {
-        style: "currency",
-        currency: localCurrency,
-        maximumFractionDigits: 2,
-      }).format(override);
-    }
-    return formatLocal(basePriceUsd);
-  }, [baseOverrides, localCurrency, browserLocale, basePriceUsd, formatLocal]);
+    const rate = localCurrency === "USD" ? 1 : rates[localCurrency] ?? 1;
+    const local = resolveLocalPriceComponent({
+      usdPrice: basePriceUsd,
+      currency: localCurrency,
+      rate,
+      override: baseOverrides[localCurrency],
+    });
+    return new Intl.NumberFormat(browserLocale, {
+      style: "currency",
+      currency: localCurrency,
+      maximumFractionDigits: 2,
+    }).format(local);
+  }, [baseOverrides, localCurrency, browserLocale, basePriceUsd, rates]);
 
   return (
     <section className="relative min-h-[100svh] lg:min-h-screen overflow-hidden bg-dark">
