@@ -156,7 +156,7 @@ async function runEnsureOrdersTable() {
   const [{ ready }] = await sql`
     SELECT EXISTS (
       SELECT 1 FROM information_schema.columns
-      WHERE table_name = 'orders' AND column_name = 'client_user_agent'
+      WHERE table_name = 'orders' AND column_name = 'checkout_variant'
     ) AS ready
   `;
   if (ready) return;
@@ -301,6 +301,12 @@ async function runEnsureOrdersTable() {
     ADD COLUMN IF NOT EXISTS client_ip text,
     ADD COLUMN IF NOT EXISTS client_user_agent text
   `;
+
+  // Arm of the wallet-buttons checkout test (src/lib/checkoutVariant.ts).
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS checkout_variant text
+  `;
 }
 
 export async function ensurePromoCodesTable() {
@@ -416,6 +422,8 @@ export type OrderCreateInput = {
   oaiRef?: string;
   clientIp?: string;
   clientUserAgent?: string;
+  /** Arm of the checkout A/B test ("wallets" | "control"). */
+  checkoutVariant?: string;
 };
 
 /**
@@ -546,7 +554,8 @@ export async function createOrder(input: OrderCreateInput) {
       ads_consent,
       oai_ref,
       client_ip,
-      client_user_agent
+      client_user_agent,
+      checkout_variant
     ) VALUES (
       ${input.id}::uuid,
       ${input.email},
@@ -584,7 +593,8 @@ export async function createOrder(input: OrderCreateInput) {
       ${input.adsConsent ?? false},
       ${input.adsConsent ? input.oaiRef ?? null : null},
       ${input.adsConsent ? input.clientIp ?? null : null},
-      ${input.adsConsent ? input.clientUserAgent ?? null : null}
+      ${input.adsConsent ? input.clientUserAgent ?? null : null},
+      ${input.checkoutVariant ?? null}
     )
     -- One customer, one order row. The client keeps a stable id for the whole
     -- form session, so switching from card to PayPal — or stepping back to
@@ -613,7 +623,8 @@ export async function createOrder(input: OrderCreateInput) {
       ads_consent = EXCLUDED.ads_consent,
       oai_ref = EXCLUDED.oai_ref,
       client_ip = EXCLUDED.client_ip,
-      client_user_agent = EXCLUDED.client_user_agent
+      client_user_agent = EXCLUDED.client_user_agent,
+      checkout_variant = EXCLUDED.checkout_variant
     WHERE orders.status = 'pending'
   `;
 }
@@ -885,6 +896,7 @@ export type Order = {
   oai_ref: string | null;
   client_ip: string | null;
   client_user_agent: string | null;
+  checkout_variant: string | null;
 };
 
 // Persist best-effort media generated at payment time (voiceover MP3, and the

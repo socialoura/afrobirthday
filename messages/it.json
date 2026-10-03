@@ -315,11 +315,12 @@
         "subtitle": "Visa, Mastercard, Amex"
       },
       "paypal": {
-        "subtitle": "Paga con il tuo saldo PayPal"
+        "subtitle": "Conto PayPal o carta bancaria"
       },
       "preparing": "Preparazione del pagamento sicuro…",
       "setupError": "Impossibile preparare il pagamento. Riprova.",
-      "retry": "Riprova"
+      "retry": "Riprova",
+      "orCard": "oppure paga con carta"
     },
     "summary": {
       "title": "Riepilogo",
@@ -338,7 +339,8 @@
       "prefix": "Accetto i",
       "terms": "Termini di servizio",
       "and": "e la",
-      "refund": "Politica di rimborso"
+      "refund": "Politica di rimborso",
+      "implicitPrefix": "Pagando, accetti i"
     },
     "submit": {
       "processing": "Elaborazione...",
@@ -386,7 +388,8 @@
       "invalid": "Questo codice non è valido o è scaduto.",
       "appliedLabel": "Codice applicato",
       "remove": "Rimuovi"
-    }
+    },
+    "reassurance": "✓ Soddisfatti o rimborsati per 7 giorni · Consegna via email in {time}"
   },
   "AboutPage": {
     "meta": {
@@ -532,7 +535,7 @@
     }
   },
   "PaymentModal": {
-    "title": "Completa il Pagamento",
+    "title": "Completa il pagamento",
     "close": "Chiudi",
     "securePayment": "Pagamento sicuro",
     "orPayWithCard": "o paga in un altro modo",

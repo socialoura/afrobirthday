@@ -315,11 +315,12 @@
         "subtitle": "Visa, Mastercard, Amex"
       },
       "paypal": {
-        "subtitle": "Mit PayPal-Guthaben bezahlen"
+        "subtitle": "PayPal-Konto oder Bankkarte"
       },
       "preparing": "Sichere Zahlung wird vorbereitet…",
       "setupError": "Zahlung konnte nicht vorbereitet werden. Bitte erneut versuchen.",
-      "retry": "Erneut versuchen"
+      "retry": "Erneut versuchen",
+      "orCard": "oder mit Karte zahlen"
     },
     "summary": {
       "title": "Zusammenfassung",
@@ -338,7 +339,8 @@
       "prefix": "Ich akzeptiere die",
       "terms": "Nutzungsbedingungen",
       "and": "und die",
-      "refund": "Rückerstattungsrichtlinie"
+      "refund": "Rückerstattungsrichtlinie",
+      "implicitPrefix": "Mit der Zahlung akzeptierst du die"
     },
     "submit": {
       "processing": "Wird verarbeitet...",
@@ -386,7 +388,8 @@
       "invalid": "Dieser Code ist ungültig oder abgelaufen.",
       "appliedLabel": "Gutschein angewendet",
       "remove": "Entfernen"
-    }
+    },
+    "reassurance": "✓ 7 Tage Geld-zurück-Garantie · Lieferung per E-Mail in {time}"
   },
   "AboutPage": {
     "meta": {
@@ -532,7 +535,7 @@
     }
   },
   "PaymentModal": {
-    "title": "Zahlung Abschließen",
+    "title": "Zahlung abschließen",
     "close": "Schließen",
     "securePayment": "Sichere Zahlung",
     "orPayWithCard": "oder anders bezahlen",

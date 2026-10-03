@@ -14,10 +14,12 @@ import dynamic from "next/dynamic";
 import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 import { getAttributionPayload } from "@/lib/attribution";
 import { hasAdsConsent } from "@/lib/consent";
+import { checkoutVariantFor } from "@/lib/checkoutVariant";
 import { resolveLocalPriceComponent } from "@/lib/currency";
 import { resolveOrderUploads } from "@/lib/orderUploads";
 
 const CustomPaymentModal = dynamic(() => import("@/components/CustomPaymentModal"), { ssr: false });
+const WalletButtons = dynamic(() => import("@/components/WalletButtons"), { ssr: false });
 
 type MusicEmbed = { platform: "youtube" | "spotify" | "soundcloud"; embedUrl: string };
 
@@ -60,9 +62,8 @@ const createOrderSchema = (t: ReturnType<typeof useTranslations>) =>
     musicLink: z.string().url().optional().or(z.literal("")),
     deliveryMethod: z.enum(["standard", "express"]),
     danceExtended: z.boolean().default(false),
-    termsAccepted: z.literal(true, {
-      errorMap: () => ({ message: t("errors.termsRequired") }),
-    }),
+    // No terms checkbox: acceptance is stated next to the pay button ("By
+    // paying, you agree to…"). The mandatory box swallowed pay clicks.
   });
 
 type OrderFormData = z.infer<ReturnType<typeof createOrderSchema>>;
@@ -433,14 +434,6 @@ export default function OrderFormSection() {
   const danceExtended = watch("danceExtended");
   const message = watch("message") || "";
   const email = watch("email") || "";
-  const termsAccepted = watch("termsAccepted");
-
-  // The inline Stripe pay button sets a manual termsAccepted error (RHF's
-  // schema validation doesn't run for it, since there's no form submit) —
-  // clear it as soon as the box is actually checked so it doesn't linger.
-  useEffect(() => {
-    if (termsAccepted) clearErrors("termsAccepted");
-  }, [termsAccepted, clearErrors]);
 
   // Restore an in-progress draft (email/message/options — never the photo
   // file itself, which can't be persisted) so an accidental refresh doesn't
@@ -870,6 +863,7 @@ export default function OrderFormSection() {
     // so everyone lost during the upload + round trip is invisible to it.
     captureEvent(ANALYTICS_EVENTS.PAYMENT_STEP_VIEWED, {
       payment_method: paymentMethod,
+      checkout_variant: checkoutVariantFor(sessionOrderId()),
       music_option: musicOption,
       delivery_method: deliveryMethod,
       total_price: totalPrice,
@@ -947,6 +941,7 @@ export default function OrderFormSection() {
           attribution: getAttributionPayload(),
           locale: activeLocale,
           adsConsent: hasAdsConsent(),
+          checkoutVariant: checkoutVariantFor(orderId),
         }),
       });
 
@@ -1021,6 +1016,7 @@ export default function OrderFormSection() {
           attribution: getAttributionPayload(),
           locale: activeLocale,
           adsConsent: hasAdsConsent(),
+          checkoutVariant: checkoutVariantFor(orderId),
         }),
       });
 
@@ -1096,13 +1092,6 @@ export default function OrderFormSection() {
       currency: localCurrency,
     });
 
-    if (termsAccepted !== true) {
-      captureEvent(ANALYTICS_EVENTS.PAYMENT_BLOCKED_TERMS, { payment_method: "card" });
-      setHasAttemptedSubmit(true);
-      setError("termsAccepted", { type: "manual", message: t("errors.termsRequired") });
-      document.getElementById("order-terms")?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
     if (!stripeClientSecret) {
       captureEvent(ANALYTICS_EVENTS.PAYMENT_BLOCKED_NOT_READY, {
         payment_method: "card",
@@ -1113,6 +1102,7 @@ export default function OrderFormSection() {
 
     captureEvent(ANALYTICS_EVENTS.CHECKOUT_INITIATED, {
       payment_method: "card",
+      checkout_variant: checkoutVariantFor(currentOrderId),
       music_option: musicOption,
       delivery_method: deliveryMethod,
       total_price: totalPrice,
@@ -1686,6 +1676,20 @@ export default function OrderFormSection() {
                     order + PaymentIntent are still prepared as soon as step 3
                     is reached, so the modal opens with nothing left to wait
                     for. */}
+                {paymentMethod === "card" &&
+                  stripeClientSecret &&
+                  checkoutVariantFor(currentOrderId) === "wallets" && (
+                    <WalletButtons
+                      clientSecret={stripeClientSecret}
+                      orderId={currentOrderId}
+                      locale={activeLocale}
+                      value={finalTotal}
+                      valueUsd={finalTotalUsd}
+                      currency={localCurrency}
+                      onSuccess={handlePaymentSuccess}
+                    />
+                  )}
+
                 {paymentMethod === "card" && paymentSetupError && (
                   <div className="mt-5 pt-5 border-t border-white/10 text-center flex flex-col items-center gap-3">
                     <AlertTriangle size={22} className="text-primary" aria-hidden="true" />
@@ -1701,31 +1705,6 @@ export default function OrderFormSection() {
                 )}
               </div>
 
-              {/* Terms */}
-              <div id="order-terms" className="glass-card p-6">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    {...register("termsAccepted")}
-                    className="w-6 h-6 mt-0.5 text-primary rounded flex-shrink-0"
-                  />
-                  <span className="text-sm text-white/60">
-                    {t("terms.prefix")}{" "}
-                    <Link href="/terms" className="text-primary hover:underline">
-                      {t("terms.terms")}
-                    </Link>{" "}
-                    {t("terms.and")}{" "}
-                    <Link href="/refund" className="text-primary hover:underline">
-                      {t("terms.refund")}
-                    </Link>
-                  </span>
-                </label>
-                {hasAttemptedSubmit && errors.termsAccepted && (
-                  <p className="text-red-400 text-sm mt-2">
-                    {errors.termsAccepted.message}
-                  </p>
-                )}
-              </div>
               </>
               )}
 
@@ -1814,6 +1793,29 @@ export default function OrderFormSection() {
                   </button>
                 )}
               </div>
+
+              {/* Reassurance and implicit terms, right under the pay button
+                  where the decision is made (on phones the summary card with
+                  the trust tiles renders further down). */}
+              {currentStep === 3 && (
+                <div className="text-center space-y-2">
+                  <p className="text-sm text-white/80">
+                    {t("reassurance", {
+                      time: t(deliveryMethod === "express" ? "delivery.express.time" : "delivery.standard.time"),
+                    })}
+                  </p>
+                  <p className="text-xs text-white/50">
+                    {t("terms.implicitPrefix")}{" "}
+                    <Link href="/terms" className="underline hover:text-white/80">
+                      {t("terms.terms")}
+                    </Link>{" "}
+                    {t("terms.and")}{" "}
+                    <Link href="/refund" className="underline hover:text-white/80">
+                      {t("terms.refund")}
+                    </Link>
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="lg:col-span-5">

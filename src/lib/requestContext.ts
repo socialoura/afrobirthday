@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { locales } from "@/i18n/config";
+import { parseCheckoutVariant } from "@/lib/checkoutVariant";
 
 /**
  * Per-request details stored on an order for ad measurement. IP, user agent
@@ -26,5 +27,6 @@ export function orderRequestContext(request: NextRequest, body: Record<string, u
     oaiRef: oppref?.slice(0, 280),
     clientIp: clientIp?.slice(0, 64),
     clientUserAgent: request.headers.get("user-agent")?.slice(0, 400) ?? undefined,
+    checkoutVariant: parseCheckoutVariant(body.checkoutVariant),
   };
 }

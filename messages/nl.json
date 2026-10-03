@@ -315,11 +315,12 @@
         "subtitle": "Visa, Mastercard, Amex"
       },
       "paypal": {
-        "subtitle": "Betaal met je PayPal-saldo"
+        "subtitle": "PayPal-account of bankkaart"
       },
       "preparing": "Veilige betaling wordt voorbereid…",
       "setupError": "Betaling kon niet worden voorbereid. Probeer het opnieuw.",
-      "retry": "Opnieuw proberen"
+      "retry": "Opnieuw proberen",
+      "orCard": "of betaal met kaart"
     },
     "summary": {
       "title": "Overzicht",
@@ -338,7 +339,8 @@
       "prefix": "Ik ga akkoord met de",
       "terms": "Servicevoorwaarden",
       "and": "en het",
-      "refund": "Terugbetalingsbeleid"
+      "refund": "Terugbetalingsbeleid",
+      "implicitPrefix": "Door te betalen ga je akkoord met de"
     },
     "submit": {
       "processing": "Bezig...",
@@ -386,7 +388,8 @@
       "invalid": "Deze code is ongeldig of verlopen.",
       "appliedLabel": "Korting toegepast",
       "remove": "Verwijderen"
-    }
+    },
+    "reassurance": "✓ 7 dagen niet-goed-geld-terug · Per e-mail geleverd in {time}"
   },
   "AboutPage": {
     "meta": {
@@ -532,7 +535,7 @@
     }
   },
   "PaymentModal": {
-    "title": "Voltooi Je Betaling",
+    "title": "Voltooi je betaling",
     "close": "Sluiten",
     "securePayment": "Veilige betaling",
     "orPayWithCard": "of betaal op een andere manier",

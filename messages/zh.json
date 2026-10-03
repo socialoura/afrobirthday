@@ -315,11 +315,12 @@
         "subtitle": "Visa, Mastercard, Amex"
       },
       "paypal": {
-        "subtitle": "使用 PayPal 余额付款"
+        "subtitle": "PayPal 账户或银行卡"
       },
       "preparing": "正在准备安全支付…",
       "setupError": "无法准备支付，请重试。",
-      "retry": "重试"
+      "retry": "重试",
+      "orCard": "或使用银行卡支付"
     },
     "summary": {
       "title": "订单摘要",
@@ -338,7 +339,8 @@
       "prefix": "我已阅读并同意",
       "terms": "服务条款",
       "and": "以及",
-      "refund": "退款政策"
+      "refund": "退款政策",
+      "implicitPrefix": "付款即表示您同意"
     },
     "submit": {
       "processing": "处理中…",
@@ -386,7 +388,8 @@
       "invalid": "该优惠码无效或已过期。",
       "appliedLabel": "已使用优惠码",
       "remove": "移除"
-    }
+    },
+    "reassurance": "✓ 7 天无理由退款 · {time}内通过电子邮件送达"
   },
   "AboutPage": {
     "meta": {

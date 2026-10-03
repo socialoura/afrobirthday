@@ -315,11 +315,12 @@
         "subtitle": "Visa, Mastercard, Amex"
       },
       "paypal": {
-        "subtitle": "Payer avec votre solde PayPal"
+        "subtitle": "Compte PayPal ou carte bancaire"
       },
       "preparing": "Préparation du paiement sécurisé…",
       "setupError": "Impossible de préparer le paiement. Réessayez.",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "orCard": "ou payer par carte"
     },
     "promo": {
       "label": "Code promo",
@@ -347,7 +348,8 @@
       "prefix": "J'accepte les",
       "terms": "Conditions d'utilisation",
       "and": "et la",
-      "refund": "Politique de remboursement"
+      "refund": "Politique de remboursement",
+      "implicitPrefix": "En payant, vous acceptez les"
     },
     "submit": {
       "processing": "Traitement...",
@@ -386,7 +388,8 @@
       "unavailable": "Taux en direct indisponibles. Estimation affichée.",
       "recent": "Taux mis à jour récemment",
       "updatedAt": "Taux mis à jour {time}"
-    }
+    },
+    "reassurance": "✓ Satisfait ou remboursé pendant 7 jours · Livrée par e-mail en {time}"
   },
   "AboutPage": {
     "meta": {
@@ -532,7 +535,7 @@
     }
   },
   "PaymentModal": {
-    "title": "Finalisez Votre Paiement",
+    "title": "Finalisez votre paiement",
     "close": "Fermer",
     "securePayment": "Paiement sécurisé",
     "orPayWithCard": "ou payer autrement",

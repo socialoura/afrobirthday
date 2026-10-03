@@ -34,7 +34,6 @@ export const ANALYTICS_EVENTS = {
   PAYMENT_ELEMENT_READY: "payment_element_ready",
   // The accordion-specific events went with the inline form: the card modal
   // offers one method, so there is nothing to select and no element to fail.
-  PAYMENT_BLOCKED_TERMS: "payment_blocked_terms",
   PAYMENT_SUBMITTED: "payment_submitted",
   PAYMENT_REDIRECT_STARTED: "payment_redirect_started",
   PAYMENT_FAILED: "payment_failed",

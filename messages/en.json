@@ -315,11 +315,12 @@
         "subtitle": "Visa, Mastercard, Amex"
       },
       "paypal": {
-        "subtitle": "Pay with your PayPal balance"
+        "subtitle": "PayPal account or bank card"
       },
       "preparing": "Preparing your secure payment…",
       "setupError": "We couldn't set up payment. Please try again.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "orCard": "or pay by card"
     },
     "promo": {
       "label": "Promo code",
@@ -347,7 +348,8 @@
       "prefix": "I agree to the",
       "terms": "Terms of Service",
       "and": "&",
-      "refund": "Refund Policy"
+      "refund": "Refund Policy",
+      "implicitPrefix": "By paying, you agree to the"
     },
     "submit": {
       "processing": "Processing...",
@@ -386,7 +388,8 @@
       "unavailable": "Live rates unavailable. Showing estimated rates.",
       "recent": "Rates updated recently",
       "updatedAt": "Rates updated {time}"
-    }
+    },
+    "reassurance": "✓ 100% money-back guarantee for 7 days · Delivered by email in {time}"
   },
   "AboutPage": {
     "meta": {
@@ -532,7 +535,7 @@
     }
   },
   "PaymentModal": {
-    "title": "Complete Your Payment",
+    "title": "Complete your payment",
     "close": "Close",
     "securePayment": "Secure payment",
     "orPayWithCard": "or pay another way",
