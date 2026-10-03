@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Component, useState, type ReactNode } from "react";
 import { Elements, ExpressCheckoutElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type {
   StripeElementLocale,
@@ -127,19 +127,45 @@ function WalletButtonsInner({ clientSecret, orderId, locale, value, valueUsd, cu
 
 const STRIPE_LOCALES = new Set(["en", "fr", "es", "de", "it", "pt", "nl", "ar", "zh"]);
 
+/**
+ * An error in an experiment must never take the order form down with it: on
+ * failure the buttons simply disappear and the card button remains.
+ */
+class WalletErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    captureEvent(ANALYTICS_EVENTS.PAYMENT_FAILED, {
+      stage: "wallet_render",
+      checkout_variant: "wallets",
+      reason: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
 export default function WalletButtons(props: Props) {
   const stripePromise = preloadStripe();
   if (!stripePromise) return null;
   return (
-    <Elements
-      stripe={stripePromise}
-      options={{
-        clientSecret: props.clientSecret,
-        locale: (STRIPE_LOCALES.has(props.locale) ? props.locale : "auto") as StripeElementLocale,
-        appearance: { theme: "night" },
-      }}
-    >
-      <WalletButtonsInner {...props} />
-    </Elements>
+    <WalletErrorBoundary>
+      <Elements
+        stripe={stripePromise}
+        options={{
+          clientSecret: props.clientSecret,
+          locale: (STRIPE_LOCALES.has(props.locale) ? props.locale : "auto") as StripeElementLocale,
+          appearance: { theme: "night" },
+        }}
+      >
+        <WalletButtonsInner {...props} />
+      </Elements>
+    </WalletErrorBoundary>
   );
 }
