@@ -837,5 +837,10 @@
   "HomeMeta": {
     "title": "Personalisierte Geburtstagsvideos",
     "description": "Mach den Geburtstag unvergesslich: ein personalisiertes Video von echten afrikanischen Tänzern. Foto hochladen, Nachricht schreiben, per E-Mail in 12–48 Std."
+  },
+  "NotFound": {
+    "title": "Seite nicht gefunden",
+    "description": "Diese Seite existiert nicht oder wurde verschoben.",
+    "cta": "Zur Startseite"
   }
 }

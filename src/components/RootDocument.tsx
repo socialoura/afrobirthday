@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import "@/app/globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { getLocale } from "next-intl/server";
 import Script from "next/script";
 import { DM_Sans, Space_Grotesk } from "next/font/google";
 import { getTextDirection } from "@/i18n/config";
@@ -24,7 +23,14 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-display",
 });
 
-export const metadata: Metadata = {
+/**
+ * The <html> shell shared by the two root layouts: app/[locale]/layout.tsx
+ * (storefront, statically rendered per locale) and app/(site)/layout.tsx
+ * (admin, payment returns). A single app/layout.tsx had to read the locale
+ * from request headers, which made every page dynamic: no CDN caching and a
+ * database round trip on every visit.
+ */
+export const rootMetadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: "AfroBirthday - Personalized Birthday Videos from African Dancers",
@@ -60,14 +66,14 @@ export const metadata: Metadata = {
     siteName: "AfroBirthday",
     locale: "en_US",
     type: "website",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "AfroBirthday - Personalized Birthday Videos from African Dancers",
     description:
       "Order a personalized birthday video from real African dancers. Upload a photo, add your message, choose delivery (12-48h), and receive it by email.",
-    images: ["/og-image.png"],
+    images: ["/og-image.jpg"],
   },
   robots: {
     index: true,
@@ -82,17 +88,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootDocument({
+  locale,
   children,
 }: Readonly<{
+  locale: string;
   children: React.ReactNode;
 }>) {
-  let locale = "en";
-  try {
-    locale = await getLocale();
-  } catch {
-    locale = "en";
-  }
   const dir = getTextDirection(locale);
 
   return (

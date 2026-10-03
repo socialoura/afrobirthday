@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FAQ_TAG, revalidatePublicContent } from "@/lib/cachedContent";
 import { verifyAdminRequest } from "@/lib/auth";
 import { listFaqEntries, upsertFaqEntry, validateFaqEntry } from "@/lib/faqContent";
 
@@ -38,6 +39,7 @@ export async function PUT(request: Request) {
     }
 
     for (const entry of entries) await upsertFaqEntry(entry as never);
+    revalidatePublicContent(FAQ_TAG);
     return NextResponse.json({ ok: true, saved: entries.length });
   } catch (err) {
     console.error("FAQ upsert failed:", err);

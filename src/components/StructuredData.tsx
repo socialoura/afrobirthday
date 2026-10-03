@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { PRICES } from "@/lib/utils";
-import { getPricingSettings } from "@/lib/db";
-import { getPriceTestDefinition } from "@/lib/priceTest";
+import { getCachedPricingSettings, getCachedPriceTest, getCachedPublishedFaq } from "@/lib/cachedContent";
 
 // Google caps applicableCountry at 50 codes. Every country with a paid order
 // (44 as of Sept 2026), then the nearest markets without one yet.
@@ -15,7 +14,7 @@ const RETURN_POLICY_COUNTRIES = [
 // The base price was unchanged from launch until the first price test.
 const PRICE_UNCHANGED_SINCE = "2026-02-01";
 import { SITE_URL } from "@/lib/siteUrl";
-import { getPublishedFaq, mergeFaq } from "@/lib/faqContent";
+import { mergeFaq } from "@/lib/faqContent";
 
 const SITE = SITE_URL;
 
@@ -88,8 +87,8 @@ export default async function StructuredData({ type, locale, pageName, path }: S
     // offer. It reads the settings the checkout charges from, so a price
     // change cannot leave the structured data behind.
     const [livePricing, priceTest] = await Promise.all([
-      getPricingSettings().catch(() => null),
-      getPriceTestDefinition(),
+      getCachedPricingSettings(),
+      getCachedPriceTest(),
     ]);
     const advertisedBase = livePricing?.base ?? PRICES.base;
     // validFrom is the day the advertised price took effect: the test's start
@@ -102,7 +101,7 @@ export default async function StructuredData({ type, locale, pageName, path }: S
       name: "AfroBirthday personalized birthday video",
       description:
         "Personalized birthday video filmed by real African dancers, delivered by email within 24-48h.",
-      image: [`${SITE}/og-image.png`, `${SITE}/showcase_1.jpg`],
+      image: [`${SITE}/og-image.jpg`, `${SITE}/showcase_1.jpg`],
       brand: { "@type": "Brand", name: "AfroBirthday" },
       offers: {
         "@type": "Offer",
@@ -173,7 +172,7 @@ export default async function StructuredData({ type, locale, pageName, path }: S
     // throws, so a database problem degrades to the template rather than
     // stripping the schema off the page.
     const templateItems = (t.raw("items") as Array<{ question: string; answer: string }>) ?? [];
-    const items = mergeFaq(templateItems, await getPublishedFaq(locale));
+    const items = mergeFaq(templateItems, await getCachedPublishedFaq(locale));
     const faq = {
       "@context": "https://schema.org",
       "@type": "FAQPage",

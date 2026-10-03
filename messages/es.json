@@ -837,5 +837,10 @@
   "HomeMeta": {
     "title": "Vídeos de cumpleaños personalizados",
     "description": "Haz su cumpleaños inolvidable con un vídeo personalizado de auténticos bailarines africanos. Sube una foto, añade tu mensaje y recíbelo por e-mail en 12–48 h."
+  },
+  "NotFound": {
+    "title": "Página no encontrada",
+    "description": "Esta página no existe o se ha movido.",
+    "cta": "Volver al inicio"
   }
 }

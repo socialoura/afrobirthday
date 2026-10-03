@@ -816,5 +816,10 @@
   "HomeMeta": {
     "title": "Video di compleanno personalizzati",
     "description": "Un compleanno indimenticabile con un video personalizzato di veri ballerini africani. Carica foto e messaggio, ricevilo via e-mail in 12–48 ore."
+  },
+  "NotFound": {
+    "title": "Pagina non trovata",
+    "description": "Questa pagina non esiste o è stata spostata.",
+    "cta": "Torna alla home"
   }
 }

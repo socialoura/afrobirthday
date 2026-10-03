@@ -67,12 +67,7 @@ export default function ProductShowcaseSection() {
                 preload="metadata"
                 className="w-full h-full object-cover"
               >
-                {/* WebM for better compression */}
-                <source
-                  src={videos[activeVideo].src.replace(/\.mp4$/i, ".webm")}
-                  type="video/webm"
-                />
-                {/* MP4 fallback */}
+                {/* MP4 only: no .webm files exist (see OptimizedVideo). */}
                 <source
                   src={videos[activeVideo].src}
                   type="video/mp4"
@@ -86,7 +81,6 @@ export default function ProductShowcaseSection() {
                   fill
                   sizes="(max-width: 768px) 100vw, 896px"
                   className="object-cover"
-                  priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-dark/20 to-transparent" />
                 <button

@@ -18,6 +18,9 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', '@stripe/react-stripe-js', 'recharts'],
+    // Two root layouts ([locale] and (site)) leave no app/layout.tsx for the
+    // default 404; app/global-not-found.tsx renders unmatched URLs instead.
+    globalNotFound: true,
   },
   async headers() {
     return [
@@ -40,6 +43,10 @@ const nextConfig = {
         ],
       },
     ];
+  },
+  async redirects() {
+    // The share image moved to JPEG (1 MB PNG -> 180 KB); keep old links working.
+    return [{ source: '/og-image.png', destination: '/og-image.jpg', permanent: true }];
   },
   // Reverse proxy for PostHog ingestion (EU cloud) — keeps analytics same-origin
   // so ad-blockers targeting posthog.com don't drop organic-traffic events.

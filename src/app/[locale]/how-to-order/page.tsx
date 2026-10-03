@@ -1,6 +1,6 @@
 import { Upload, CreditCard, Gift, ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { buildAlternates } from "@/lib/seo";
@@ -22,12 +22,12 @@ export async function generateMetadata({
       title: t("title"),
       description: t("description"),
       url: `/${locale}/how-to-order`,
-      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+      images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
     },
     twitter: {
       title: t("title"),
       description: t("description"),
-      images: ["/og-image.png"],
+      images: ["/og-image.jpg"],
     },
   };
 }
@@ -38,6 +38,7 @@ export default async function HowToOrderPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations("HowToOrderPage");
   const tMeta = await getTranslations({ locale, namespace: "HowToOrderPage.meta" });
   const steps = [

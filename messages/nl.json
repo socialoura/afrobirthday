@@ -816,5 +816,10 @@
   "HomeMeta": {
     "title": "Gepersonaliseerde verjaardagsvideo's",
     "description": "Maak de verjaardag onvergetelijk met een persoonlijke video van echte Afrikaanse dansers. Upload een foto, schrijf je bericht en ontvang hem binnen 12–48 uur."
+  },
+  "NotFound": {
+    "title": "Pagina niet gevonden",
+    "description": "Deze pagina bestaat niet of is verplaatst.",
+    "cta": "Terug naar home"
   }
 }

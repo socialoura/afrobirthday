@@ -847,5 +847,10 @@
   "HomeMeta": {
     "title": "Personalized Birthday Videos",
     "description": "Make their birthday unforgettable with a personalized video from real African dancers. Upload a photo, add your message, get it by email in 12–48h."
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "description": "This page doesn't exist or has moved.",
+    "cta": "Back to home"
   }
 }

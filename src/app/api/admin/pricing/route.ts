@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { PRICING_TAG, revalidatePublicContent } from "@/lib/cachedContent";
 import { verifyAdminRequest } from "@/lib/auth";
 import {
   getPricingOverrides,
@@ -117,6 +118,7 @@ export async function PUT(request: Request) {
       getPricingSettings(),
       getPricingOverrides(),
     ]);
+    revalidatePublicContent(PRICING_TAG);
     return NextResponse.json({ success: true, pricing: { ...pricing, overrides } });
   } catch (error) {
     console.error("Update pricing settings error:", error);

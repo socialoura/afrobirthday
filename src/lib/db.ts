@@ -149,6 +149,18 @@ export function ensureOrdersTable(): Promise<void> {
 async function runEnsureOrdersTable() {
   const sql = getSql();
 
+  // Fast path: every ALTER below takes an ACCESS EXCLUSIVE lock on orders even
+  // when the column exists, and each is a round trip through the SSH tunnel on
+  // the checkout's cold start. If the newest column is already there, the
+  // whole schema is. Keep this sentinel pointed at the LAST column added below.
+  const [{ ready }] = await sql`
+    SELECT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'orders' AND column_name = 'confirmation_email_sent_at'
+    ) AS ready
+  `;
+  if (ready) return;
+
   await sql`
     CREATE TABLE IF NOT EXISTS orders (
       id uuid PRIMARY KEY,

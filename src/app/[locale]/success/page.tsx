@@ -1,11 +1,11 @@
 import { CheckCircle, Mail, Clock, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
-import ConfirmRedirectPayment from "@/app/success/ConfirmRedirectPayment";
-import PostHogPurchaseCompleted from "@/app/success/PostHogPurchaseCompleted";
+import ConfirmRedirectPayment from "@/app/(site)/success/ConfirmRedirectPayment";
+import PostHogPurchaseCompleted from "@/app/(site)/success/PostHogPurchaseCompleted";
 
 export const metadata: Metadata = {
   title: "Payment Successful",
@@ -22,6 +22,7 @@ export default async function SuccessPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Success" });
 
   return (

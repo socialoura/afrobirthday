@@ -90,6 +90,7 @@ export default function OptimizedVideo({
           aria-hidden="true"
           decoding="async"
           loading={isHero ? "eager" : "lazy"}
+          fetchPriority={isHero ? "high" : "auto"}
         />
       )}
       <video

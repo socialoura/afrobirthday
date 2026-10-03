@@ -847,5 +847,10 @@
   "HomeMeta": {
     "title": "Vidéos d'anniversaire personnalisées",
     "description": "Un anniversaire inoubliable grâce à une vidéo de vrais danseurs africains. Envoyez une photo et un message, recevez-la par e-mail en 12 à 48 h."
+  },
+  "NotFound": {
+    "title": "Page introuvable",
+    "description": "Cette page n'existe pas ou a été déplacée.",
+    "cta": "Retour à l'accueil"
   }
 }

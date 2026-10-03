@@ -2,3 +2,5 @@
 public/original-videos/
 public/*.MOV
 public/*.mov
+# Source images: the site serves the optimized copies at the public/ root
+public/original-images/

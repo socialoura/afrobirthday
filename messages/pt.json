@@ -816,5 +816,10 @@
   "HomeMeta": {
     "title": "Vídeos de aniversário personalizados",
     "description": "Torne o aniversário inesquecível com um vídeo personalizado de verdadeiros dançarinos africanos. Envie uma foto e uma mensagem e receba por e-mail em 12–48h."
+  },
+  "NotFound": {
+    "title": "Página não encontrada",
+    "description": "Esta página não existe ou foi movida.",
+    "cta": "Voltar ao início"
   }
 }
