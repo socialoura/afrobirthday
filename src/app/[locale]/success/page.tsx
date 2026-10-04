@@ -33,9 +33,7 @@ export default async function SuccessPage({
       </Suspense>
 
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 start-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 end-1/4 w-96 h-96 bg-accent/15 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-secondary/10 rounded-full blur-3xl" />
+        <div className="absolute inset-0 success-glow" />
       </div>
 
       <div className="section-container max-w-2xl text-center relative z-10">

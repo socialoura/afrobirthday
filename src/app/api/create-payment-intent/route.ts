@@ -34,7 +34,6 @@ export async function POST(request: NextRequest) {
       totalPrice,
       hasCustomSong,
       isExpress,
-      danceExtended,
       deliveryMethod,
       currency: requestedCurrency,
       promoCode: requestedPromoCode,
@@ -69,7 +68,9 @@ export async function POST(request: NextRequest) {
     const previousIntentId = (await getOrderById(orderId))?.stripe_payment_intent_id ?? null;
 
     const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
-    const resolvedDanceExtended = danceExtended === true;
+    // The extended-dance add-on was retired in Oct 2026; a stale tab must not
+    // be able to buy it, so the client flag is ignored.
+    const resolvedDanceExtended = false;
 
     const country = request.headers.get("x-vercel-ip-country") ?? undefined;
     const device = deviceTypeFromUserAgent(request.headers.get("user-agent"));

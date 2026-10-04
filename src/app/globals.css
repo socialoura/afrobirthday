@@ -215,6 +215,44 @@
     animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
+  /* Soft colour glows as plain radial gradients. They replace large
+     blur-3xl circles, whose filter cost on phones delayed the first paint
+     of the hero by seconds and slowed every tap (Web Vitals, Oct 2026). */
+  .hero-glow {
+    background:
+      radial-gradient(circle at 88% 10%, rgb(255 107 53 / 0.22), transparent 42%),
+      radial-gradient(circle at 8% 92%, rgb(43 161 153 / 0.14), transparent 40%);
+  }
+
+  .card-glow {
+    background: radial-gradient(closest-side, rgb(255 107 53 / 0.32), rgb(255 215 0 / 0.14) 60%, transparent);
+  }
+
+  .showcase-glow {
+    background:
+      radial-gradient(circle at 35% 50%, rgb(255 107 53 / 0.1), transparent 45%),
+      radial-gradient(circle at 65% 50%, rgb(43 161 153 / 0.1), transparent 45%);
+  }
+
+  .corner-glow-primary-accent {
+    background:
+      radial-gradient(circle at 0% 0%, rgb(255 107 53 / 0.1), transparent 30%),
+      radial-gradient(circle at 100% 100%, rgb(43 161 153 / 0.1), transparent 30%);
+  }
+
+  .corner-glow-secondary-primary {
+    background:
+      radial-gradient(circle at 0% 0%, rgb(255 215 0 / 0.1), transparent 30%),
+      radial-gradient(circle at 100% 100%, rgb(255 107 53 / 0.1), transparent 30%);
+  }
+
+  .success-glow {
+    background:
+      radial-gradient(circle at 25% 25%, rgb(255 107 53 / 0.2), transparent 30%),
+      radial-gradient(circle at 75% 75%, rgb(43 161 153 / 0.15), transparent 30%),
+      radial-gradient(circle at 50% 50%, rgb(255 215 0 / 0.1), transparent 35%);
+  }
+
   .animate-gradient {
     background-size: 200% 200%;
     animation: gradient 8s ease infinite;

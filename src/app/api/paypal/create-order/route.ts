@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
       totalPrice,
       hasCustomSong,
       isExpress,
-      danceExtended,
       deliveryMethod,
       promoCode: requestedPromoCode,
       attribution: rawAttribution,
@@ -77,7 +76,9 @@ export async function POST(request: NextRequest) {
         ? priceTest.legacyUsdPricing
         : livePricing;
     const resolvedDeliveryMethod = deliveryMethod ?? (isExpress ? "express" : "standard");
-    const resolvedDanceExtended = danceExtended === true;
+    // The extended-dance add-on was retired in Oct 2026; a stale tab must not
+    // be able to buy it, so the client flag is ignored.
+    const resolvedDanceExtended = false;
     const charge = resolveLocalCharge({
       usdPricing: pricing,
       hasCustomSong: resolvedMusicOption === "custom",

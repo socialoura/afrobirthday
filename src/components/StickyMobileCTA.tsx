@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { STICKY_CTA_VISIBILITY_EVENT, type StickyCtaVisibilityDetail } from "@/lib/events";
+import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 
 export default function StickyMobileCTA() {
   const t = useTranslations("Hero");
@@ -57,6 +58,7 @@ export default function StickyMobileCTA() {
         <span className="text-white/80 text-xs font-medium truncate">{t("ordersThisYear")}</span>
         <a
           href="#order"
+          onClick={() => captureEvent(ANALYTICS_EVENTS.ORDER_CTA_CLICKED, { location: "sticky" })}
           tabIndex={visible ? 0 : -1}
           className="btn-primary text-sm py-2.5 px-5 flex items-center gap-1.5 flex-shrink-0"
         >

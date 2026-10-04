@@ -3,6 +3,10 @@ import { trackAttributedWebVitals } from "@/lib/webVitalsAttribution";
 import { captureFirstTouch } from "@/lib/attribution";
 import { redactUrlProperties } from "@/lib/redactUrl";
 import { CONSENT_EVENT, hasAdsConsent } from "@/lib/consent";
+import { installTranslatorGuard } from "@/lib/translatorGuard";
+
+// First, before React hydrates: browser translation must not crash the page.
+installTranslatorGuard();
 
 const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 

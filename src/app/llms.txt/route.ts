@@ -18,7 +18,7 @@ export async function GET() {
 ## How it works
 
 1. Upload a photo of the birthday person and write a message of up to 100 characters (their name and a short wish).
-2. Choose options: our music or your own song (YouTube/Spotify link or MP3 upload), Standard (24-48h) or Express (12-24h) delivery, and an optional extended dance version (over 2 minutes).
+2. Choose options: our music or your own song (YouTube/Spotify link or MP3 upload), and Standard (24-48h) or Express (12-24h) delivery.
 3. Pay securely by card (Stripe) or PayPal. Prices are shown in the visitor's local currency.
 4. The dancers film the video holding the personalized message; it is delivered by email as a download link the customer keeps forever.
 
@@ -27,7 +27,6 @@ export async function GET() {
 - Personalized birthday video: from ${usd(p.base)}
 - Your own song: +${usd(p.customSong)}
 - Express delivery (12-24h): +${usd(p.expressDelivery)}
-- Extended dance version: +${usd(p.danceExtended)}
 
 ## Guarantee and support
 

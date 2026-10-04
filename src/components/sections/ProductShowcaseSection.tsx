@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Play } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { siteMedia } from "@/lib/siteMedia";
+import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 
 const videos = [
   {
@@ -36,12 +37,16 @@ const videos = [
 export default function ProductShowcaseSection() {
   const t = useTranslations("ProductShowcase");
   const [activeVideo, setActiveVideo] = useState<number | null>(null);
+  const playVideo = (index: number) => {
+    captureEvent(ANALYTICS_EVENTS.SHOWCASE_VIDEO_PLAYED, { index });
+    setActiveVideo(index);
+  };
 
   return (
     <section id="showcase" className="py-16 md:py-24 bg-dark relative overflow-hidden">
       {/* Background elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-primary/10 to-accent/10 rounded-full blur-3xl" />
+        <div className="absolute inset-0 showcase-glow" />
       </div>
 
       <div className="section-container relative">
@@ -85,7 +90,7 @@ export default function ProductShowcaseSection() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-dark/20 to-transparent" />
                 <button
-                  onClick={() => setActiveVideo(0)}
+                  onClick={() => playVideo(0)}
                   className="absolute inset-0 flex items-center justify-center group"
                   aria-label={t("aria.playHero")}
                 >
@@ -107,7 +112,7 @@ export default function ProductShowcaseSection() {
           {videos.map((video, index) => (
             <button
               key={index}
-              onClick={() => setActiveVideo(index)}
+              onClick={() => playVideo(index)}
               aria-label={t("aria.play", { title: t(video.titleKey as never) })}
               className={`relative aspect-video rounded-xl md:rounded-2xl overflow-hidden group transition-all duration-300 min-h-[80px] ${
                 activeVideo === index 

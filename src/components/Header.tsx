@@ -67,7 +67,7 @@ export default function Header() {
               </Link>
             ))}
             <LocaleSwitcher className="ms-2" />
-            <OrderCtaLink className="ms-2 btn-primary flex items-center gap-2 text-sm">
+            <OrderCtaLink location="header" className="ms-2 btn-primary flex items-center gap-2 text-sm">
               <Sparkles size={16} aria-hidden="true" />
               {tHeader("cta")}
             </OrderCtaLink>
@@ -109,6 +109,7 @@ export default function Header() {
               </Link>
             ))}
             <OrderCtaLink
+              location="header_menu"
               className="btn-primary w-full text-center flex items-center justify-center gap-2 mt-4"
               onNavigate={() => setMobileMenuOpen(false)}
             >

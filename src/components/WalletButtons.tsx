@@ -125,7 +125,7 @@ function WalletButtonsInner({ clientSecret, orderId, locale, value, valueUsd, cu
   );
 }
 
-const STRIPE_LOCALES = new Set(["en", "fr", "es", "de", "it", "pt", "nl", "ar", "zh"]);
+const STRIPE_LOCALES = new Set(["en", "fr", "es", "de", "it", "pt", "nl", "ar", "zh", "ru"]);
 
 /**
  * An error in an experiment must never take the order form down with it: on

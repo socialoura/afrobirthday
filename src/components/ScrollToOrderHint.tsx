@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { STICKY_CTA_VISIBILITY_EVENT, type StickyCtaVisibilityDetail } from "@/lib/events";
+import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 
 /** Persistent floating arrow pointing to the order form — visible from page
  * load on every section, until the order form itself scrolls into view. */
@@ -51,6 +52,7 @@ export default function ScrollToOrderHint() {
     >
       <a
         href="#order"
+        onClick={() => captureEvent(ANALYTICS_EVENTS.ORDER_CTA_CLICKED, { location: "scroll_hint" })}
         tabIndex={visible ? 0 : -1}
         className="pointer-events-auto flex flex-col items-center gap-1 text-white/80 hover:text-white transition-colors group bg-dark/50 backdrop-blur-md border border-white/10 px-4 py-2 rounded-full shadow-lg"
       >

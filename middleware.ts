@@ -1,4 +1,4 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { defaultLocale, locales } from "./src/i18n/config";
 
@@ -10,6 +10,17 @@ const intlMiddleware = createMiddleware({
 });
 
 export default function middleware(request: NextRequest) {
+  // skipTrailingSlashRedirect (next.config.mjs, kept for the PostHog /ingest
+  // proxy, which this middleware never sees) meant /fr/ and /fr both answered
+  // 200; Search Console listed them as separate pages. One canonical form.
+  const { pathname, search } = request.nextUrl;
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/\/+$/, "");
+    url.search = search;
+    return NextResponse.redirect(url, 308);
+  }
+
   const response = intlMiddleware(request);
 
   // Storefront pages are static, so the browser learns the visitor's country

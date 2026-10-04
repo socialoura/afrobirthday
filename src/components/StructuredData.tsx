@@ -70,6 +70,7 @@ export default async function StructuredData({ type, locale, pageName, path }: S
         "Arabic",
         "Hindi",
         "Chinese",
+        "Russian",
       ],
     },
   };

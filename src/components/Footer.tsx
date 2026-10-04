@@ -152,7 +152,7 @@ export default async function Footer() {
               <p className="text-white/80 text-xs md:text-sm mb-3">
                 {tFooter("ctaLine")}
               </p>
-              <OrderCtaLink className="btn-primary w-full text-center text-sm py-3 min-h-[44px] flex items-center justify-center">
+              <OrderCtaLink location="footer" className="btn-primary w-full text-center text-sm py-3 min-h-[44px] flex items-center justify-center">
                 {tFooter("ctaButton")}
               </OrderCtaLink>
             </div>

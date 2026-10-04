@@ -1131,8 +1131,7 @@ export default function OrderFormSection() {
   return (
     <section id="order" className="py-24 bg-dark relative overflow-hidden">
       {/* Background decorations */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 corner-glow-primary-accent" />
 
       <div className="section-container relative">
         <div className="text-center mb-12">
@@ -1497,30 +1496,9 @@ export default function OrderFormSection() {
               </div>
               </div>
 
-              {/* Dance Extended */}
-              <div className="glass-card p-6">
-                <label
-                  className={cn(
-                    "flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all",
-                    danceExtended
-                      ? "border-primary bg-primary/10"
-                      : "border-white/20 hover:border-primary/50 bg-white/5"
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    {...register("danceExtended")}
-                    className="w-5 h-5 text-primary rounded"
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium text-white">{t("danceExtended.title")}</p>
-                    <p className="text-sm text-white/80">{t("danceExtended.subtitle")}</p>
-                  </div>
-                  <span className="font-semibold text-primary">
-                    +{formatMoney(localComponent("danceExtended"))}
-                  </span>
-                </label>
-              </div>
+              {/* The "extended dance" add-on was removed in Oct 2026 (2% of
+                  orders); danceExtended stays in the form state, always false,
+                  so the pricing code keeps working for past orders. */}
 
               {/* Promo code — settled here, before step 3, so the payment
                   form (created the instant step 3 loads) always reflects the
@@ -1842,12 +1820,6 @@ export default function OrderFormSection() {
                   <div className="flex justify-between">
                     <span>{t("summary.items.express")}</span>
                     <span>+{formatMoney(localComponent("expressDelivery"))}</span>
-                  </div>
-                )}
-                {danceExtended && (
-                  <div className="flex justify-between">
-                    <span>{t("summary.items.danceExtended")}</span>
-                    <span>+{formatMoney(localComponent("danceExtended"))}</span>
                   </div>
                 )}
                 {appliedPromo && discountLocal > 0 && (

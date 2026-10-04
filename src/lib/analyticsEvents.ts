@@ -13,6 +13,13 @@ import { ga4Event, pixelMeasure } from "@/lib/adPixels";
  * Cross-check the list against the code with `npm run audit:events`.
  */
 export const ANALYTICS_EVENTS = {
+  // --- top of funnel ---
+  /** Any "Order my video" button; `location` says which one (hero, header,
+   *  sticky, how_it_works, footer...). 84% of visitors never start the form,
+   *  and without this nothing said which entry points get used. */
+  ORDER_CTA_CLICKED: "order_cta_clicked",
+  SHOWCASE_VIDEO_PLAYED: "showcase_video_played",
+
   // --- order form ---
   ORDER_FORM_STARTED: "order_form_started",
   PHOTO_SELECTED: "photo_selected",

@@ -76,7 +76,7 @@ export default function HowItWorksSection() {
 
         {/* CTA */}
         <div className="text-center px-4">
-          <OrderCtaLink className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold hover:opacity-90 transition group min-h-[48px] w-full sm:w-auto">
+          <OrderCtaLink location="how_it_works" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold hover:opacity-90 transition group min-h-[48px] w-full sm:w-auto">
             {t("cta")}
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </OrderCtaLink>

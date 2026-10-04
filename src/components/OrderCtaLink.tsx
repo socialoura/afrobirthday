@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
+import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 
 /**
  * "Order my video" call to action, used from the header, the footer and the
@@ -19,23 +20,30 @@ export default function OrderCtaLink({
   className,
   children,
   onNavigate,
+  location,
 }: {
   className: string;
   children: ReactNode;
   onNavigate?: () => void;
+  /** Where the button sits, for the order_cta_clicked event. */
+  location: string;
 }) {
   const pathname = usePathname();
+  const handleClick = () => {
+    captureEvent(ANALYTICS_EVENTS.ORDER_CTA_CLICKED, { location });
+    onNavigate?.();
+  };
 
   if (pathname === "/") {
     return (
-      <a href="#order" className={className} onClick={onNavigate}>
+      <a href="#order" className={className} onClick={handleClick}>
         {children}
       </a>
     );
   }
 
   return (
-    <Link href="/#order" className={className} onClick={onNavigate}>
+    <Link href="/#order" className={className} onClick={handleClick}>
       {children}
     </Link>
   );

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { preload } from "react-dom";
 import {
   Play,
   Sparkles,
@@ -20,9 +21,13 @@ import { useExchangeRates } from "@/lib/useExchangeRates";
 import { resolveLocalPriceComponent } from "@/lib/currency";
 import { siteMedia } from "@/lib/siteMedia";
 import { useTranslations } from "next-intl";
+import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 
 export default function HeroSection() {
   const tHero = useTranslations("Hero");
+  // The poster is the desktop LCP element; announcing it in the document head
+  // lets the browser fetch it before the hero markup is even parsed.
+  preload(siteMedia("showcase_1-poster.webp"), { as: "image", fetchPriority: "high" });
 
   const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
   const [browserLocale, setBrowserLocale] = useState("en-US");
@@ -99,8 +104,11 @@ export default function HeroSection() {
     <section className="relative min-h-[100svh] lg:min-h-screen overflow-hidden bg-dark">
       {/* Atmospheric backdrop — subtler than before, focused on the right side */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-[-10%] end-[-10%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] bg-primary/25 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-[-15%] start-[-10%] w-[55vw] h-[55vw] max-w-[600px] max-h-[600px] bg-accent/15 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: "2.5s" }} />
+        {/* Static radial gradients, same colours and positions as the former
+            blurred, pulsing circles: blur-3xl on 700px elements kept phones
+            repainting and delayed the first paint of the hero text by ~2.7 s
+            (PostHog LCP attribution, Oct 2026). */}
+        <div className="absolute inset-0 hero-glow" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(10,10,10,0.5)_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:80px_80px] mask-image-radial" />
       </div>
@@ -117,7 +125,7 @@ export default function HeroSection() {
             {/* Title */}
             <h1 className="font-display font-bold tracking-tight text-4xl sm:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] mb-5">
               <span className="text-white block">{tHero("title1")}</span>
-              <span className="block gradient-text animate-gradient bg-gradient-to-r from-primary via-secondary to-accent">
+              <span className="block gradient-text md:animate-gradient bg-gradient-to-r from-primary via-secondary to-accent">
                 {tHero("title2")}
               </span>
             </h1>
@@ -154,6 +162,7 @@ export default function HeroSection() {
               <Link
                 id="hero-cta"
                 href="#order"
+                onClick={() => captureEvent(ANALYTICS_EVENTS.ORDER_CTA_CLICKED, { location: "hero" })}
                 className="btn-primary text-base group min-h-[52px] flex items-center justify-center gap-2"
               >
                 <Sparkles
@@ -225,7 +234,7 @@ export default function HeroSection() {
             <div className="relative max-w-[360px] mx-auto lg:max-w-none">
               {/* Glow halo behind card */}
               <div
-                className="absolute -inset-6 bg-gradient-to-tr from-primary/30 via-secondary/20 to-accent/30 rounded-[2rem] blur-2xl"
+                className="absolute -inset-6 rounded-[2rem] card-glow"
                 aria-hidden="true"
               />
 

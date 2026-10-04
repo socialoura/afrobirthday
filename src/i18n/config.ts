@@ -9,6 +9,7 @@ export const locales = [
   "ar",
   "hi",
   "zh",
+  "ru",
 ] as const;
 
 export type AppLocale = (typeof locales)[number];
@@ -32,4 +33,5 @@ export const LOCALE_LABELS: Record<AppLocale, { native: string; flag: string }> 
   ar: { native: "العربية", flag: "AR" },
   hi: { native: "हिन्दी", flag: "HI" },
   zh: { native: "中文", flag: "ZH" },
+  ru: { native: "Русский", flag: "RU" },
 };

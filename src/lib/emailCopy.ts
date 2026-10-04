@@ -383,6 +383,41 @@ const COPY: Record<string, EmailCopy> = {
   },
 };
 
+COPY.ru = {
+  confirmSubject: "Ваш заказ AfroBirthday подтверждён ({ref})",
+  confirmTitle: "Спасибо за заказ 🎂",
+  confirmIntro: "Мы получили ваш заказ и оплату. Наши танцоры уже готовятся!",
+  details: "Детали заказа",
+  orderRef: "Заказ",
+  date: "Дата",
+  total: "Итого",
+  delivery: "Доставка",
+  deliveryStandard: "Стандарт (24–48 ч)",
+  deliveryExpress: "Экспресс (12–24 ч)",
+  music: "Музыка",
+  musicCustom: "Ваша песня",
+  musicDefault: "Выбираем мы",
+  musicLink: "Ссылка на песню",
+  danceExtended: "Расширенная версия танца",
+  yes: "Да",
+  message: "Ваше поздравление",
+  confirmOutro: "Видео придёт вам на email, как только будет готово.",
+  help: "Нужна помощь? Просто ответьте на это письмо.",
+  videoSubject: "Ваше видео AfroBirthday готово 🎉 ({ref})",
+  hi: "Здравствуйте!",
+  videoReady: "Ваше персональное видео на день рождения готово. Посмотреть и скачать его можно здесь:",
+  videoCta: "Смотреть видео",
+  videoFallback: "Если кнопка не открывается, скопируйте эту ссылку в браузер:",
+  videoReference: "Номер заказа: {ref}. Будем рады вашему отзыву — просто ответьте на это письмо.",
+  thanks: "Спасибо, что выбрали AfroBirthday,",
+  team: "Команда AfroBirthday",
+  footerTagline: "AfroBirthday — персональные видео на день рождения",
+  footerReason: "Вы получили это письмо, потому что оформили заказ на afrobirthday.com.",
+  cartSubject: "Ваше видео на день рождения ждёт вас 🎂",
+  cartBody: "Вы начали оформлять персональное видео на день рождения, но не завершили заказ. Продолжите с того места, где остановились:",
+  cartCta: "Завершить заказ",
+};
+
 export function emailLocale(order: { locale?: string | null }): string {
   return order.locale && COPY[order.locale] ? order.locale : "en";
 }

@@ -19,6 +19,7 @@ const COPY: Record<string, { title: string; wait: string; failed: string; back: 
   ar: { title: "جارٍ تأكيد دفعتك عبر PayPal…", wait: "يرجى الانتظار، نتحقق من الدفع.", failed: "فشل تأكيد الدفع", back: "العودة إلى الطلب" },
   hi: { title: "आपके PayPal भुगतान की पुष्टि हो रही है…", wait: "कृपया प्रतीक्षा करें, हम आपका भुगतान सत्यापित कर रहे हैं।", failed: "भुगतान की पुष्टि विफल रही", back: "ऑर्डर पर वापस जाएँ" },
   zh: { title: "正在确认您的 PayPal 付款…", wait: "请稍候，我们正在验证您的付款。", failed: "付款确认失败", back: "返回订单" },
+  ru: { title: "Подтверждаем оплату PayPal…", wait: "Пожалуйста, подождите, мы проверяем платёж.", failed: "Не удалось подтвердить оплату", back: "Вернуться к заказу" },
 };
 
 export default function PayPalSuccessClient() {

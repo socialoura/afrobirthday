@@ -47,8 +47,7 @@ export default function TestimonialsSection() {
 
   return (
     <section className="py-16 md:py-24 bg-dark relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 corner-glow-secondary-primary" />
       <div className="section-container">
         <div className="text-center mb-8 md:mb-12 px-4">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-white">{t("title")}</h2>
