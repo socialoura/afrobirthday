@@ -1,7 +1,7 @@
 import { getSql } from "@/lib/db";
 import { getPriceTestDefinition, type PriceTest } from "@/lib/priceTest";
 import { hogql } from "@/lib/posthogQuery";
-import { currencyFromLocale } from "@/lib/utils";
+import { currencyFromCountry, currencyFromLocale } from "@/lib/utils";
 
 /**
  * Reads out the price test: did raising the price in the test currencies earn
@@ -26,6 +26,13 @@ const BASELINE_DAYS = 28;
  */
 const MIN_CUSTOMERS_PER_CELL = 15;
 const BOOTSTRAP_ITERATIONS = 2000;
+/**
+ * From this moment the currency follows the visitor's country instead of the
+ * browser language (src/lib/utils.ts visitorCurrency). Visitors are assigned
+ * to a group the same way the site assigned them at the time; customers need
+ * nothing, they are grouped by the currency they were actually shown.
+ */
+export const CURRENCY_BY_COUNTRY_SINCE = new Date("2026-10-04T15:30:00Z");
 
 const EURO_COUNTRIES = new Set([
   "FR", "DE", "ES", "IT", "NL", "BE", "PT", "IE", "AT", "FI", "GR", "LU",
@@ -199,27 +206,34 @@ async function loadVisitors(
 ): Promise<Record<Group, Record<Period, number>> | null> {
   try {
     const fmt = (d: Date) => d.toISOString().slice(0, 19).replace("T", " ");
-    const rows = await hogql<[string | null, number, number]>(`
+    const cutover = CURRENCY_BY_COUNTRY_SINCE;
+    const rows = await hogql<[string | null, string | null, number, number, number]>(`
       SELECT properties.$browser_language AS lang,
+             properties.$geoip_country_code AS country,
              uniqIf(distinct_id, timestamp < toDateTime('${fmt(start)}', 'UTC')) AS before,
-             uniqIf(distinct_id, timestamp >= toDateTime('${fmt(start)}', 'UTC')) AS after
+             uniqIf(distinct_id, timestamp >= toDateTime('${fmt(start)}', 'UTC')
+               AND timestamp < toDateTime('${fmt(cutover)}', 'UTC')) AS after_by_lang,
+             uniqIf(distinct_id, timestamp >= toDateTime('${fmt(start)}', 'UTC')
+               AND timestamp >= toDateTime('${fmt(cutover)}', 'UTC')) AS after_by_country
       FROM events
       WHERE event = '$pageview'
         AND timestamp >= toDateTime('${fmt(from)}', 'UTC')
         AND timestamp < toDateTime('${fmt(to)}', 'UTC')
-      GROUP BY lang
+      GROUP BY lang, country
     `);
     const out: Record<Group, Record<Period, number>> = {
       test: { before: 0, after: 0 },
       control: { before: 0, after: 0 },
     };
-    for (const [lang, before, after] of rows) {
-      // The same mapping the order form uses to pick the currency, so a visitor
-      // is counted in the group whose price they were actually shown.
-      const currency = currencyFromLocale(lang || "en-US");
-      const group: Group = test.controlCurrencies.includes(currency) ? "control" : "test";
-      out[group].before += Number(before) || 0;
-      out[group].after += Number(after) || 0;
+    const groupOf = (currency: string): Group => (test.controlCurrencies.includes(currency) ? "control" : "test");
+    for (const [lang, country, before, afterByLang, afterByCountry] of rows) {
+      // The same mapping the site used at the time to pick the currency, so a
+      // visitor is counted in the group whose price they were actually shown.
+      const byLang = groupOf(currencyFromLocale(lang || "en-US"));
+      const byCountry = country ? groupOf(currencyFromCountry(country)) : byLang;
+      out[byLang].before += Number(before) || 0;
+      out[byLang].after += Number(afterByLang) || 0;
+      out[byCountry].after += Number(afterByCountry) || 0;
     }
     return out;
   } catch (err) {
@@ -389,6 +403,12 @@ export async function buildPriceTestReport(
       "Chiffre d'affaires recalculé depuis le montant réellement encaissé et le taux appliqué.",
       "Visiteurs = identifiants PostHog (appareils), clients = e-mails : le taux visiteur → client est indicatif.",
       "Intervalles à 95 % par bootstrap sur les clients de chaque cellule.",
+      ...(end > CURRENCY_BY_COUNTRY_SINCE
+        ? [
+            "Depuis le 4 oct. 2026 la devise suit le pays du visiteur (avant : la langue du navigateur) : " +
+              "une partie des visiteurs a changé de groupe, comparer avec prudence avant et après cette date.",
+          ]
+        : []),
     ],
   };
 }

@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { type CurrencyCode, currencyFromLocale, PRICES } from "@/lib/utils";
+import { type CurrencyCode, PRICES, visitorCurrency } from "@/lib/utils";
+import { getGeoCountry } from "@/lib/consent";
 import { useExchangeRates } from "@/lib/useExchangeRates";
 import { resolveLocalPriceComponent } from "@/lib/currency";
 
@@ -24,7 +25,7 @@ export default function HeroPrice() {
   useEffect(() => {
     const nextLocale = navigator.language || "en-US";
     setBrowserLocale(nextLocale);
-    setLocalCurrency(currencyFromLocale(nextLocale));
+    setLocalCurrency(visitorCurrency(getGeoCountry(), nextLocale));
   }, []);
 
   useEffect(() => {

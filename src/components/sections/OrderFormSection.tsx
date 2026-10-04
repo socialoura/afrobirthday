@@ -6,14 +6,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard, Wallet, ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
 import { withPostHog } from "@/lib/posthogClient";
-import { cn, currencyFromLocale, type CurrencyCode, PRICES, ORDER_DRAFT_STORAGE_KEY } from "@/lib/utils";
+import { cn, visitorCurrency, type CurrencyCode, PRICES, ORDER_DRAFT_STORAGE_KEY } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import dynamic from "next/dynamic";
 import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 import { getAttributionPayload } from "@/lib/attribution";
-import { hasAdsConsent } from "@/lib/consent";
+import { getGeoCountry, hasAdsConsent } from "@/lib/consent";
 import { checkoutVariantFor } from "@/lib/checkoutVariant";
 import { resolveLocalPriceComponent } from "@/lib/currency";
 import { resolveOrderUploads } from "@/lib/orderUploads";
@@ -346,7 +346,7 @@ export default function OrderFormSection() {
   useEffect(() => {
     const nextLocale = navigator.language || "en-US";
     setBrowserLocale(nextLocale);
-    setLocalCurrency(currencyFromLocale(nextLocale));
+    setLocalCurrency(visitorCurrency(getGeoCountry(), nextLocale));
   }, []);
 
   useEffect(() => {

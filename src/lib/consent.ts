@@ -27,6 +27,11 @@ function readCookie(name: string): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+/** The visitor's country (ISO code) from the middleware cookie, if known. */
+export function getGeoCountry(): string | null {
+  return readCookie(GEO_COOKIE);
+}
+
 /** True when this visitor must opt in before ad/analytics storage is used. */
 export function consentRequired(): boolean {
   const country = readCookie(GEO_COOKIE);

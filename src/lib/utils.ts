@@ -114,6 +114,12 @@ export function currencyFromLocale(locale: string): CurrencyCode {
     return "USD";
   }
 
+  return currencyFromCountry(region);
+}
+
+/** The currency of an ISO 3166 country code ("FR" -> EUR, "GB" -> GBP). */
+export function currencyFromCountry(country: string): CurrencyCode {
+  const region = country.toUpperCase();
   if (region === "GB") return "GBP";
   if (region === "CA") return "CAD";
   if (region === "AU" || region === "NZ") return "AUD";
@@ -133,4 +139,17 @@ export function currencyFromLocale(locale: string): CurrencyCode {
   if (EURO_REGIONS.has(region)) return "EUR";
 
   return "USD";
+}
+
+/**
+ * The currency a visitor is shown and charged in. The country their
+ * connection comes from wins (the `ab_geo` cookie set by middleware.ts); the
+ * browser language is only a fallback. Until Oct 2026 it was the other way
+ * round, and a French visitor with a phone set to English (UK) paid in GBP.
+ */
+export function visitorCurrency(country: string | null, browserLocale: string): CurrencyCode {
+  if (country && /^[A-Za-z]{2}$/.test(country) && country.toUpperCase() !== "XX") {
+    return currencyFromCountry(country);
+  }
+  return currencyFromLocale(browserLocale);
 }
