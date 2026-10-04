@@ -58,12 +58,22 @@ export default function LazyOrderFormSection() {
 
   // The placeholder was the #order target; once the real form replaces it,
   // land the visitor on the form again so the swap does not leave them mid-page.
+  // The form chunk arrives after `load` flips, so wait until the form is really
+  // in the DOM (its message field) before scrolling; scrolling earlier landed
+  // visitors ~1,600 px past the form once it expanded.
   useEffect(() => {
     if (!load || window.location.hash !== "#order") return;
-    const id = window.setTimeout(() => {
-      document.getElementById("order")?.scrollIntoView({ block: "start" });
-    }, 50);
-    return () => window.clearTimeout(id);
+    let frame = 0;
+    const deadline = performance.now() + 6000;
+    const tryScroll = () => {
+      if (document.getElementById("order-message")) {
+        document.getElementById("order")?.scrollIntoView({ block: "start" });
+        return;
+      }
+      if (performance.now() < deadline) frame = requestAnimationFrame(tryScroll);
+    };
+    frame = requestAnimationFrame(tryScroll);
+    return () => cancelAnimationFrame(frame);
   }, [load]);
 
   return <div id="order-section">{load ? <OrderFormSection /> : <Placeholder sectionRef={placeholderRef} />}</div>;

@@ -1521,7 +1521,7 @@ export default function OrderFormSection() {
               {/* Promo code — settled here, before step 3, so the payment
                   form (created the instant step 3 loads) always reflects the
                   final price. */}
-              {(promoEnabled || appliedPromo) && (
+              {(promoEnabled || appliedPromo || promoError) && (
                 <div className="glass-card p-6">
                   <label htmlFor="order-promo" className="block font-semibold text-white mb-3">
                     {t("promo.label")}
