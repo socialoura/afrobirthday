@@ -1,104 +1,34 @@
-"use client";
-
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 import { preload } from "react-dom";
-import {
-  Play,
-  Sparkles,
-  Star,
-  ShieldCheck,
-  Clock,
-  Zap,
-  ArrowRight,
-  Volume2,
-  VolumeX,
-} from "lucide-react";
-import OptimizedVideo from "@/components/OptimizedVideo";
+import { ArrowRight, Clock, Play, ShieldCheck, Sparkles, Star, Zap } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import RecentOrdersBadge from "@/components/RecentOrdersBadge";
-import { type CurrencyCode, currencyFromLocale, PRICES } from "@/lib/utils";
-import { useExchangeRates } from "@/lib/useExchangeRates";
-import { resolveLocalPriceComponent } from "@/lib/currency";
+import TrackedAnchor from "@/components/TrackedAnchor";
+import HeroPrice from "@/components/sections/hero/HeroPrice";
+import HeroVideoCard from "@/components/sections/hero/HeroVideoCard";
 import { siteMedia } from "@/lib/siteMedia";
-import { useTranslations } from "next-intl";
-import { ANALYTICS_EVENTS, captureEvent } from "@/lib/analyticsEvents";
 
-export default function HeroSection() {
-  const tHero = useTranslations("Hero");
+/**
+ * Server component. It used to be one client component (state for the price,
+ * the mute button and the CTA tracking), so all of its markup had to be
+ * hydrated before slow phones could respond; field data showed the hero text
+ * painting ~2.7 s after the HTML arrived. Only the price, the video card and
+ * the order button are client islands now.
+ */
+export default async function HeroSection() {
+  const tHero = await getTranslations("Hero");
   // The poster is the desktop LCP element; announcing it in the document head
   // lets the browser fetch it before the hero markup is even parsed.
   preload(siteMedia("showcase_1-poster.webp"), { as: "image", fetchPriority: "high" });
 
-  const [localCurrency, setLocalCurrency] = useState<CurrencyCode>("USD");
-  const [browserLocale, setBrowserLocale] = useState("en-US");
-  const [basePriceUsd, setBasePriceUsd] = useState<number>(PRICES.base);
-  const [baseOverrides, setBaseOverrides] = useState<Partial<Record<CurrencyCode, number>>>({});
-  const [isMuted, setIsMuted] = useState(true);
-  const [pricingLoaded, setPricingLoaded] = useState(false);
-  const { rates, loading: ratesLoading } = useExchangeRates();
-  const priceReady = pricingLoaded && !ratesLoading;
-
-  useEffect(() => {
-    const nextLocale = navigator.language || "en-US";
-    setBrowserLocale(nextLocale);
-    setLocalCurrency(currencyFromLocale(nextLocale));
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadPricing = async () => {
-      try {
-        const res = await fetch("/api/pricing", { method: "GET" });
-        if (!res.ok) return;
-        const data = (await res.json()) as Partial<{
-          base: number;
-          overrides: Partial<Record<CurrencyCode, Partial<{ base: number }>>>;
-        }>;
-        if (!isMounted) return;
-        if (typeof data.base === "number" && Number.isFinite(data.base)) {
-          setBasePriceUsd(data.base);
-        }
-        if (data.overrides && typeof data.overrides === "object") {
-          const bases: Partial<Record<CurrencyCode, number>> = {};
-          for (const [code, value] of Object.entries(data.overrides)) {
-            if (typeof value?.base === "number" && Number.isFinite(value.base)) {
-              bases[code as CurrencyCode] = value.base;
-            }
-          }
-          setBaseOverrides(bases);
-        }
-      } catch {
-        // ignore
-      } finally {
-        if (isMounted) setPricingLoaded(true);
-      }
-    };
-
-    loadPricing();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Same rule as the order form and the payment routes (EUR parity, then
-  // overrides, then the live rate), so the hero never advertises a price the
-  // checkout does not charge.
-  const displayPrice = useMemo(() => {
-    const rate = localCurrency === "USD" ? 1 : rates[localCurrency] ?? 1;
-    const local = resolveLocalPriceComponent({
-      usdPrice: basePriceUsd,
-      currency: localCurrency,
-      rate,
-      override: baseOverrides[localCurrency],
-    });
-    return new Intl.NumberFormat(browserLocale, {
-      style: "currency",
-      currency: localCurrency,
-      maximumFractionDigits: 2,
-    }).format(local);
-  }, [baseOverrides, localCurrency, browserLocale, basePriceUsd, rates]);
+  const reviewName = tHero("miniReview.name");
+  const reviewInitials = reviewName
+    .split("·")[0]
+    .trim()
+    .split(/\s+/)
+    .map((word) => Array.from(word)[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <section className="relative min-h-[100svh] lg:min-h-screen overflow-hidden bg-dark">
@@ -135,59 +65,32 @@ export default function HeroSection() {
               {tHero("subtitle1")} {tHero("subtitle2")}
             </p>
 
-            {/* Price block */}
-            <div className="inline-flex items-center gap-3 mb-7 px-5 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-              {/* No struck-through "was" price: in the EU it must be the lowest
-                  price of the previous 30 days, which a fixed anchor never was. */}
-              {priceReady ? (
-                <span className="text-3xl sm:text-4xl font-bold text-white">
-                  {displayPrice}
-                </span>
-              ) : (
-                <span
-                  className="h-9 w-40 rounded-lg bg-white/10 animate-pulse"
-                  aria-hidden="true"
-                />
-              )}
-            </div>
-
-            {priceReady && localCurrency !== "USD" && (
-              <p className="text-white/60 text-xs sm:text-sm mb-6 -mt-3">
-                {tHero("localCurrencyNote")}
-              </p>
-            )}
+            {/* Price block (client: visitor's currency) */}
+            <HeroPrice />
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-3 mb-8 sm:items-center sm:justify-center lg:justify-start">
-              <Link
+              <TrackedAnchor
                 id="hero-cta"
                 href="#order"
-                onClick={() => captureEvent(ANALYTICS_EVENTS.ORDER_CTA_CLICKED, { location: "hero" })}
+                location="hero"
                 className="btn-primary text-base group min-h-[52px] flex items-center justify-center gap-2"
               >
-                <Sparkles
-                  size={18}
-                  aria-hidden="true"
-                  className="group-hover:rotate-12 transition-transform"
-                />
+                <Sparkles size={18} aria-hidden="true" className="group-hover:rotate-12 transition-transform" />
                 {tHero("ctaOrder")}
                 <ArrowRight
                   size={18}
                   aria-hidden="true"
                   className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform"
                 />
-              </Link>
-              <Link
+              </TrackedAnchor>
+              <a
                 href="#showcase"
                 className="inline-flex items-center justify-center gap-2 text-white/90 hover:text-white text-base font-medium px-5 py-3 rounded-full hover:bg-white/5 transition-colors group min-h-[52px]"
               >
-                <Play
-                  size={18}
-                  aria-hidden="true"
-                  className="group-hover:scale-110 transition-transform"
-                />
+                <Play size={18} aria-hidden="true" className="group-hover:scale-110 transition-transform" />
                 {tHero("ctaWatch")}
-              </Link>
+              </a>
             </div>
 
             {/* Social proof — rating */}
@@ -195,20 +98,12 @@ export default function HeroSection() {
               <div className="flex items-center gap-2">
                 <div className="flex" aria-hidden="true">
                   {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      size={14}
-                      className="text-secondary fill-secondary"
-                    />
+                    <Star key={i} size={14} className="text-secondary fill-secondary" />
                   ))}
                 </div>
-                <span className="text-white/90 text-sm font-semibold">
-                  {tHero("trust.rating")}
-                </span>
+                <span className="text-white/90 text-sm font-semibold">{tHero("trust.rating")}</span>
                 <span className="text-white/60 text-sm">·</span>
-                <span className="text-white/80 text-sm">
-                  {tHero("ordersThisYear")}
-                </span>
+                <span className="text-white/80 text-sm">{tHero("ordersThisYear")}</span>
               </div>
             </div>
 
@@ -233,56 +128,10 @@ export default function HeroSection() {
           <div className="order-2 lg:col-span-5 relative">
             <div className="relative max-w-[360px] mx-auto lg:max-w-none">
               {/* Glow halo behind card */}
-              <div
-                className="absolute -inset-6 rounded-[2rem] card-glow"
-                aria-hidden="true"
-              />
+              <div className="absolute -inset-6 rounded-[2rem] card-glow" aria-hidden="true" />
 
-              {/* Phone-style video card */}
-              <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 bg-black aspect-[9/16] lg:rotate-2 transition-transform duration-500 hover:rotate-0">
-                <OptimizedVideo
-                  src={siteMedia("blessing_video_principal.mp4")}
-                  poster={siteMedia("showcase_1-poster.webp")}
-                  isHero
-                  muted={isMuted}
-                  className="w-full h-full"
-                />
-
-                {/* Gradient overlay for legibility */}
-                <div
-                  className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none"
-                  aria-hidden="true"
-                />
-
-                {/* Caption at bottom of card */}
-                <div className="absolute bottom-0 inset-x-0 p-5 text-white">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-xs font-bold">
-                      AB
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">@afrobirthday</p>
-                      <p className="text-[11px] text-white/70">
-                        {tHero("videoCaption")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sound toggle */}
-                <button
-                  type="button"
-                  onClick={() => setIsMuted((m) => !m)}
-                  className="absolute top-4 end-4 w-11 h-11 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-colors touch-manipulation"
-                  aria-label={isMuted ? tHero("soundOn") : tHero("soundOff")}
-                >
-                  {isMuted ? (
-                    <VolumeX size={16} aria-hidden="true" />
-                  ) : (
-                    <Volume2 size={16} aria-hidden="true" />
-                  )}
-                </button>
-              </div>
+              {/* Phone-style video card (client: sound toggle) */}
+              <HeroVideoCard />
 
               {/* Floating proof card — bottom: mini review */}
               <div
@@ -294,31 +143,18 @@ export default function HeroSection() {
                   aria-hidden="true"
                   className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
                 >
-                  {tHero("miniReview.name")
-                    .split("·")[0]
-                    .trim()
-                    .split(/\s+/)
-                    .map((word) => Array.from(word)[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase()}
+                  {reviewInitials}
                 </div>
                 <div>
                   <div className="flex gap-0.5 mb-0.5" aria-hidden="true">
                     {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={10}
-                        className="text-yellow-400 fill-yellow-400"
-                      />
+                      <Star key={i} size={10} className="text-yellow-400 fill-yellow-400" />
                     ))}
                   </div>
                   <p className="text-slate-900 text-sm font-semibold leading-tight">
                     &ldquo;{tHero("miniReview.text")}&rdquo;
                   </p>
-                  <p className="text-slate-500 text-xs">
-                    {tHero("miniReview.name")}
-                  </p>
+                  <p className="text-slate-500 text-xs">{reviewName}</p>
                 </div>
               </div>
             </div>

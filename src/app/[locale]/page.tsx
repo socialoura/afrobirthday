@@ -1,7 +1,7 @@
 import HeroSection from "@/components/sections/HeroSection";
 import ProductShowcaseSection from "@/components/sections/ProductShowcaseSection";
 import HowItWorksSection from "@/components/sections/HowItWorksSection";
-import OrderFormSection from "@/components/sections/OrderFormSection";
+import LazyOrderFormSection from "@/components/sections/LazyOrderFormSection";
 import FAQQuickSection from "@/components/sections/FAQQuickSection";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import StructuredData from "@/components/StructuredData";
@@ -55,7 +55,7 @@ export default async function Home({
       <StructuredData type="home" locale={locale} />
       <HeroSection />
       <ProductShowcaseSection />
-      <OrderFormSection />
+      <LazyOrderFormSection />
       <HowItWorksSection />
       <FAQQuickSection />
       <TestimonialsSection />

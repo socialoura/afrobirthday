@@ -13,7 +13,9 @@ export default function StickyMobileCTA() {
 
   useEffect(() => {
     const heroCta = document.getElementById("hero-cta");
-    const orderSection = document.getElementById("order");
+    // #order-section wraps the lazily loaded form and stays in the DOM when
+    // the placeholder is replaced; #order itself is swapped out.
+    const orderSection = document.getElementById("order-section") ?? document.getElementById("order");
     if (!heroCta || !orderSection) return;
 
     const heroObserver = new IntersectionObserver(

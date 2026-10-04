@@ -14,7 +14,9 @@ export default function ScrollToOrderHint() {
   const [stickyCtaVisible, setStickyCtaVisible] = useState(false);
 
   useEffect(() => {
-    const orderSection = document.getElementById("order");
+    // #order-section wraps the lazily loaded form and stays in the DOM when
+    // the placeholder is replaced; #order itself is swapped out.
+    const orderSection = document.getElementById("order-section") ?? document.getElementById("order");
     if (!orderSection) return;
 
     const observer = new IntersectionObserver(
