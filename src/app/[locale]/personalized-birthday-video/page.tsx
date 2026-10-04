@@ -94,14 +94,14 @@ export default async function PersonalizedBirthdayVideoPage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       {/* Intro */}
-      <section className="relative pt-32 pb-16 bg-dark overflow-hidden">
+      <section className="relative pt-28 sm:pt-32 pb-16 bg-dark overflow-hidden">
         <div className="absolute inset-0 hero-glow" aria-hidden="true" />
         <div className="section-container relative max-w-3xl text-center">
           <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-5">
             {t("badge")}
           </span>
-          <h1 className="font-display font-bold text-4xl sm:text-5xl text-white leading-tight mb-6">{t("h1")}</h1>
-          <p className="text-lg text-white/80 leading-relaxed mb-8">{t("intro")}</p>
+          <h1 className="font-display font-bold text-3xl sm:text-5xl text-white leading-tight mb-5">{t("h1")}</h1>
+          <p className="text-base sm:text-lg text-white/80 leading-relaxed mb-8">{t("intro")}</p>
           <div className="flex flex-col items-center gap-2 mb-8">
             <span className="text-white/60 text-sm">{t("priceFrom")}</span>
             <HeroPrice />
