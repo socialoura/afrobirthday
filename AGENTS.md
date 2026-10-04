@@ -108,7 +108,7 @@ Particularités :
 ### PayPal
 
 1. `OrderFormSection` appelle **`/api/paypal/create-order`** après uploads.
-2. Le serveur crée la commande DB en USD seulement (pas de conversion devise locale PayPal), puis crée l'ordre PayPal (`src/lib/paypal.ts`).
+2. Le serveur crée la commande DB puis l'ordre PayPal (`src/lib/paypal.ts`) dans la devise affichée si PayPal l'accepte (EUR, GBP, CAD, AUD, BRL, MXN, CNY, JPY, USD — depuis le 2026-09-22), sinon en USD (INR, ZAR, AED, SAR).
 3. Redirection PayPal ; retour sur `/paypal/success?orderId=...&token=...`.
 4. `PayPalSuccessClient` appelle **`/api/paypal/capture-order`** ; le serveur capture puis marque paid, envoie email + notification.
 5. Le retour client passe ensuite à `/success` avec `value=1.0&currency=USD` pour la conversion Google Ads : valeur analytics probablement fausse pour les montants réels.
@@ -327,7 +327,7 @@ Aucun `.env*` n'est tracké (`.gitignore` exclut `.env*` / `.env*.local`). Varia
 7. **Stripe settings admin vs paiement** : le dashboard peut sauvegarder `stripe_secret_key`/`stripe_publishable_key` en DB, mais `/api/create-payment-intent`, `/api/create-checkout`, `/api/confirm-payment`, `/api/stripe-webhook` utilisent `process.env.STRIPE_SECRET_KEY`. Le formulaire admin Stripe ne pilote donc pas les clés réellement utilisées.
 8. **Promo codes** : admin + tables présents, mais aucun flux checkout ne valide/applique un code ni n'incrémente l'usage. `promo_enabled` n'a pas d'effet visible dans `OrderFormSection`.
 9. **Flux Stripe unique** : `/api/create-checkout` a été supprimée (2026-10) ; le flux est `/api/create-payment-intent` + `/api/confirm-payment` + webhook.
-10. **Devises** : Stripe facture en devise locale calculée serveur ; PayPal crée toujours l'ordre en USD. Le commentaire `currencyFromLocale` dit "always charging in USD" alors que Stripe charge désormais en local.
+10. **Devises** : depuis le 2026-10-04 la devise suit le **pays du visiteur** (cookie `ab_geo`, `visitorCurrency` dans `src/lib/utils.ts`), la langue du navigateur n'est qu'un secours. Stripe facture dans cette devise ; PayPal aussi quand il la supporte, sinon USD.
 11. **Lint** : `package.json` garde `"lint": "next lint"` avec Next 16 ; `npm run lint` échoue (`Invalid project directory ... /workspace/lint`). Utiliser `npx tsc` et/ou moderniser ESLint.
 12. **Build en petit conteneur** : `npm run build` compile puis est tué (`exit 137`) pendant "Running TypeScript" dans cet environnement ; `npx tsc --noEmit --incremental false` passe avec plus de heap. Ce n'est pas une contradiction de doc, mais un piège de vérification.
 13. **README/langues** : correct — 10 locales : EN, FR, ES, DE, IT, PT, NL, AR, HI, ZH.
