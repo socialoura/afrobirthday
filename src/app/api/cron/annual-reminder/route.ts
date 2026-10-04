@@ -26,6 +26,10 @@ export async function GET(request: Request) {
         10
       );
       const cutoff = Date.now() - delayDays * 24 * 60 * 60 * 1000;
+      // Only around the anniversary of the order: a reminder months late is
+      // noise, and the first run must not mail the whole history.
+      const windowDays = Number.parseInt((await getSetting("annual_reminder_email_window_days")) ?? "14", 10);
+      const oldest = cutoff - windowDays * 24 * 60 * 60 * 1000;
       await ensureAutomatedEmailColumns();
       const allOrders = await getAllOrders();
       const suppressed = await getSuppressedEmails(allOrders, "annual_reminder_email_sent_at");
@@ -35,7 +39,8 @@ export async function GET(request: Request) {
         if (isSuppressed(suppressed, o.email)) return false;
         if (o.status !== "paid") return false;
         if (o.annual_reminder_email_sent_at) return false;
-        return new Date(o.created_at).getTime() <= cutoff;
+        const orderedAt = new Date(o.created_at).getTime();
+        return orderedAt <= cutoff && orderedAt >= oldest;
     });
 
     const recipients = dedupeByEmail(eligible);

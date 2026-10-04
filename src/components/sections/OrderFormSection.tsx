@@ -648,6 +648,24 @@ export default function OrderFormSection() {
     }
   }, [promoInput, t]);
 
+  // E-mails (cross-sell, annual reminder, referral) link to /?promo=CODE#order.
+  // The promo field is hidden on the site, so the code is applied from the URL;
+  // it then goes through the same validation as a typed code.
+  const autoPromoRef = useRef<string | null>(null);
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("promo")?.trim().slice(0, 40);
+    if (code) {
+      autoPromoRef.current = code;
+      setPromoInput(code);
+    }
+  }, []);
+  useEffect(() => {
+    if (autoPromoRef.current && promoInput === autoPromoRef.current) {
+      autoPromoRef.current = null;
+      handleApplyPromo();
+    }
+  }, [promoInput, handleApplyPromo]);
+
   const handleRemovePromo = useCallback(() => {
     setAppliedPromo(null);
     setPromoInput("");
@@ -1503,7 +1521,7 @@ export default function OrderFormSection() {
               {/* Promo code — settled here, before step 3, so the payment
                   form (created the instant step 3 loads) always reflects the
                   final price. */}
-              {promoEnabled && (
+              {(promoEnabled || appliedPromo) && (
                 <div className="glass-card p-6">
                   <label htmlFor="order-promo" className="block font-semibold text-white mb-3">
                     {t("promo.label")}

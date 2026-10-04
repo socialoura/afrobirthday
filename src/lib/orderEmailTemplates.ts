@@ -8,8 +8,16 @@ import { emailCopy, emailLocale, fill } from "@/lib/emailCopy";
  * denominator. Several of these messages handed out a promo code with no way
  * to spend it — the campaign was running with no destination at all.
  */
-function orderLink(campaign: EmailCampaign) {
-  return escapeHtml(withCampaign("/#order", campaign));
+function orderUrl(campaign: EmailCampaign, order?: Order, promoCode?: string) {
+  // The checkout reads ?promo= and applies the code itself: the promo field is
+  // hidden on the site, so a code only typed into an e-mail was unusable.
+  const locale = order ? emailLocale(order) : "en";
+  const query = promoCode ? `?promo=${encodeURIComponent(promoCode)}` : "";
+  return withCampaign(`/${locale}${query}#order`, campaign);
+}
+
+function orderLink(campaign: EmailCampaign, order?: Order, promoCode?: string) {
+  return escapeHtml(orderUrl(campaign, order, promoCode));
 }
 
 /** Short order reference shown to customers (the full UUID is unreadable). */
@@ -265,7 +273,7 @@ export function renderCrossSellEmailHtml(order: Order, promoCode: string) {
       <strong style="letter-spacing: 1px;">${escapeHtml(promoCode)}</strong>
     </p>
     <p style="margin: 0 0 16px;">
-      <a href="${orderLink(EMAIL_CAMPAIGNS.CROSS_SELL)}" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
+      <a href="${orderLink(EMAIL_CAMPAIGNS.CROSS_SELL, order, promoCode)}" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
         Order another video
       </a>
     </p>
@@ -285,7 +293,7 @@ export function renderCrossSellEmailText(order: Order, promoCode: string) {
     "",
     `Promo code: ${promoCode}`,
     "",
-    `Order another video: ${withCampaign("/#order", EMAIL_CAMPAIGNS.CROSS_SELL)}`,
+    `Order another video: ${orderUrl(EMAIL_CAMPAIGNS.CROSS_SELL, order, promoCode)}`,
     "",
     "Thanks for being an AfroBirthday customer,",
     "The AfroBirthday team",
@@ -304,7 +312,7 @@ export function renderAnnualReminderEmailHtml(order: Order, promoCode: string) {
       <strong style="letter-spacing: 1px;">${escapeHtml(promoCode)}</strong>
     </p>
     <p style="margin: 0 0 16px;">
-      <a href="${orderLink(EMAIL_CAMPAIGNS.ANNUAL_REMINDER)}" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
+      <a href="${orderLink(EMAIL_CAMPAIGNS.ANNUAL_REMINDER, order, promoCode)}" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
         Start your next video
       </a>
     </p>
@@ -324,7 +332,7 @@ export function renderAnnualReminderEmailText(order: Order, promoCode: string) {
     "",
     `Promo code: ${promoCode}`,
     "",
-    `Start your next video: ${withCampaign("/#order", EMAIL_CAMPAIGNS.ANNUAL_REMINDER)}`,
+    `Start your next video: ${orderUrl(EMAIL_CAMPAIGNS.ANNUAL_REMINDER, order, promoCode)}`,
     "",
     "Looking forward to making another one for you,",
     "The AfroBirthday team",
@@ -378,6 +386,10 @@ export function renderReferralCodeEmailHtml(
       <strong style="letter-spacing: 1px;">${escapeHtml(code)}</strong>
     </p>
     <p style="margin:0 0 16px;">
+      Or just send them this link — the code applies itself:<br/>
+      <a href="${orderLink(EMAIL_CAMPAIGNS.REFERRAL_CODE, order, code)}" style="color: #c2410c; text-decoration: underline; font-weight: 600; word-break: break-all;">${orderLink(EMAIL_CAMPAIGNS.REFERRAL_CODE, order, code)}</a>
+    </p>
+    <p style="margin:0 0 16px;">
       Thanks for spreading the word,<br/>
       The AfroBirthday team
     </p>
@@ -398,6 +410,7 @@ export function renderReferralCodeEmailText(
     `Loved your AfroBirthday video? Share it with friends — here's your personal code for them to get ${discountLabel} on their first order. When they use it, we'll send you a reward too.`,
     "",
     `Your referral code: ${code}`,
+    `Link for your friends (the code applies itself): ${orderUrl(EMAIL_CAMPAIGNS.REFERRAL_CODE, order, code)}`,
     "",
     "Thanks for spreading the word,",
     "The AfroBirthday team",

@@ -26,6 +26,11 @@ export async function GET(request: Request) {
         10
       );
       const cutoff = Date.now() - delayDays * 24 * 60 * 60 * 1000;
+      // New customers only: without an upper bound, enabling this e-mailed every
+      // past customer at once (~150 in Oct 2026). A 14-day window covers a
+      // missed run or two without ever turning into a backlog blast.
+      const windowDays = Number.parseInt((await getSetting("cross_sell_email_window_days")) ?? "14", 10);
+      const oldest = cutoff - windowDays * 24 * 60 * 60 * 1000;
       await ensureAutomatedEmailColumns();
       const allOrders = await getAllOrders();
       const suppressed = await getSuppressedEmails(allOrders, "cross_sell_email_sent_at");
@@ -36,7 +41,11 @@ export async function GET(request: Request) {
         if (o.cross_sell_email_sent_at) return false;
         if (o.order_status !== "completed") return false;
         if (!o.final_video_sent_at) return false;
-        return new Date(o.final_video_sent_at).getTime() <= cutoff;
+        // Videos hosted on the defunct Supabase store can no longer be opened;
+        // inviting those customers to order again would point at a dead link.
+        if (o.final_video_url?.includes("supabase.co")) return false;
+        const deliveredAt = new Date(o.final_video_sent_at).getTime();
+        return deliveredAt <= cutoff && deliveredAt >= oldest;
     });
 
     const recipients = dedupeByEmail(eligible);
