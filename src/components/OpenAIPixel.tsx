@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Script from "next/script";
 import { CONSENT_EVENT, hasAdsConsent } from "@/lib/consent";
 import { pixelMeasure } from "@/lib/adPixels";
+import { useSiteSettled } from "@/lib/useSiteSettled";
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_OPENAI_PIXEL_ID;
 
@@ -41,23 +42,26 @@ export default function OpenAIPixel() {
     lastPath.current = pathname;
   }, [enabled, pathname]);
 
+  // The queue, init and first page view are set up at once so no event is
+  // dropped; the SDK itself (which replays the queue) waits until the page has
+  // settled, like the other third-party scripts (see pageSettled.ts).
+  const settled = useSiteSettled();
+
   if (!PIXEL_ID || !enabled) return null;
 
   return (
-    <Script id="openai-pixel" strategy="afterInteractive">
-      {`(function (w, d, s, u) {
+    <>
+      <Script id="openai-pixel" strategy="afterInteractive">
+        {`(function (w) {
   if (w.oaiq) return;
   var q = function () { q.q.push(arguments); };
   q.q = [];
   w.oaiq = q;
-  var js = d.createElement(s);
-  js.async = true;
-  js.src = u;
-  var f = d.getElementsByTagName(s)[0];
-  f.parentNode.insertBefore(js, f);
-})(window, document, "script", "https://bzrcdn.openai.com/sdk/oaiq.min.js");
-oaiq("init", { pixelId: ${JSON.stringify(PIXEL_ID)} });
-oaiq("measure", "page_viewed", { type: "contents", contents: [{ id: location.pathname, content_type: "page" }] });`}
-    </Script>
+  q("init", { pixelId: ${JSON.stringify(PIXEL_ID)} });
+  q("measure", "page_viewed", { type: "contents", contents: [{ id: location.pathname, content_type: "page" }] });
+})(window);`}
+      </Script>
+      {settled && <Script id="openai-pixel-sdk" src="https://bzrcdn.openai.com/sdk/oaiq.min.js" strategy="afterInteractive" />}
+    </>
   );
 }

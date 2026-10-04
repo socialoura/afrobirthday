@@ -1,5 +1,5 @@
-import posthog from "posthog-js";
 import { ga4Event, pixelMeasure } from "@/lib/adPixels";
+import { withPostHog } from "@/lib/posthogClient";
 
 /**
  * Every analytics event name the site emits, declared once.
@@ -65,7 +65,9 @@ export function captureEvent(
   event: AnalyticsEvent,
   properties?: Record<string, unknown>
 ): void {
-  posthog.capture(event, properties);
+  // PostHog may still be loading: keep the moment it actually happened.
+  const at = new Date();
+  withPostHog((ph) => ph.capture(event, properties, { timestamp: at }));
   forwardToAdPlatforms(event, properties ?? {});
 }
 

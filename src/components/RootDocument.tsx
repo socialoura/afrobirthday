@@ -9,6 +9,7 @@ import { SITE_URL } from "@/lib/siteUrl";
 import { CONSENT_COUNTRIES } from "@/lib/consent";
 import { SITE_MEDIA_ORIGIN } from "@/lib/siteMedia";
 import OpenAIPixel from "@/components/OpenAIPixel";
+import DeferredGtag from "@/components/DeferredGtag";
 
 const siteUrl = SITE_URL;
 
@@ -121,10 +122,7 @@ try{var m=document.cookie.match(/(?:^|; )ab_consent=(granted|denied)/);if(m){var
 gtag('js', new Date());
 gtag('config', 'G-8HTHEF5B04');`}
         </Script>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-8HTHEF5B04"
-          strategy="afterInteractive"
-        />
+        <DeferredGtag id="G-8HTHEF5B04" />
         {children}
         <OpenAIPixel />
         <Analytics />

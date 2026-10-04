@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard, Wallet, ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
-import posthog from "posthog-js";
+import { withPostHog } from "@/lib/posthogClient";
 import { cn, currencyFromLocale, type CurrencyCode, PRICES, ORDER_DRAFT_STORAGE_KEY } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
 import { useLocale, useTranslations } from "next-intl";
@@ -564,7 +564,7 @@ export default function OrderFormSection() {
   // later inherits them without anyone having to remember.
   const shownBase = Math.round(localComponent("base") * 100) / 100;
   useEffect(() => {
-    posthog.register({
+    const superProperties = {
       price_currency: localCurrency,
       price_base_local: shownBase,
       price_test: priceTest?.id ?? null,
@@ -573,7 +573,8 @@ export default function OrderFormSection() {
           ? "control"
           : "test"
         : null,
-    });
+    };
+    withPostHog((ph) => ph.register(superProperties));
   }, [localCurrency, shownBase, priceTest]);
 
   // True when at least one component of the displayed total is auto-converted
@@ -932,7 +933,7 @@ export default function OrderFormSection() {
       currency: localCurrency,
       ...(appliedPromo ? { promo_code: appliedPromo.code } : {}),
     });
-    posthog.identify(data.email, { email: data.email });
+    withPostHog((ph) => ph.identify(data.email, { email: data.email }));
 
     setIsSubmitting(true);
 
@@ -1051,7 +1052,7 @@ export default function OrderFormSection() {
       // people who never chose to pay — which is exactly what made the
       // conversion rate look like it collapsed when the payment step changed.
       // It fires on the pay click instead, in openCardPayment.
-      posthog.identify(email, { email });
+      withPostHog((ph) => ph.identify(email, { email }));
 
       setCurrentOrderId(orderId);
       setStripeClientSecret(payload.clientSecret);
