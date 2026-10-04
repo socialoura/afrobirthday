@@ -275,7 +275,7 @@ Aucun `.env*` n'est tracké (`.gitignore` exclut `.env*` / `.env*.local`). Varia
 
 - `RESEND_API_KEY`, `RESEND_FROM_EMAIL` : envois emails.
 - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` : bot et notifications.
-- `OPENAI_API_KEY` : TTS vocal.
+- `OPENAI_API_KEY` : **uniquement** la génération des vocaux (TTS). `OPENAI_CITATION_API_KEY` (optionnelle) : sonde de citations ChatGPT du moteur SEO, ignorée si absente.
 - `OPENAI_TTS_MODEL` (défaut `gpt-4o-mini-tts`), `OPENAI_TTS_VOICE` (défaut `nova`), `OPENAI_TTS_SPEED` (défaut `0.75`).
 - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_SESSION_TOKEN`, `BEDROCK_MODEL` : chatbot Telegram via Bedrock.
 - `DISCORD_WEBHOOK_URL` : lu mais inutilisé tant que `DISCORD_DISABLED = true`.

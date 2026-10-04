@@ -94,7 +94,7 @@ async function askOpenAi(question: string): Promise<string[]> {
   const res = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      Authorization: `Bearer ${process.env.OPENAI_CITATION_API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -117,7 +117,8 @@ async function askOpenAi(question: string): Promise<string[]> {
 
 const PROVIDERS: Record<CitationProvider, { ask: (q: string) => Promise<string[]>; key: string }> = {
   perplexity: { ask: askPerplexity, key: "PERPLEXITY_API_KEY" },
-  openai: { ask: askOpenAi, key: "OPENAI_API_KEY" },
+  // Not OPENAI_API_KEY: that key is reserved for voiceover generation.
+  openai: { ask: askOpenAi, key: "OPENAI_CITATION_API_KEY" },
 };
 
 export type CitationStats = {
