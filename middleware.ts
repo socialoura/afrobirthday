@@ -15,10 +15,10 @@ export default function middleware(request: NextRequest) {
   // 200; Search Console listed them as separate pages. One canonical form.
   const { pathname, search } = request.nextUrl;
   if (pathname.length > 1 && pathname.endsWith("/")) {
-    const url = request.nextUrl.clone();
-    url.pathname = pathname.replace(/\/+$/, "");
-    url.search = search;
-    return NextResponse.redirect(url, 308);
+    // A plain URL: NextURL (request.nextUrl.clone()) re-applies the trailing
+    // slash it was parsed with, which turned this into a redirect loop.
+    const target = new URL(pathname.replace(/\/+$/, "") + search, request.url);
+    return NextResponse.redirect(target, 308);
   }
 
   const response = intlMiddleware(request);

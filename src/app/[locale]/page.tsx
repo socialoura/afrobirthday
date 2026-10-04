@@ -23,7 +23,10 @@ export async function generateMetadata({
   const description = t("description");
 
   return {
-    title,
+    // Absolute: the "%s | AfroBirthday" template lives in [locale]/layout and
+    // only applies to child segments, so the home page (same segment) lost
+    // the brand in its title when the root layout moved there.
+    title: { absolute: `${title} | AfroBirthday` },
     description,
     alternates: buildAlternates(locale, ""),
     openGraph: {
