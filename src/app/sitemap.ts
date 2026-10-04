@@ -22,7 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         url,
         lastModified: now,
         changeFrequency: "weekly" as const,
-        priority: path === "" ? 1 : 0.7,
+        priority: path === "" ? 1 : path === "/personalized-birthday-video" ? 0.9 : 0.7,
         alternates: {
           languages: {
             ...languages,

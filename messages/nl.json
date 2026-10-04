@@ -883,5 +883,114 @@
         "desc": "Je krijgt een e-mail met de downloadlink zodra hij klaar is!"
       }
     }
+  },
+  "ProductPage": {
+    "meta": {
+      "title": "Gepersonaliseerde verjaardagsvideo van Afrikaanse dansers",
+      "description": "Bestel een gepersonaliseerde verjaardagsvideo: echte Afrikaanse dansers roepen je boodschap en dansen voor de jarige. Met foto en muziek naar keuze, per e-mail binnen 24–48 uur."
+    },
+    "breadcrumb": "Gepersonaliseerde verjaardagsvideo",
+    "badge": "Origineel verjaardagscadeau",
+    "h1": "Een gepersonaliseerde verjaardagsvideo, gefilmd door echte Afrikaanse dansers",
+    "intro": "Op zoek naar een verjaardagscadeau dat nog niemand heeft gegeven? Onze dansers filmen een video speciaal voor iemand van wie je houdt: ze laten de foto zien, roepen je boodschap met enorm veel energie en dansen om de jarige te vieren. Je bestelt in twee minuten online en ontvangt de video per e-mail, klaar om te delen of af te spelen op het feest.",
+    "priceFrom": "Vanaf",
+    "cta": "Maak mijn verjaardagsvideo",
+    "includes": {
+      "title": "Wat er in je video zit",
+      "items": {
+        "0": {
+          "title": "De foto in beeld",
+          "text": "Upload een foto van de jarige: de dansers laten die zien in de video, zodat duidelijk is dat hij speciaal voor hem of haar is gemaakt."
+        },
+        "1": {
+          "title": "Je boodschap, luid geroepen",
+          "text": "Schrijf een korte boodschap (max. 100 tekens) met de naam. De dansers roepen die vol vreugde, in een echt feest zonder script."
+        },
+        "2": {
+          "title": "Echte Afrikaanse dansers",
+          "text": "Een hele groep dansers filmt je video buiten, met echte energie. Geen sjablonen, geen animatie: echte mensen die feestvieren."
+        },
+        "3": {
+          "title": "Muziek naar keuze",
+          "text": "Laat ons een feestelijk nummer kiezen, of stuur je eigen nummer via een YouTube- of Spotify-link of een MP3-bestand."
+        }
+      }
+    },
+    "steps": {
+      "title": "Zo werkt het",
+      "items": {
+        "0": {
+          "title": "Personaliseer",
+          "text": "Voeg een foto toe, schrijf je boodschap en kies de muziek en levertijd. Geen account nodig."
+        },
+        "1": {
+          "title": "Betaal veilig",
+          "text": "Met kaart of PayPal, in je eigen valuta. Je krijgt meteen een bevestigingsmail."
+        },
+        "2": {
+          "title": "Ontvang de video",
+          "text": "Je video komt binnen 24–48 uur per e-mail (12–24 uur met Express), met een downloadlink om voor altijd te bewaren."
+        }
+      }
+    },
+    "occasions": {
+      "title": "Een cadeau voor elke verjaardag",
+      "subtitle": "Een gepersonaliseerde video past bij elke leeftijd en elke relatie, vooral als je er zelf niet bij kunt zijn.",
+      "items": {
+        "0": {
+          "title": "Voor een vriend of je partner",
+          "text": "Een originele verrassing waar ze tegelijk om lachen en huilen, en die ze aan iedereen willen laten zien."
+        },
+        "1": {
+          "title": "Voor ouders en grootouders",
+          "text": "Een onvergetelijk cadeau voor een 50e, 60e of 70e verjaardag: speel hem af op het familiefeest en zie hun reactie."
+        },
+        "2": {
+          "title": "Voor een collega of je team",
+          "text": "Vier de verjaardag van een collega op een manier die het hele kantoor onthoudt, ook op afstand. Groepsbestellingen mogelijk."
+        },
+        "3": {
+          "title": "Als je ver weg woont",
+          "text": "Andere stad, ander land? Stuur een video die het feest naar hen brengt, op tijd geleverd voor de grote dag."
+        }
+      }
+    },
+    "delivery": {
+      "title": "Geleverd binnen 24–48 uur",
+      "text": "Standaardvideo's worden binnen 24–48 uur per e-mail geleverd, en binnen 12–24 uur met Express-levering. Is de verjaardag morgen? Kies Express."
+    },
+    "guarantee": {
+      "title": "100% geld-terug-garantie",
+      "text": "Ben je niet tevreden over je video, laat het ons binnen 7 dagen na levering weten: we maken hem gratis opnieuw of betalen alles terug."
+    },
+    "faq": {
+      "title": "Vragen over gepersonaliseerde verjaardagsvideo's",
+      "items": {
+        "0": {
+          "q": "Wat kost een gepersonaliseerde verjaardagsvideo?",
+          "a": "De video begint bij de prijs hierboven, in jouw valuta. Opties zoals je eigen nummer of Express-levering worden bij het bestellen toegevoegd; het totaal zie je voordat je betaalt."
+        },
+        "1": {
+          "q": "Wie zijn de dansers?",
+          "a": "Een groep professionele dansers uit Kenia, die elke video met de hand filmt. Elke bestelling steunt hun werk."
+        },
+        "2": {
+          "q": "Kan ik de naam en een foto toevoegen?",
+          "a": "Ja. Schrijf de naam in je boodschap en upload de foto: de dansers roepen de boodschap en laten de foto zien in de video."
+        },
+        "3": {
+          "q": "Hoe geef ik de video cadeau?",
+          "a": "Je ontvangt een downloadlink per e-mail. Stuur hem door, deel hem via WhatsApp of sociale media, of speel de video af op een scherm tijdens het feest."
+        },
+        "4": {
+          "q": "En als de verjaardag morgen is?",
+          "a": "Kies Express-levering: je video wordt binnen 12–24 uur geleverd."
+        }
+      }
+    },
+    "final": {
+      "title": "Maak de verjaardag onvergetelijk",
+      "text": "Twee minuten om te bestellen, een herinnering voor het leven."
+    }
   }
 }

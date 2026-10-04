@@ -13,6 +13,7 @@ import { SITE_URL } from "@/lib/siteUrl";
 
 export const SEO_STATIC_PATHS = [
   "",
+  "/personalized-birthday-video",
   "/how-to-order",
   "/our-story",
   "/faq",

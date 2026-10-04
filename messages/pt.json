@@ -883,5 +883,114 @@
         "desc": "Vai receber um email com o link de download assim que estiver pronto!"
       }
     }
+  },
+  "ProductPage": {
+    "meta": {
+      "title": "Vídeo de aniversário personalizado com dançarinos africanos",
+      "description": "Encomende um vídeo de aniversário personalizado: dançarinos africanos reais gritam a sua mensagem e dançam para celebrar. Foto, música à escolha, entregue por email em 24–48 h."
+    },
+    "breadcrumb": "Vídeo de aniversário personalizado",
+    "badge": "Presente de aniversário original",
+    "h1": "Um vídeo de aniversário personalizado, filmado por dançarinos africanos reais",
+    "intro": "Procura um presente de aniversário que ninguém deu antes? Os nossos dançarinos gravam um vídeo só para a pessoa de quem gosta: mostram a fotografia, gritam a sua mensagem com uma energia enorme e dançam para a celebrar. Encomenda online em dois minutos e recebe o vídeo por email, pronto a partilhar ou a passar na festa.",
+    "priceFrom": "A partir de",
+    "cta": "Criar o meu vídeo de aniversário",
+    "includes": {
+      "title": "O que inclui o seu vídeo",
+      "items": {
+        "0": {
+          "title": "A fotografia no ecrã",
+          "text": "Envie uma fotografia do aniversariante: os dançarinos mostram-na no vídeo, para que saiba que foi feito para si."
+        },
+        "1": {
+          "title": "A sua mensagem, bem alto",
+          "text": "Escreva uma mensagem curta (até 100 caracteres) com o nome. Os dançarinos gritam-na com alegria, numa festa verdadeira e sem guião."
+        },
+        "2": {
+          "title": "Dançarinos africanos reais",
+          "text": "Um grupo inteiro de dançarinos grava o seu vídeo ao ar livre, com energia autêntica. Sem modelos nem animações: pessoas reais a celebrar."
+        },
+        "3": {
+          "title": "A música que escolher",
+          "text": "Deixe-nos escolher uma música festiva ou envie a sua com um link do YouTube ou Spotify ou um ficheiro MP3."
+        }
+      }
+    },
+    "steps": {
+      "title": "Como funciona",
+      "items": {
+        "0": {
+          "title": "Personalize",
+          "text": "Adicione uma fotografia, escreva a mensagem e escolha a música e o prazo de entrega. Sem necessidade de conta."
+        },
+        "1": {
+          "title": "Pague em segurança",
+          "text": "Com cartão ou PayPal, na sua moeda. Recebe logo um email de confirmação."
+        },
+        "2": {
+          "title": "Receba o vídeo",
+          "text": "O vídeo chega por email em 24–48 horas (12–24 horas com Expresso), com um link para guardar para sempre."
+        }
+      }
+    },
+    "occasions": {
+      "title": "Um presente para cada aniversário",
+      "subtitle": "Um vídeo personalizado serve para qualquer idade e qualquer relação, sobretudo quando não pode estar presente.",
+      "items": {
+        "0": {
+          "title": "Para um amigo ou o seu par",
+          "text": "Uma surpresa original que faz rir e chorar ao mesmo tempo, e que vão querer mostrar a toda a gente."
+        },
+        "1": {
+          "title": "Para pais e avós",
+          "text": "Um presente marcante para uns 50, 60 ou 70 anos: passe-o na festa de família e veja a reação."
+        },
+        "2": {
+          "title": "Para um colega ou a sua equipa",
+          "text": "Celebre o aniversário de um colega de uma forma de que todo o escritório se vai lembrar, mesmo à distância. Encomendas em grupo disponíveis."
+        },
+        "3": {
+          "title": "Quando vivem longe",
+          "text": "Outra cidade, outro país? Envie um vídeo que leva a festa até lá, entregue a tempo para o grande dia."
+        }
+      }
+    },
+    "delivery": {
+      "title": "Entregue em 24–48 horas",
+      "text": "Os vídeos normais são entregues por email em 24–48 horas, e em 12–24 horas com entrega Expresso. O aniversário é amanhã? Escolha Expresso."
+    },
+    "guarantee": {
+      "title": "Garantia de reembolso de 100%",
+      "text": "Se não gostar do vídeo, diga-nos nos 7 dias seguintes à entrega: refazemo-lo gratuitamente ou devolvemos todo o valor."
+    },
+    "faq": {
+      "title": "Perguntas sobre vídeos de aniversário personalizados",
+      "items": {
+        "0": {
+          "q": "Quanto custa um vídeo de aniversário personalizado?",
+          "a": "O vídeo começa no preço indicado acima, na sua moeda. Opções como a sua própria música ou a entrega Expresso são adicionadas na encomenda, com o total mostrado antes de pagar."
+        },
+        "1": {
+          "q": "Quem são os dançarinos?",
+          "a": "Um grupo de dançarinos profissionais sediado no Quénia, que grava cada vídeo à mão. Cada encomenda apoia o seu trabalho."
+        },
+        "2": {
+          "q": "Posso incluir o nome e uma fotografia?",
+          "a": "Sim. Escreva o nome na mensagem e envie a fotografia: os dançarinos gritam a mensagem e mostram a fotografia no vídeo."
+        },
+        "3": {
+          "q": "Como ofereço o vídeo?",
+          "a": "Recebe um link de download por email. Reencaminhe-o, partilhe-o no WhatsApp ou nas redes sociais, ou passe o vídeo num ecrã durante a festa."
+        },
+        "4": {
+          "q": "E se o aniversário for amanhã?",
+          "a": "Escolha a entrega Expresso: o vídeo é entregue em 12–24 horas."
+        }
+      }
+    },
+    "final": {
+      "title": "Torne o aniversário inesquecível",
+      "text": "Dois minutos para encomendar, uma memória para a vida."
+    }
   }
 }

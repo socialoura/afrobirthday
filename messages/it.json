@@ -883,5 +883,114 @@
         "desc": "Riceverai un'email con il link per scaricarlo appena sarà pronto!"
       }
     }
+  },
+  "ProductPage": {
+    "meta": {
+      "title": "Video di compleanno personalizzato con ballerini africani",
+      "description": "Ordina un video di compleanno personalizzato: veri ballerini africani gridano il tuo messaggio e ballano per festeggiare. Foto, musica a scelta, consegna via email in 24–48 ore."
+    },
+    "breadcrumb": "Video di compleanno personalizzato",
+    "badge": "Regalo di compleanno originale",
+    "h1": "Un video di compleanno personalizzato, girato da veri ballerini africani",
+    "intro": "Cerchi un regalo di compleanno che nessuno ha mai fatto? I nostri ballerini girano un video solo per la persona che ami: mostrano la sua foto, gridano il tuo messaggio con un'energia incredibile e ballano per festeggiarla. Ordini online in due minuti e ricevi il video via email, pronto da condividere o da proiettare alla festa.",
+    "priceFrom": "A partire da",
+    "cta": "Crea il mio video di compleanno",
+    "includes": {
+      "title": "Cosa c'è nel tuo video",
+      "items": {
+        "0": {
+          "title": "La sua foto sullo schermo",
+          "text": "Carica una foto del festeggiato: i ballerini la mostrano nel video, così saprà che è stato fatto proprio per lui o lei."
+        },
+        "1": {
+          "title": "Il tuo messaggio, gridato a gran voce",
+          "text": "Scrivi un breve messaggio (massimo 100 caratteri) con il suo nome. I ballerini lo gridano con gioia, in una vera festa senza copione."
+        },
+        "2": {
+          "title": "Veri ballerini africani",
+          "text": "Un intero gruppo di ballerini gira il tuo video all'aperto, con energia autentica. Niente modelli né animazioni: persone vere che festeggiano."
+        },
+        "3": {
+          "title": "La musica che preferisci",
+          "text": "Lascia che scegliamo noi un brano festoso, oppure inviaci la tua canzone con un link YouTube o Spotify o un file MP3."
+        }
+      }
+    },
+    "steps": {
+      "title": "Come funziona",
+      "items": {
+        "0": {
+          "title": "Personalizza",
+          "text": "Aggiungi una foto, scrivi il messaggio e scegli musica e tempi di consegna. Nessun account richiesto."
+        },
+        "1": {
+          "title": "Paga in sicurezza",
+          "text": "Con carta o PayPal, nella tua valuta. Ricevi subito un'email di conferma."
+        },
+        "2": {
+          "title": "Ricevi il video",
+          "text": "Il video arriva via email entro 24–48 ore (12–24 ore con Express), con un link per scaricarlo e tenerlo per sempre."
+        }
+      }
+    },
+    "occasions": {
+      "title": "Un regalo per ogni compleanno",
+      "subtitle": "Un video personalizzato va bene per ogni età e ogni relazione, soprattutto quando non puoi essere presente.",
+      "items": {
+        "0": {
+          "title": "Per un amico o il partner",
+          "text": "Una sorpresa originale che fa ridere e piangere insieme, e che vorranno mostrare a tutti."
+        },
+        "1": {
+          "title": "Per genitori e nonni",
+          "text": "Un regalo indimenticabile per i 50, 60 o 70 anni: proiettalo durante la festa di famiglia e guarda la loro reazione."
+        },
+        "2": {
+          "title": "Per un collega o il tuo team",
+          "text": "Festeggia il compleanno di un collega in un modo che tutto l'ufficio ricorderà, anche da remoto. Ordini multipli disponibili."
+        },
+        "3": {
+          "title": "Quando vivete lontani",
+          "text": "Un'altra città o un altro paese? Manda un video che porta la festa fino a lì, consegnato in tempo per il grande giorno."
+        }
+      }
+    },
+    "delivery": {
+      "title": "Consegna in 24–48 ore",
+      "text": "I video Standard vengono consegnati via email in 24–48 ore, e in 12–24 ore con la consegna Express. Il compleanno è domani? Scegli Express."
+    },
+    "guarantee": {
+      "title": "Soddisfatti o rimborsati al 100%",
+      "text": "Se il video non ti piace, avvisaci entro 7 giorni dalla consegna: lo rifacciamo gratis o ti rimborsiamo per intero."
+    },
+    "faq": {
+      "title": "Domande sui video di compleanno personalizzati",
+      "items": {
+        "0": {
+          "q": "Quanto costa un video di compleanno personalizzato?",
+          "a": "Il video parte dal prezzo indicato sopra, nella tua valuta. Opzioni come la tua canzone o la consegna Express si aggiungono durante l'ordine, con il totale mostrato prima del pagamento."
+        },
+        "1": {
+          "q": "Chi sono i ballerini?",
+          "a": "Un gruppo di ballerini professionisti con sede in Kenya, che gira ogni video a mano. Ogni ordine sostiene il loro lavoro."
+        },
+        "2": {
+          "q": "Posso inserire il nome e una foto?",
+          "a": "Sì. Scrivi il suo nome nel messaggio e carica la sua foto: i ballerini gridano il messaggio e mostrano la foto nel video."
+        },
+        "3": {
+          "q": "Come regalo il video?",
+          "a": "Ricevi un link per il download via email. Inoltralo, condividilo su WhatsApp o sui social, oppure proietta il video durante la festa."
+        },
+        "4": {
+          "q": "E se il compleanno è domani?",
+          "a": "Scegli la consegna Express: il tuo video viene consegnato entro 12–24 ore."
+        }
+      }
+    },
+    "final": {
+      "title": "Rendi il suo compleanno indimenticabile",
+      "text": "Due minuti per ordinare, un ricordo per tutta la vita."
+    }
   }
 }

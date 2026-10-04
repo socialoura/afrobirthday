@@ -6,6 +6,7 @@ import OrderCtaLink from "@/components/OrderCtaLink";
 import CookieSettingsButton from "@/components/CookieSettingsButton";
 
 const navHrefs = [
+  { href: "/personalized-birthday-video", key: "ProductPage.breadcrumb" },
   { href: "/how-to-order", key: "Header.nav.howItWorks" },
   { href: "/our-story", key: "Header.nav.ourStory" },
   { href: "/faq", key: "Header.nav.faq" },
@@ -39,8 +40,10 @@ export default async function Footer() {
   const tFooter = await getTranslations("Footer");
   const tNav = await getTranslations("Header.nav");
   const tHeaderA11y = await getTranslations("Header.a11y");
+  const tProduct = await getTranslations("ProductPage");
 
   const navLabel = (key: (typeof navHrefs)[number]["key"]) => {
+    if (key === "ProductPage.breadcrumb") return tProduct("breadcrumb");
     if (key === "Header.nav.howItWorks") return tNav("howItWorks");
     if (key === "Header.nav.ourStory") return tNav("ourStory");
     return tNav("faq");

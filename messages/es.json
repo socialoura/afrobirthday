@@ -883,5 +883,114 @@
     "accept": "Aceptar",
     "decline": "Rechazar",
     "privacy": "Política de privacidad"
+  },
+  "ProductPage": {
+    "meta": {
+      "title": "Video de cumpleaños personalizado con bailarines africanos",
+      "description": "Pide un video de cumpleaños personalizado: bailarines africanos reales gritan tu mensaje y bailan para celebrarlo. Foto, música a elegir, entregado por email en 24–48 h."
+    },
+    "breadcrumb": "Video de cumpleaños personalizado",
+    "badge": "Regalo de cumpleaños original",
+    "h1": "Un video de cumpleaños personalizado, grabado por bailarines africanos reales",
+    "intro": "¿Buscas un regalo de cumpleaños que nadie haya dado antes? Nuestros bailarines graban un video solo para la persona que quieres: muestran su foto, gritan tu mensaje con muchísima energía y bailan para celebrarla. Haces el pedido en línea en dos minutos y recibes el video por email, listo para compartir o proyectar en la fiesta.",
+    "priceFrom": "Desde",
+    "cta": "Crear mi video de cumpleaños",
+    "includes": {
+      "title": "Qué incluye tu video",
+      "items": {
+        "0": {
+          "title": "Su foto en pantalla",
+          "text": "Sube una foto del cumpleañero: los bailarines la muestran en el video para que sepa que fue hecho para él o ella."
+        },
+        "1": {
+          "title": "Tu mensaje, a todo pulmón",
+          "text": "Escribe un mensaje corto (hasta 100 caracteres) con su nombre. Los bailarines lo gritan con alegría, en una celebración real y sin guion."
+        },
+        "2": {
+          "title": "Bailarines africanos reales",
+          "text": "Todo un grupo de bailarines graba tu video al aire libre, con energía auténtica. Sin plantillas ni animaciones: personas reales celebrando."
+        },
+        "3": {
+          "title": "La música que elijas",
+          "text": "Deja que elijamos una canción festiva, o envía tu propia canción con un enlace de YouTube o Spotify o un archivo MP3."
+        }
+      }
+    },
+    "steps": {
+      "title": "Cómo funciona",
+      "items": {
+        "0": {
+          "title": "Personaliza",
+          "text": "Añade una foto, escribe tu mensaje y elige la música y la velocidad de entrega. Sin necesidad de cuenta."
+        },
+        "1": {
+          "title": "Paga de forma segura",
+          "text": "Con tarjeta o PayPal, en tu moneda. Recibes al instante un email de confirmación."
+        },
+        "2": {
+          "title": "Recibe el video",
+          "text": "Tu video llega por email en 24–48 horas (12–24 horas con Exprés), con un enlace de descarga para conservarlo para siempre."
+        }
+      }
+    },
+    "occasions": {
+      "title": "Un regalo para cada cumpleaños",
+      "subtitle": "Un video personalizado sirve para cualquier edad y cualquier relación, sobre todo cuando no puedes estar en persona.",
+      "items": {
+        "0": {
+          "title": "Para un amigo o tu pareja",
+          "text": "Una sorpresa original que hace reír y llorar a la vez, y que querrán compartir con todo el mundo."
+        },
+        "1": {
+          "title": "Para padres y abuelos",
+          "text": "Un regalo inolvidable para unos 50, 60 o 70 años: ponlo durante la celebración familiar y mira su reacción."
+        },
+        "2": {
+          "title": "Para un compañero o tu equipo",
+          "text": "Celebra el cumpleaños de un compañero de una forma que toda la oficina recordará, incluso en remoto. Pedidos grupales disponibles."
+        },
+        "3": {
+          "title": "Cuando vives lejos",
+          "text": "¿Otra ciudad u otro país? Envía un video que lleve la fiesta hasta allí, entregado a tiempo para el gran día."
+        }
+      }
+    },
+    "delivery": {
+      "title": "Entregado en 24–48 horas",
+      "text": "Los videos estándar se entregan por email en 24–48 horas, y en 12–24 horas con entrega Exprés. ¿El cumpleaños es mañana? Elige Exprés."
+    },
+    "guarantee": {
+      "title": "Garantía de devolución del 100 %",
+      "text": "Si tu video no te convence, avísanos en los 7 días siguientes a la entrega: lo repetimos gratis o te devolvemos todo el dinero."
+    },
+    "faq": {
+      "title": "Preguntas sobre videos de cumpleaños personalizados",
+      "items": {
+        "0": {
+          "q": "¿Cuánto cuesta un video de cumpleaños personalizado?",
+          "a": "El video parte del precio que ves arriba, en tu moneda. Las opciones como tu propia canción o la entrega Exprés se añaden al hacer el pedido, con el total visible antes de pagar."
+        },
+        "1": {
+          "q": "¿Quiénes son los bailarines?",
+          "a": "Un grupo de bailarines profesionales con base en Kenia, que graba cada video a mano. Cada pedido apoya su trabajo."
+        },
+        "2": {
+          "q": "¿Puedo incluir el nombre y una foto?",
+          "a": "Sí. Escribe su nombre en el mensaje y sube su foto: los bailarines gritan el mensaje y muestran la foto en el video."
+        },
+        "3": {
+          "q": "¿Cómo regalo el video?",
+          "a": "Recibes un enlace de descarga por email. Reenvíalo, compártelo por WhatsApp o redes sociales, o ponlo en una pantalla durante la fiesta."
+        },
+        "4": {
+          "q": "¿Y si el cumpleaños es mañana?",
+          "a": "Elige la entrega Exprés: tu video se entrega en 12–24 horas."
+        }
+      }
+    },
+    "final": {
+      "title": "Haz su cumpleaños inolvidable",
+      "text": "Dos minutos para pedirlo, un recuerdo para toda la vida."
+    }
   }
 }

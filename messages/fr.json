@@ -883,5 +883,114 @@
     "accept": "Accepter",
     "decline": "Refuser",
     "privacy": "Politique de confidentialité"
+  },
+  "ProductPage": {
+    "meta": {
+      "title": "Vidéo d'anniversaire personnalisée par des danseurs africains",
+      "description": "Commandez une vidéo d'anniversaire personnalisée : de vrais danseurs africains crient votre message et dansent pour la personne fêtée. Photo, musique au choix, livrée par e-mail en 24–48 h."
+    },
+    "breadcrumb": "Vidéo d'anniversaire personnalisée",
+    "badge": "Cadeau d'anniversaire original",
+    "h1": "Une vidéo d'anniversaire personnalisée, filmée par de vrais danseurs africains",
+    "intro": "Vous cherchez un cadeau d'anniversaire que personne n'a encore offert ? Nos danseurs tournent une vidéo rien que pour la personne que vous aimez : ils montrent sa photo, crient votre message avec une énergie folle et dansent pour la fêter. Vous commandez en ligne en deux minutes et recevez la vidéo par e-mail, prête à partager ou à diffuser pendant la fête.",
+    "priceFrom": "À partir de",
+    "cta": "Créer ma vidéo d'anniversaire",
+    "includes": {
+      "title": "Ce que contient votre vidéo",
+      "items": {
+        "0": {
+          "title": "Sa photo à l'écran",
+          "text": "Envoyez une photo de la personne fêtée : les danseurs la montrent dans la vidéo, pour qu'elle sache qu'elle a été faite pour elle."
+        },
+        "1": {
+          "title": "Votre message, crié haut et fort",
+          "text": "Écrivez un court message (100 caractères maximum) avec son prénom. Les danseurs le crient avec joie, dans une vraie fête, sans script."
+        },
+        "2": {
+          "title": "De vrais danseurs africains",
+          "text": "Tout un groupe de danseurs tourne votre vidéo en extérieur, avec une énergie authentique. Pas de modèle ni d'animation : de vraies personnes qui célèbrent."
+        },
+        "3": {
+          "title": "La musique de votre choix",
+          "text": "Laissez-nous choisir un morceau festif, ou envoyez votre propre chanson via un lien YouTube ou Spotify ou un fichier MP3."
+        }
+      }
+    },
+    "steps": {
+      "title": "Comment ça marche",
+      "items": {
+        "0": {
+          "title": "Personnalisez",
+          "text": "Ajoutez une photo, écrivez votre message, choisissez la musique et le délai de livraison. Aucun compte nécessaire."
+        },
+        "1": {
+          "title": "Payez en toute sécurité",
+          "text": "Par carte ou PayPal, dans votre devise. Vous recevez aussitôt un e-mail de confirmation."
+        },
+        "2": {
+          "title": "Recevez la vidéo",
+          "text": "Votre vidéo arrive par e-mail sous 24 à 48 h (12 à 24 h en Express), avec un lien de téléchargement à conserver pour toujours."
+        }
+      }
+    },
+    "occasions": {
+      "title": "Un cadeau pour chaque anniversaire",
+      "subtitle": "Une vidéo personnalisée convient à tous les âges et à toutes les relations, surtout quand vous ne pouvez pas être là en personne.",
+      "items": {
+        "0": {
+          "title": "Pour un ami ou votre moitié",
+          "text": "Une surprise originale qui fait rire et pleurer en même temps, et qu'on a envie de montrer à tout le monde."
+        },
+        "1": {
+          "title": "Pour vos parents et grands-parents",
+          "text": "Un cadeau marquant pour des 50, 60 ou 70 ans : diffusez-la pendant la fête de famille et observez leur réaction."
+        },
+        "2": {
+          "title": "Pour un collègue ou votre équipe",
+          "text": "Fêtez l'anniversaire d'un collègue d'une façon dont tout le bureau se souviendra, même en télétravail. Commandes groupées possibles."
+        },
+        "3": {
+          "title": "Quand vous vivez loin",
+          "text": "Autre ville, autre pays ? Envoyez une vidéo qui apporte la fête jusqu'à elle, livrée à temps pour le grand jour."
+        }
+      }
+    },
+    "delivery": {
+      "title": "Livrée en 24 à 48 h",
+      "text": "Les vidéos Standard sont livrées par e-mail sous 24 à 48 h, et sous 12 à 24 h avec la livraison Express. L'anniversaire est demain ? Choisissez Express."
+    },
+    "guarantee": {
+      "title": "Satisfait ou remboursé",
+      "text": "Si votre vidéo ne vous plaît pas, dites-le-nous dans les 7 jours suivant la livraison : nous la refaisons gratuitement ou vous remboursons intégralement."
+    },
+    "faq": {
+      "title": "Questions sur les vidéos d'anniversaire personnalisées",
+      "items": {
+        "0": {
+          "q": "Combien coûte une vidéo d'anniversaire personnalisée ?",
+          "a": "La vidéo démarre au prix affiché ci-dessus, dans votre devise. Les options comme votre propre chanson ou la livraison Express s'ajoutent au moment de la commande, avec le total affiché avant de payer."
+        },
+        "1": {
+          "q": "Qui sont les danseurs ?",
+          "a": "Un groupe de danseurs professionnels basé au Kenya, qui tourne chaque vidéo à la main. Chaque commande soutient leur travail."
+        },
+        "2": {
+          "q": "Puis-je ajouter le prénom et une photo ?",
+          "a": "Oui. Écrivez son prénom dans votre message et envoyez sa photo : les danseurs crient le message et montrent la photo dans la vidéo."
+        },
+        "3": {
+          "q": "Comment offrir la vidéo ?",
+          "a": "Vous recevez un lien de téléchargement par e-mail. Transférez-le, partagez-le sur WhatsApp ou les réseaux sociaux, ou diffusez la vidéo sur un écran pendant la fête."
+        },
+        "4": {
+          "q": "Et si l'anniversaire est demain ?",
+          "a": "Choisissez la livraison Express : votre vidéo est livrée sous 12 à 24 h."
+        }
+      }
+    },
+    "final": {
+      "title": "Rendez son anniversaire inoubliable",
+      "text": "Deux minutes pour commander, un souvenir pour la vie."
+    }
   }
 }

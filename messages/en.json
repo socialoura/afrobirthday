@@ -883,5 +883,114 @@
     "accept": "Accept",
     "decline": "Refuse",
     "privacy": "Privacy policy"
+  },
+  "ProductPage": {
+    "meta": {
+      "title": "Personalized Birthday Video from African Dancers",
+      "description": "Order a personalized birthday video: real African dancers shout your message and dance for them. Add a photo, choose the music, delivered by email in 24–48h."
+    },
+    "breadcrumb": "Personalized birthday video",
+    "badge": "Original birthday gift",
+    "h1": "A personalized birthday video, filmed by real African dancers",
+    "intro": "Looking for a birthday gift nobody has given before? Our dancers film a video just for the person you love: they hold up their photo, shout your message with huge energy and dance to celebrate them. You order online in two minutes and receive the video by email, ready to share or play at the party.",
+    "priceFrom": "Starting at",
+    "cta": "Create my birthday video",
+    "includes": {
+      "title": "What's in your video",
+      "items": {
+        "0": {
+          "title": "Their photo on screen",
+          "text": "Upload a photo of the birthday person: the dancers show it in the video so they know it was made for them."
+        },
+        "1": {
+          "title": "Your message, shouted out loud",
+          "text": "Write a short message (up to 100 characters) with their name. The dancers shout it with joy, in a real, unscripted celebration."
+        },
+        "2": {
+          "title": "Real African dancers",
+          "text": "A full group of dancers films your video outdoors, with authentic energy. No templates, no animation: real people celebrating."
+        },
+        "3": {
+          "title": "Music you choose",
+          "text": "Let us pick a festive birthday track, or send your own song with a YouTube or Spotify link or an MP3 file."
+        }
+      }
+    },
+    "steps": {
+      "title": "How it works",
+      "items": {
+        "0": {
+          "title": "Personalize",
+          "text": "Add a photo, write your message and choose the music and delivery speed. No account needed."
+        },
+        "1": {
+          "title": "Pay securely",
+          "text": "Pay by card or PayPal, in your own currency. You receive a confirmation email right away."
+        },
+        "2": {
+          "title": "Receive the video",
+          "text": "Your video arrives by email within 24–48 hours (12–24 hours with Express), with a download link to keep forever."
+        }
+      }
+    },
+    "occasions": {
+      "title": "A gift for every birthday",
+      "subtitle": "A personalized video works for any age and any relationship, especially when you can't be there in person.",
+      "items": {
+        "0": {
+          "title": "For a friend or partner",
+          "text": "An original surprise that makes them laugh and cry at the same time, and that they will want to share with everyone."
+        },
+        "1": {
+          "title": "For parents and grandparents",
+          "text": "A memorable gift for a 50th, 60th or 70th birthday: play it during the family celebration and watch their reaction."
+        },
+        "2": {
+          "title": "For a colleague or your team",
+          "text": "Celebrate a coworker's birthday in a way the whole office remembers, even with a remote team. Bulk orders available."
+        },
+        "3": {
+          "title": "When you live far away",
+          "text": "Different city or country? Send a video that brings the party to them, delivered on time for the big day."
+        }
+      }
+    },
+    "delivery": {
+      "title": "Delivered in 24–48 hours",
+      "text": "Standard videos are delivered by email within 24–48 hours, and within 12–24 hours with Express delivery. Ordering for tomorrow? Choose Express."
+    },
+    "guarantee": {
+      "title": "100% money-back guarantee",
+      "text": "If you are not happy with your video, tell us within 7 days of delivery: we remake it for free or refund you in full."
+    },
+    "faq": {
+      "title": "Questions about personalized birthday videos",
+      "items": {
+        "0": {
+          "q": "How much does a personalized birthday video cost?",
+          "a": "The video starts at the price shown above, in your currency. Options such as your own song or Express delivery are added at checkout, with the total shown before you pay."
+        },
+        "1": {
+          "q": "Who are the dancers?",
+          "a": "A group of professional dancers based in Kenya, who film every video by hand. Each order supports their work."
+        },
+        "2": {
+          "q": "Can I include the person's name and a photo?",
+          "a": "Yes. Write their name in your message and upload their photo: the dancers shout the message and show the photo in the video."
+        },
+        "3": {
+          "q": "How do I give the video as a gift?",
+          "a": "You receive a download link by email. Forward it, share it on WhatsApp or social media, or play it on a screen at the party."
+        },
+        "4": {
+          "q": "What if the birthday is tomorrow?",
+          "a": "Choose Express delivery: your video is delivered within 12–24 hours."
+        }
+      }
+    },
+    "final": {
+      "title": "Make their birthday unforgettable",
+      "text": "Two minutes to order, a lifetime memory for them."
+    }
   }
 }
