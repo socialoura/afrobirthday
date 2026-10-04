@@ -53,7 +53,7 @@ export default function FAQPageClient({ extraItems = [] }: { extraItems?: FAQIte
           <h1 className="heading-1 mb-4 text-white">{t("title")}</h1>
           <p className="text-white/60 text-lg max-w-2xl mx-auto">
             {t("intro")}{" "}
-            <a href="mailto:support@afrobirthday.com" className="text-primary hover:underline">
+            <a href="mailto:support@afrobirthday.com" className="text-primary underline underline-offset-2 hover:no-underline">
               {t("contactLink")}
             </a>
           </p>

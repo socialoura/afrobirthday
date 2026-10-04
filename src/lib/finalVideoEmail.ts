@@ -5,6 +5,7 @@ import {
 } from "@/lib/db";
 import { sendEmailWithResend } from "@/lib/resend";
 import {
+  finalVideoSubject,
   renderFinalVideoEmailHtml,
   renderFinalVideoEmailText,
 } from "@/lib/orderEmailTemplates";
@@ -34,13 +35,12 @@ export async function deliverFinalVideoEmail(
     await updateOrderFinalVideoUrl(order.id, finalUrl);
   }
 
-  const shortRef = order.id.slice(0, 8);
   const siteUrl = SITE_URL;
   const emailVideoUrl = `${siteUrl.replace(/\/$/, "")}/v/${order.id}`;
 
   await sendEmailWithResend({
     to: order.email,
-    subject: `Your AfroBirthday video is ready — order ${shortRef}`,
+    subject: finalVideoSubject(order),
     html: renderFinalVideoEmailHtml(order, emailVideoUrl),
     text: renderFinalVideoEmailText(order, emailVideoUrl),
     replyTo: "support@afrobirthday.com",

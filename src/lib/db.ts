@@ -156,7 +156,7 @@ async function runEnsureOrdersTable() {
   const [{ ready }] = await sql`
     SELECT EXISTS (
       SELECT 1 FROM information_schema.columns
-      WHERE table_name = 'orders' AND column_name = 'checkout_variant'
+      WHERE table_name = 'orders' AND column_name = 'overdue_alert_level'
     ) AS ready
   `;
   if (ready) return;
@@ -306,6 +306,13 @@ async function runEnsureOrdersTable() {
   await sql`
     ALTER TABLE orders
     ADD COLUMN IF NOT EXISTS checkout_variant text
+  `;
+
+  // Highest delivery-deadline alert already sent to the team for the order
+  // (0 none, 1 "due soon", 2 "late"), so the hourly check alerts once per level.
+  await sql`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS overdue_alert_level smallint NOT NULL DEFAULT 0
   `;
 }
 
@@ -725,6 +732,57 @@ export async function markOrderCanceled(
   `;
 }
 
+/** Paid orders still waiting for their video, oldest first (production queue). */
+export async function getUndeliveredPaidOrders(): Promise<Order[]> {
+  await ensureOrdersTable();
+  const sql = getSql();
+  const rows = await sql`
+    SELECT * FROM orders
+    WHERE status = 'paid'
+      AND coalesce(order_status, 'pending') NOT IN ('completed', 'cancelled')
+      AND coalesce(final_video_url, '') = ''
+    ORDER BY created_at ASC
+  `;
+  return rows as unknown as Order[];
+}
+
+export async function getOrderByPayPalCapture(captureId: string): Promise<Order | null> {
+  const sql = getSql();
+  const rows = await sql`SELECT * FROM orders WHERE paypal_capture_id = ${captureId} LIMIT 1`;
+  return (rows[0] as unknown as Order) ?? null;
+}
+
+/**
+ * Takes a refunded PayPal order out of revenue and production. Returns the
+ * order only the first time (PayPal retries webhooks), null otherwise.
+ */
+export async function markOrderRefundedByPayPalCapture(
+  captureId: string,
+  note: string
+): Promise<Order | null> {
+  const sql = getSql();
+  const rows = await sql`
+    UPDATE orders
+    SET status = 'refunded',
+        order_status = 'cancelled',
+        notes = trim(both E'\n' from coalesce(notes, '') || E'\n' || ${note})
+    WHERE paypal_capture_id = ${captureId} AND status <> 'refunded'
+    RETURNING *
+  `;
+  return (rows[0] as unknown as Order) ?? null;
+}
+
+/** Records an alert level; false when that level (or higher) was already sent. */
+export async function claimOverdueAlertLevel(orderId: string, level: number): Promise<boolean> {
+  const sql = getSql();
+  const rows = await sql`
+    UPDATE orders SET overdue_alert_level = ${level}
+    WHERE id = ${orderId}::uuid AND overdue_alert_level < ${level}
+    RETURNING id
+  `;
+  return rows.length === 1;
+}
+
 export async function markConfirmationEmailSent(orderId: string) {
   const sql = getSql();
   await sql`
@@ -897,6 +955,7 @@ export type Order = {
   client_ip: string | null;
   client_user_agent: string | null;
   checkout_variant: string | null;
+  overdue_alert_level: number;
 };
 
 // Persist best-effort media generated at payment time (voiceover MP3, and the

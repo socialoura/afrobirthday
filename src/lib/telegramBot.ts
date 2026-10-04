@@ -274,18 +274,57 @@ export function buildOrdersListMessage(orders: Order[]): string {
   return message;
 }
 
+// Delivery promise (hours) and the point at which the team is warned that an
+// order is about to miss it. 3 of 3 PayPal "not received" disputes in Q3 2026
+// followed late deliveries, and the old once-a-day check only fired after
+// the deadline.
+const DEADLINE_HOURS = { express: 24, standard: 48 } as const;
+const WARN_HOURS = { express: 16, standard: 36 } as const;
+
+function orderAgeHours(order: Order): number {
+  return (Date.now() - new Date(order.created_at).getTime()) / 3_600_000;
+}
+
+/** 0 = on track, 1 = due soon, 2 = late. */
+export function deadlineLevel(order: Order): 0 | 1 | 2 {
+  const kind = order.delivery_method === "express" ? "express" : "standard";
+  const age = orderAgeHours(order);
+  if (age > DEADLINE_HOURS[kind]) return 2;
+  if (age >= WARN_HOURS[kind]) return 1;
+  return 0;
+}
+
+/** One message per order and level, with what is needed to deliver now. */
+export async function sendDeadlineAlert(order: Order, level: 1 | 2) {
+  const kind = order.delivery_method === "express" ? "express" : "standard";
+  const deadline = DEADLINE_HOURS[kind];
+  const age = orderAgeHours(order);
+  const label = kind === "express" ? "⚡ EXPRESS" : "📦 Standard";
+
+  let message =
+    level === 2
+      ? `🔴 <b>EN RETARD</b> — ${label} · ${Math.round(age - deadline)} h après l'échéance de ${deadline} h\n`
+      : `⏳ <b>Bientôt en retard</b> — ${label} · reste ~${Math.max(1, Math.round(deadline - age))} h (échéance ${deadline} h)\n`;
+  message += `<b>ID :</b> <code>${order.id.slice(0, 8)}</code> · ${escapeHtml(order.country ?? "?")} · ${escapeHtml(order.email)}\n`;
+  if (order.message?.trim()) message += `<b>Texte :</b> <code>${escapeHtml(order.message.trim())}</code>\n`;
+
+  try {
+    const siteUrl = resolveNotificationUrl();
+    const token = createUploadToken(String(order.id));
+    message += `\n📋 <a href="${siteUrl}/admin/recap/${order.id}?t=${token}">Récap</a>  ·  🎬 <a href="${siteUrl}/admin/upload/${order.id}?t=${token}">Déposer la vidéo</a>`;
+  } catch {
+    // Missing secret: the alert still goes out without links.
+  }
+
+  await sendTelegramMessage(message);
+}
+
 export function getOverdueOrders(orders: Order[]): Order[] {
-  const now = Date.now();
   return orders.filter((order) => {
     if (order.status !== "paid") return false;
     if (order.order_status === "completed" || order.order_status === "cancelled") return false;
     if (order.final_video_url) return false;
-
-    const age = now - new Date(order.created_at).getTime();
-    const isExpress = order.delivery_method === "express";
-    const threshold = isExpress ? 24 * 60 * 60 * 1000 : 48 * 60 * 60 * 1000;
-
-    return age > threshold;
+    return deadlineLevel(order) === 2;
   });
 }
 

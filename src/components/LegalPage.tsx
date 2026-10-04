@@ -27,17 +27,17 @@ const SUPPORT_EMAIL = "support@afrobirthday.com";
 const richTags = {
   b: (chunks: ReactNode) => <strong className="font-semibold text-white">{chunks}</strong>,
   email: () => (
-    <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary hover:underline">
+    <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary underline underline-offset-2 hover:no-underline">
       {SUPPORT_EMAIL}
     </a>
   ),
   link: (chunks: ReactNode) => (
-    <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary hover:underline">
+    <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary underline underline-offset-2 hover:no-underline">
       {chunks}
     </a>
   ),
   refund: (chunks: ReactNode) => (
-    <Link href="/refund" className="text-primary hover:underline">
+    <Link href="/refund" className="text-primary underline underline-offset-2 hover:no-underline">
       {chunks}
     </Link>
   ),

@@ -12,6 +12,7 @@ import { notifyOrderPaid } from "@/lib/discordWebhook";
 import { handlePossibleReferralRedemption } from "@/lib/referralEmail";
 import { sendEmailWithResend } from "@/lib/resend";
 import {
+  orderConfirmationSubject,
   renderOrderConfirmationEmailHtml,
   renderOrderConfirmationEmailText,
 } from "@/lib/orderEmailTemplates";
@@ -32,7 +33,7 @@ export async function sendOrderConfirmationEmail(order: Order): Promise<boolean>
   try {
     await sendEmailWithResend({
       to: order.email,
-      subject: `AfroBirthday order confirmation (${order.id})`,
+      subject: orderConfirmationSubject(order),
       html: renderOrderConfirmationEmailHtml(order),
       text: renderOrderConfirmationEmailText(order),
     });

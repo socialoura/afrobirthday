@@ -1,6 +1,7 @@
 import type { Order } from "@/lib/db";
 import { buildUnsubscribeUrl } from "@/lib/emailOptOut";
 import { EMAIL_CAMPAIGNS, withCampaign, type EmailCampaign } from "@/lib/campaign";
+import { emailCopy, emailLocale, fill } from "@/lib/emailCopy";
 
 /**
  * Link back to the order form, tagged so the e-mail channel has a
@@ -11,117 +12,147 @@ function orderLink(campaign: EmailCampaign) {
   return escapeHtml(withCampaign("/#order", campaign));
 }
 
+/** Short order reference shown to customers (the full UUID is unreadable). */
+export function orderRef(order: Order): string {
+  return order.id.slice(0, 8).toUpperCase();
+}
+
+function formatOrderDate(order: Order): string {
+  if (!order.created_at) return "";
+  try {
+    return new Intl.DateTimeFormat(emailLocale(order), {
+      dateStyle: "long",
+      timeStyle: "short",
+      timeZone: "Europe/Paris",
+    }).format(new Date(order.created_at));
+  } catch {
+    return new Date(order.created_at).toISOString().slice(0, 16).replace("T", " ");
+  }
+}
+
+function dirAttr(order: Order): string {
+  return emailLocale(order) === "ar" ? ` dir="rtl"` : "";
+}
+
+export function orderConfirmationSubject(order: Order): string {
+  return fill(emailCopy(order).confirmSubject, { ref: orderRef(order) });
+}
+
 export function renderOrderConfirmationEmailHtml(order: Order) {
-  const createdAt = order.created_at ? new Date(order.created_at).toLocaleString() : "";
-  const delivery = order.delivery_method === "express" ? "Express (12-24 hours)" : "Standard (24-48 hours)";
-  const music = order.music_option === "custom" ? "Custom song" : "We choose music";
+  const c = emailCopy(order);
+  const createdAt = formatOrderDate(order);
+  const delivery = order.delivery_method === "express" ? c.deliveryExpress : c.deliveryStandard;
+  const music = order.music_option === "custom" ? c.musicCustom : c.musicDefault;
 
   return `
-    <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height: 1.5; color: #111;">
-      <h2 style="margin:0 0 12px;">Thanks for your order 🎂</h2>
-      <p style="margin:0 0 16px;">We received your order and payment successfully.</p>
+    <div${dirAttr(order)} style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height: 1.5; color: #111;">
+      <h2 style="margin:0 0 12px;">${c.confirmTitle}</h2>
+      <p style="margin:0 0 16px;">${c.confirmIntro}</p>
 
       <div style="border:1px solid #eee; border-radius:12px; padding:16px;">
-        <h3 style="margin:0 0 12px;">Order details</h3>
-        <p style="margin:0 0 6px;"><strong>Order ID:</strong> ${order.id}</p>
-        ${createdAt ? `<p style="margin:0 0 6px;"><strong>Date:</strong> ${createdAt}</p>` : ""}
-        <p style="margin:0 0 6px;"><strong>Total:</strong> ${formatOrderTotal(order)}</p>
-        <p style="margin:0 0 6px;"><strong>Delivery:</strong> ${delivery}</p>
-        <p style="margin:0 0 6px;"><strong>Music:</strong> ${music}</p>
-        ${order.music_link ? `<p style="margin:0 0 6px;"><strong>Music link:</strong> ${escapeHtml(order.music_link)}</p>` : ""}
-        ${order.dance_extended ? `<p style="margin:0 0 6px;"><strong>Dance extended version:</strong> Yes</p>` : ""}
-        <p style="margin:12px 0 0;"><strong>Message:</strong><br/>${escapeHtml(order.message)}</p>
+        <h3 style="margin:0 0 12px;">${c.details}</h3>
+        <p style="margin:0 0 6px;"><strong>${c.orderRef}:</strong> ${orderRef(order)}</p>
+        ${createdAt ? `<p style="margin:0 0 6px;"><strong>${c.date}:</strong> ${escapeHtml(createdAt)}</p>` : ""}
+        <p style="margin:0 0 6px;"><strong>${c.total}:</strong> ${formatOrderTotal(order)}</p>
+        <p style="margin:0 0 6px;"><strong>${c.delivery}:</strong> ${delivery}</p>
+        <p style="margin:0 0 6px;"><strong>${c.music}:</strong> ${music}</p>
+        ${order.music_link ? `<p style="margin:0 0 6px;"><strong>${c.musicLink}:</strong> ${escapeHtml(order.music_link)}</p>` : ""}
+        ${order.dance_extended ? `<p style="margin:0 0 6px;"><strong>${c.danceExtended}:</strong> ${c.yes}</p>` : ""}
+        <p style="margin:12px 0 0;"><strong>${c.message}:</strong><br/>${escapeHtml(order.message)}</p>
       </div>
 
-      <p style="margin:16px 0 0;">
-        We’ll deliver your video by email as soon as it’s ready.
-      </p>
+      <p style="margin:16px 0 0;">${c.confirmOutro}</p>
 
-      <p style="margin:16px 0 0; font-size: 12px; color: #555;">
-        Need help? Reply to this email.
-      </p>
+      <p style="margin:16px 0 0; font-size: 12px; color: #555;">${c.help}</p>
     </div>
   `;
 }
 
+export function finalVideoSubject(order: Order): string {
+  return fill(emailCopy(order).videoSubject, { ref: orderRef(order) });
+}
+
 export function renderFinalVideoEmailHtml(order: Order, videoUrl: string) {
+  const c = emailCopy(order);
   const safeUrl = escapeHtml(videoUrl);
   return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 560px; margin: 0 auto; padding: 16px;">
-      <p style="margin:0 0 16px;">Hi,</p>
+    <div${dirAttr(order)} style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 560px; margin: 0 auto; padding: 16px;">
+      <p style="margin:0 0 16px;">${c.hi}</p>
 
-      <p style="margin:0 0 16px;">
-        Your personalized birthday video is ready. You can view and download it from the link below.
-      </p>
+      <p style="margin:0 0 16px;">${c.videoReady}</p>
 
       <p style="margin: 0 0 16px;">
-        <a href="${safeUrl}" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
-          View your video
+        <a href="${safeUrl}" style="display:inline-block; background:#c2410c; color:#fff; text-decoration:none; font-weight:600; padding:12px 20px; border-radius:10px;">
+          ${c.videoCta}
         </a>
       </p>
 
       <p style="margin:0 0 16px; font-size: 14px; color:#555;">
-        If the link above doesn't open, copy and paste this URL into your browser:<br/>
+        ${c.videoFallback}<br/>
         <span style="word-break: break-all;">${safeUrl}</span>
       </p>
 
-      <p style="margin:0 0 16px;">
-        Your order reference is <strong>${order.id}</strong>. We'd love to hear what you think — just reply to this email if you have any feedback or questions.
-      </p>
+      <p style="margin:0 0 16px;">${fill(c.videoReference, { ref: `<strong>${orderRef(order)}</strong>` })}</p>
 
       <p style="margin:0 0 16px;">
-        Thanks for choosing AfroBirthday,<br/>
-        The AfroBirthday team
+        ${c.thanks}<br/>
+        ${c.team}
       </p>
 
       <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
 
       <p style="margin:0; font-size: 12px; color: #888;">
-        AfroBirthday — Personalized birthday videos<br/>
+        ${c.footerTagline}<br/>
         Support: <a href="mailto:support@afrobirthday.com" style="color: #888;">support@afrobirthday.com</a><br/>
-        You're receiving this email because you placed an order on afrobirthday.com.
+        ${c.footerReason}
       </p>
     </div>
   `;
 }
 
 export function renderFinalVideoEmailText(order: Order, videoUrl: string) {
+  const c = emailCopy(order);
   return [
-    "Hi,",
+    c.hi,
     "",
-    "Your personalized birthday video is ready. You can view and download it from the link below:",
+    c.videoReady,
     videoUrl,
     "",
-    `Your order reference is ${order.id}. We'd love to hear what you think — just reply to this email if you have any feedback or questions.`,
+    fill(c.videoReference, { ref: orderRef(order) }),
     "",
-    "Thanks for choosing AfroBirthday,",
-    "The AfroBirthday team",
+    c.thanks,
+    c.team,
     "",
     "—",
-    "AfroBirthday — Personalized birthday videos",
+    c.footerTagline,
     "Support: support@afrobirthday.com",
-    "You're receiving this email because you placed an order on afrobirthday.com.",
+    c.footerReason,
   ].join("\n");
 }
 
 export function renderOrderConfirmationEmailText(order: Order) {
-  const delivery = order.delivery_method === "express" ? "Express (12-24 hours)" : "Standard (24-48 hours)";
-  const music = order.music_option === "custom" ? "Custom song" : "We choose music";
+  const c = emailCopy(order);
+  const delivery = order.delivery_method === "express" ? c.deliveryExpress : c.deliveryStandard;
+  const music = order.music_option === "custom" ? c.musicCustom : c.musicDefault;
 
   return [
-    "Thanks for your order!",
+    c.confirmTitle,
     "",
-    `Order ID: ${order.id}`,
-    `Total: ${formatOrderTotal(order)}`,
-    `Delivery: ${delivery}`,
-    `Music: ${music}`,
-    order.music_link ? `Music link: ${order.music_link}` : "",
-    order.dance_extended ? "Dance extended version: Yes" : "",
+    c.confirmIntro,
     "",
-    "Message:",
+    `${c.orderRef}: ${orderRef(order)}`,
+    `${c.date}: ${formatOrderDate(order)}`,
+    `${c.total}: ${formatOrderTotal(order)}`,
+    `${c.delivery}: ${delivery}`,
+    `${c.music}: ${music}`,
+    order.music_link ? `${c.musicLink}: ${order.music_link}` : "",
+    order.dance_extended ? `${c.danceExtended}: ${c.yes}` : "",
+    "",
+    `${c.message}:`,
     order.message,
     "",
-    "We’ll deliver your video by email as soon as it’s ready.",
+    c.confirmOutro,
+    c.help,
   ]
     .filter(Boolean)
     .join("\n");
@@ -300,36 +331,32 @@ export function renderAnnualReminderEmailText(order: Order, promoCode: string) {
   ], unsubscribeUrl);
 }
 
+export function abandonedCartSubject(order: Order): string {
+  return emailCopy(order).cartSubject;
+}
+
 export function renderAbandonedCartEmailHtml(order: Order, resumeUrl: string) {
+  const c = emailCopy(order);
   const unsubscribeUrl = buildUnsubscribeUrl(order.email);
   const safeUrl = escapeHtml(resumeUrl);
   return wrapEmailHtml(`
-    <p style="margin:0 0 16px;">Hi,</p>
-    <p style="margin:0 0 16px;">
-      Looks like you started a personalized birthday video but didn't finish
-      checking out. Your details are saved — pick up right where you left off.
-    </p>
+    <div${dirAttr(order)}>
+    <p style="margin:0 0 16px;">${c.hi}</p>
+    <p style="margin:0 0 16px;">${c.cartBody}</p>
     <p style="margin: 0 0 16px;">
-      <a href="${safeUrl}" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
-        Finish your order
+      <a href="${safeUrl}" style="display:inline-block; background:#c2410c; color:#fff; text-decoration:none; font-weight:600; padding:12px 20px; border-radius:10px;">
+        ${c.cartCta}
       </a>
     </p>
-    <p style="margin:0 0 16px;">
-      The AfroBirthday team
-    </p>
+    <p style="margin:0 0 16px;">${c.team}</p>
+    </div>
   `, unsubscribeUrl);
 }
 
 export function renderAbandonedCartEmailText(order: Order, resumeUrl: string) {
+  const c = emailCopy(order);
   const unsubscribeUrl = buildUnsubscribeUrl(order.email);
-  return wrapEmailText([
-    "Hi,",
-    "",
-    "Looks like you started a personalized birthday video but didn't finish checking out. Your details are saved — pick up right where you left off:",
-    resumeUrl,
-    "",
-    "The AfroBirthday team",
-  ], unsubscribeUrl);
+  return wrapEmailText([c.hi, "", c.cartBody, resumeUrl, "", c.team], unsubscribeUrl);
 }
 
 export function renderReferralCodeEmailHtml(

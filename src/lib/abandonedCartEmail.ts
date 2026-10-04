@@ -2,6 +2,7 @@ import { type Order, markAbandonedCartEmailSent } from "@/lib/db";
 import { sendEmailWithResend } from "@/lib/resend";
 import { buildMarketingEmailHeaders } from "@/lib/emailOptOut";
 import {
+  abandonedCartSubject,
   renderAbandonedCartEmailHtml,
   renderAbandonedCartEmailText,
 } from "@/lib/orderEmailTemplates";
@@ -15,7 +16,7 @@ export async function sendAbandonedCartEmail(order: Order): Promise<void> {
 
   await sendEmailWithResend({
     to: order.email,
-    subject: "Complete your AfroBirthday order",
+    subject: abandonedCartSubject(order),
     html: renderAbandonedCartEmailHtml(order, resumeUrl),
     text: renderAbandonedCartEmailText(order, resumeUrl),
     replyTo: "support@afrobirthday.com",
