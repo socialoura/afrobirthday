@@ -16,6 +16,7 @@ const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 
 let instance: PostHog | null = null;
 let loading: Promise<void> | null = null;
+let landingPageviewSent = false;
 const pending: Array<(ph: PostHog) => void> = [];
 
 export function withPostHog(fn: (ph: PostHog) => void): void {
@@ -65,6 +66,17 @@ export function loadPostHog(): Promise<void> {
 
       // The catch-all for URLs the masking above does not know about.
       sanitize_properties: (properties) => redactUrlProperties(properties),
+
+      // The landing page view is recorded when PostHog loads, seconds after
+      // the visit began and possibly after a queued click: date it to the
+      // navigation itself, or funnels would see the click before the view.
+      before_send: (event) => {
+        if (event && event.event === "$pageview" && !landingPageviewSent) {
+          landingPageviewSent = true;
+          event.timestamp = new Date(performance.timeOrigin);
+        }
+        return event;
+      },
 
       loaded: (ph) => {
         if (process.env.NODE_ENV === "development") ph.debug();
