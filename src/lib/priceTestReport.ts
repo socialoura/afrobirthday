@@ -32,7 +32,7 @@ const BOOTSTRAP_ITERATIONS = 2000;
  * to a group the same way the site assigned them at the time; customers need
  * nothing, they are grouped by the currency they were actually shown.
  */
-export const CURRENCY_BY_COUNTRY_SINCE = new Date("2026-10-04T15:30:00Z");
+export const CURRENCY_BY_COUNTRY_SINCE = new Date("2026-10-04T15:07:00Z");
 
 const EURO_COUNTRIES = new Set([
   "FR", "DE", "ES", "IT", "NL", "BE", "PT", "IE", "AT", "FI", "GR", "LU",
