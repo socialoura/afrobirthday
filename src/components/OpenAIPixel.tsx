@@ -6,6 +6,7 @@ import Script from "next/script";
 import { CONSENT_EVENT, hasAdsConsent } from "@/lib/consent";
 import { pixelMeasure } from "@/lib/adPixels";
 import { useSiteSettled } from "@/lib/useSiteSettled";
+import { isOperatorPage } from "@/lib/pageSettled";
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_OPENAI_PIXEL_ID;
 
@@ -47,7 +48,7 @@ export default function OpenAIPixel() {
   // settled, like the other third-party scripts (see pageSettled.ts).
   const settled = useSiteSettled();
 
-  if (!PIXEL_ID || !enabled) return null;
+  if (!PIXEL_ID || !enabled || isOperatorPage(pathname ?? "")) return null;
 
   return (
     <>

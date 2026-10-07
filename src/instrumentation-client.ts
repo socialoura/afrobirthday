@@ -2,7 +2,7 @@ import { trackAttributedWebVitals } from "@/lib/webVitalsAttribution";
 import { captureFirstTouch } from "@/lib/attribution";
 import { installTranslatorGuard } from "@/lib/translatorGuard";
 import { loadPostHog } from "@/lib/posthogClient";
-import { whenPageSettled } from "@/lib/pageSettled";
+import { isOperatorPage, whenPageSettled } from "@/lib/pageSettled";
 
 // First, before React hydrates: browser translation must not crash the page.
 installTranslatorGuard();
@@ -16,5 +16,6 @@ whenPageSettled().then(loadPostHog);
 trackAttributedWebVitals();
 
 // Outside PostHog on purpose: the order's own attribution must not depend on
-// an analytics token being present.
-captureFirstTouch();
+// an analytics token being present. Not on the operator's pages: their phone
+// would otherwise carry an admin link as its "first touch".
+if (!isOperatorPage(window.location.pathname)) captureFirstTouch();

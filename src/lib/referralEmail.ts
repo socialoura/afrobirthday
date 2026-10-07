@@ -11,6 +11,8 @@ import {
 } from "@/lib/db";
 import { sendEmailWithResend } from "@/lib/resend";
 import { buildMarketingEmailHeaders } from "@/lib/emailOptOut";
+import { trackEmailSent } from "@/lib/analyticsServer";
+import { EMAIL_CAMPAIGNS } from "@/lib/campaign";
 import {
   renderReferralCodeEmailHtml,
   renderReferralCodeEmailText,
@@ -54,6 +56,8 @@ export async function generateAndSendReferralCode(
     replyTo: "support@afrobirthday.com",
     headers: buildMarketingEmailHeaders(order.email, order.id),
   });
+
+  await trackEmailSent(EMAIL_CAMPAIGNS.REFERRAL_CODE, order.email, { order_id: order.id });
 
   await markReferralEmailSent(order.id);
 }
@@ -103,4 +107,6 @@ export async function handlePossibleReferralRedemption(redeemedOrder: Order): Pr
     replyTo: "support@afrobirthday.com",
     headers: buildMarketingEmailHeaders(promoCode.owner_email),
   });
+
+  await trackEmailSent(EMAIL_CAMPAIGNS.REFERRAL_REWARD, promoCode.owner_email);
 }

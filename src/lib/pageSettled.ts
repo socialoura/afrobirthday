@@ -17,6 +17,15 @@ const INTERACTION_EVENTS = ["pointerdown", "keydown", "touchstart", "scroll"] as
 
 let settled: Promise<void> | null = null;
 
+/**
+ * The operator's own pages (dashboard, upload and recap magic links). They
+ * were counted as visitors in PostHog and GA and sent order ids there; no
+ * analytics or ad tag loads on them.
+ */
+export function isOperatorPage(pathname: string): boolean {
+  return pathname === "/admin" || pathname.startsWith("/admin/");
+}
+
 function isUrgentPage(pathname: string) {
   return /\/success(\/|$)/.test(pathname) || pathname.startsWith("/paypal/");
 }

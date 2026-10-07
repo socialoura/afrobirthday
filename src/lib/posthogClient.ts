@@ -1,6 +1,7 @@
 import type { PostHog } from "posthog-js";
 import { redactUrlProperties } from "@/lib/redactUrl";
 import { CONSENT_EVENT, hasAdsConsent } from "@/lib/consent";
+import { isOperatorPage } from "@/lib/pageSettled";
 
 /**
  * PostHog, loaded once the page has settled (see pageSettled.ts) instead of
@@ -21,6 +22,8 @@ const pending: Array<(ph: PostHog) => void> = [];
 
 export function withPostHog(fn: (ph: PostHog) => void): void {
   if (typeof window === "undefined" || !token) return;
+  // PostHog never loads there: queuing would only hold calls forever.
+  if (isOperatorPage(window.location.pathname)) return;
   if (instance) {
     fn(instance);
     return;
@@ -30,6 +33,7 @@ export function withPostHog(fn: (ph: PostHog) => void): void {
 
 export function loadPostHog(): Promise<void> {
   if (typeof window === "undefined" || !token) return Promise.resolve();
+  if (isOperatorPage(window.location.pathname)) return Promise.resolve();
   if (loading) return loading;
 
   loading = import("posthog-js").then(({ default: posthog }) => {

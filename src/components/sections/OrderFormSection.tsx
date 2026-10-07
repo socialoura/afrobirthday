@@ -294,8 +294,14 @@ function StepIndicator({
   );
 }
 
+/** Analytics amounts: floating-point totals arrived as 29.979999999999997. */
+function toCents(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
 export default function OrderFormSection() {
   const t = useTranslations("OrderForm");
+  const tHero = useTranslations("Hero");
   const activeLocale = useLocale();
   const orderSchema = useMemo(() => createOrderSchema(t), [t]);
 
@@ -886,8 +892,8 @@ export default function OrderFormSection() {
       music_option: musicOption,
       delivery_method: deliveryMethod,
       total_price: totalPrice,
-      total_price_local: finalTotal,
-      total_price_usd: finalTotalUsd,
+      total_price_local: toCents(finalTotal),
+      total_price_usd: toCents(finalTotalUsd),
       currency: localCurrency,
     });
     setCurrentStep(3);
@@ -928,8 +934,8 @@ export default function OrderFormSection() {
       music_option: musicOption,
       delivery_method: deliveryMethod,
       total_price: totalPrice,
-      total_price_local: finalTotal,
-      total_price_usd: finalTotalUsd,
+      total_price_local: toCents(finalTotal),
+      total_price_usd: toCents(finalTotalUsd),
       currency: localCurrency,
       ...(appliedPromo ? { promo_code: appliedPromo.code } : {}),
     });
@@ -978,8 +984,8 @@ export default function OrderFormSection() {
           provider: "paypal",
           order_id: orderId,
           total_price: totalPrice,
-          total_price_local: finalTotal,
-          total_price_usd: finalTotalUsd,
+          total_price_local: toCents(finalTotal),
+          total_price_usd: toCents(finalTotalUsd),
           currency: localCurrency,
         });
         window.location.href = payload.url;
@@ -990,8 +996,8 @@ export default function OrderFormSection() {
         payment_method: "paypal",
         reason: error instanceof Error ? error.message : String(error),
         total_price: totalPrice,
-        total_price_local: finalTotal,
-        total_price_usd: finalTotalUsd,
+        total_price_local: toCents(finalTotal),
+        total_price_usd: toCents(finalTotalUsd),
         currency: localCurrency,
       });
       setPaypalError(t("alerts.genericError"));
@@ -1064,8 +1070,8 @@ export default function OrderFormSection() {
         payment_method: "card",
         reason: err instanceof Error ? err.message : String(err),
         total_price: totalPrice,
-        total_price_local: finalTotal,
-        total_price_usd: finalTotalUsd,
+        total_price_local: toCents(finalTotal),
+        total_price_usd: toCents(finalTotalUsd),
         currency: localCurrency,
       });
       setPaymentSetupError(t("payment.setupError"));
@@ -1107,7 +1113,7 @@ export default function OrderFormSection() {
     // recorded either way.
     captureEvent(ANALYTICS_EVENTS.PAYMENT_CTA_CLICKED, {
       payment_method: "card",
-      total_price_usd: finalTotalUsd,
+      total_price_usd: toCents(finalTotalUsd),
       currency: localCurrency,
     });
 
@@ -1125,8 +1131,8 @@ export default function OrderFormSection() {
       music_option: musicOption,
       delivery_method: deliveryMethod,
       total_price: totalPrice,
-      total_price_local: finalTotal,
-      total_price_usd: finalTotalUsd,
+      total_price_local: toCents(finalTotal),
+      total_price_usd: toCents(finalTotalUsd),
       currency: localCurrency,
       ...(appliedPromo ? { promo_code: appliedPromo.code } : {}),
     });
@@ -1796,6 +1802,19 @@ export default function OrderFormSection() {
                   the trust tiles renders further down). */}
               {currentStep === 3 && (
                 <div className="text-center space-y-2">
+                  {/* Social proof where 30 % of visitors stopped (PostHog,
+                      Oct 2026): they saw the price but did not press pay. */}
+                  <div className="text-sm text-white/80">
+                    <p>
+                      <span className="text-secondary" aria-hidden="true">★★★★★</span>{" "}
+                      <span className="font-semibold">{tHero("trust.rating")}</span>
+                      {" · "}
+                      {tHero("ordersThisYear")}
+                    </p>
+                    <p className="text-xs text-white/60 italic mt-1">
+                      &ldquo;{tHero("miniReview.text")}&rdquo; — {tHero("miniReview.name")}
+                    </p>
+                  </div>
                   <p className="text-sm text-white/80">
                     {t("reassurance", {
                       time: t(deliveryMethod === "express" ? "delivery.express.time" : "delivery.standard.time"),

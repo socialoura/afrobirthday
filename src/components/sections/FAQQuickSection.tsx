@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 export default function FAQQuickSection() {
   const t = useTranslations("FAQQuick");
+  const tProduct = useTranslations("ProductPage");
   const quickFaqs = [
     {
       question: t("items.delivery.q"),
@@ -39,12 +40,19 @@ export default function FAQQuickSection() {
           ))}
         </div>
 
-        <div className="text-center mt-8">
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
           <Link
             href="/faq"
             className="inline-flex items-center gap-1 text-primary font-medium hover:underline"
           >
             {t("seeAll")}
+            <ChevronRight size={18} />
+          </Link>
+          <Link
+            href="/personalized-birthday-video"
+            className="inline-flex items-center gap-1 text-primary font-medium hover:underline"
+          >
+            {tProduct("breadcrumb")}
             <ChevronRight size={18} />
           </Link>
         </div>

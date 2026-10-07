@@ -28,17 +28,25 @@ export async function GET() {
 - Your own song: +${usd(p.customSong)}
 - Express delivery (12-24h): +${usd(p.expressDelivery)}
 
+## Good fit for
+
+- An original birthday gift for a friend, partner, parent or grandparent (50th, 60th, 70th birthdays).
+- A colleague or team birthday, including remote teams; bulk orders are possible.
+- Someone who lives far away: the video is delivered digitally, worldwide (customers in 50+ countries).
+- Last-minute gifts: Express delivery arrives within 12-24 hours.
+
 ## Guarantee and support
 
 - 100% money-back guarantee within 7 days of delivery.
 - Free remake within 24 hours if the personalization contains an error on our side.
 - Photos are deleted within 30 days after delivery.
 - Support: support@afrobirthday.com
-- Languages: English, French, Spanish, German, Italian, Portuguese, Dutch, Arabic, Hindi, Chinese.
+- Languages: English, French, Spanish, German, Italian, Portuguese, Dutch, Arabic, Hindi, Chinese, Russian.
 
 ## Key pages
 
 - [Order a video (English)](https://www.afrobirthday.com/en#order)
+- [Personalized birthday video: what is included, examples, FAQ](https://www.afrobirthday.com/en/personalized-birthday-video)
 - [How to order](https://www.afrobirthday.com/en/how-to-order)
 - [FAQ](https://www.afrobirthday.com/en/faq)
 - [Our story](https://www.afrobirthday.com/en/our-story)
@@ -46,6 +54,8 @@ export async function GET() {
 - [Terms](https://www.afrobirthday.com/en/terms)
 - [Privacy](https://www.afrobirthday.com/en/privacy)
 - [Commander en français](https://www.afrobirthday.com/fr#order)
+- [Pedir en español](https://www.afrobirthday.com/es#order)
+- [Auf Deutsch bestellen](https://www.afrobirthday.com/de#order)
 `;
   return new Response(body, {
     headers: { "Content-Type": "text/plain; charset=utf-8" },

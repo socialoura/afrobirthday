@@ -41,6 +41,7 @@ export default async function HowToOrderPage({
   setRequestLocale(locale);
   const t = await getTranslations("HowToOrderPage");
   const tMeta = await getTranslations({ locale, namespace: "HowToOrderPage.meta" });
+  const tProduct = await getTranslations("ProductPage");
   const steps = [
     {
       icon: Upload,
@@ -148,6 +149,11 @@ export default async function HowToOrderPage({
             {t("cta")}
             <ChevronRight size={20} />
           </Link>
+          <p className="mt-6">
+            <Link href="/personalized-birthday-video" className="text-primary font-medium hover:underline">
+              {tProduct("breadcrumb")}
+            </Link>
+          </p>
         </div>
       </div>
     </main>
