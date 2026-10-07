@@ -42,12 +42,12 @@ export default function ChatWidget() {
   // tappable: on a 390px viewport the bubble covered the right 56px of
   // "Continue", and being on top it won the tap.
   useEffect(() => {
-    const targets = document.querySelectorAll<HTMLElement>("[data-cta-avoid]");
-    if (targets.length === 0) return;
-
     let frame = 0;
     const measure = () => {
       frame = 0;
+      // Queried on every pass: the order form now mounts after the bubble
+      // (both are deferred), so a list taken once was empty for good.
+      const targets = document.querySelectorAll<HTMLElement>("[data-cta-avoid]");
       const bubbleSize = 56;
       const margin = 16;
       // The zone the bubble occupies in its resting position.
@@ -76,10 +76,13 @@ export default function ChatWidget() {
     measure();
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
+    // A step change in the form moves the buttons without any scroll.
+    window.addEventListener("click", schedule, { passive: true });
     return () => {
       if (frame) cancelAnimationFrame(frame);
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
+      window.removeEventListener("click", schedule);
     };
   }, []);
 

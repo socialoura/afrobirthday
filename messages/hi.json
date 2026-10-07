@@ -546,6 +546,7 @@
     "termsPrefix": "मैंने पढ़ा और स्वीकार करता हूं",
     "termsLink": "नियम और शर्तें",
     "payButton": "{amount} भुगतान करें",
+    "payWithAlipay": "Alipay से भुगतान करें",
     "processing": "प्रोसेस हो रहा है...",
     "errors": {
       "termsRequired": "आपको नियम और शर्तें स्वीकार करनी होंगी",

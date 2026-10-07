@@ -546,6 +546,7 @@
     "termsPrefix": "Я прочитал(а) и принимаю",
     "termsLink": "условия",
     "payButton": "Оплатить {amount}",
+    "payWithAlipay": "Оплатить через Alipay",
     "processing": "Обработка...",
     "errors": {
       "termsRequired": "Необходимо принять условия",

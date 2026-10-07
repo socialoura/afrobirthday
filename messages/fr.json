@@ -546,6 +546,7 @@
     "termsPrefix": "J'ai lu et j'accepte les",
     "termsLink": "conditions générales",
     "payButton": "Payer {amount}",
+    "payWithAlipay": "Payer avec Alipay",
     "processing": "Traitement...",
     "errors": {
       "termsRequired": "Vous devez accepter les conditions générales",

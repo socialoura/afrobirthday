@@ -546,6 +546,7 @@
     "termsPrefix": "Ik heb de",
     "termsLink": "algemene voorwaarden gelezen en ga akkoord",
     "payButton": "Betaal {amount}",
+    "payWithAlipay": "Betalen met Alipay",
     "processing": "Bezig...",
     "errors": {
       "termsRequired": "Je moet de voorwaarden accepteren",

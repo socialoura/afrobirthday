@@ -307,6 +307,7 @@ export default function OrderFormSection() {
 
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [alipayAvailable, setAlipayAvailable] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
   // Compressing a 12 MP / HEIC photo takes seconds on a phone; without a
   // visible state the customer clicked Continue and got "please upload a photo".
@@ -1050,7 +1051,7 @@ export default function OrderFormSection() {
         throw new Error(err?.error ?? "Payment failed");
       }
 
-      const payload = (await response.json()) as { clientSecret?: string };
+      const payload = (await response.json()) as { clientSecret?: string; paymentMethodTypes?: string[] };
       if (!payload.clientSecret) throw new Error("Missing payment client secret");
 
       // checkout_initiated deliberately does NOT fire here. This setup runs on
@@ -1062,6 +1063,7 @@ export default function OrderFormSection() {
 
       setCurrentOrderId(orderId);
       setStripeClientSecret(payload.clientSecret);
+      setAlipayAvailable(payload.paymentMethodTypes?.includes("alipay") ?? false);
     } catch (err) {
       console.error("Payment setup error:", err);
       // A customer who never gets a payment form can't fail at paying, so this
@@ -1139,19 +1141,22 @@ export default function OrderFormSection() {
     setIsStripeModalOpen(true);
   };
 
-  const handlePaymentSuccess = useCallback(() => {
-    const orderId = currentOrderId;
-    const value = finalTotal;
-    const currency = localCurrency;
+  // Also the return URL of redirect methods (Alipay): Stripe appends
+  // payment_intent and redirect_status, which ConfirmRedirectPayment reads.
+  const successPath = useMemo(() => {
     const qs = new URLSearchParams();
-    if (orderId) qs.set("orderId", orderId);
-    if (Number.isFinite(value)) qs.set("value", String(value));
-    if (currency) qs.set("currency", currency);
+    if (currentOrderId) qs.set("orderId", currentOrderId);
+    if (Number.isFinite(finalTotal)) qs.set("value", String(finalTotal));
+    if (localCurrency) qs.set("currency", localCurrency);
     // Carried through the redirect so the success page can report a revenue
     // figure that is comparable across currencies.
     if (Number.isFinite(finalTotalUsd)) qs.set("valueUsd", String(finalTotalUsd));
-    window.location.href = `/${activeLocale}/success?${qs.toString()}`;
+    return `/${activeLocale}/success?${qs.toString()}`;
   }, [currentOrderId, finalTotal, finalTotalUsd, localCurrency, activeLocale]);
+
+  const handlePaymentSuccess = useCallback(() => {
+    window.location.href = successPath;
+  }, [successPath]);
 
   return (
     <section id="order" className="py-24 bg-dark relative overflow-hidden">
@@ -1220,6 +1225,7 @@ export default function OrderFormSection() {
                   ) : photoPreview ? (
                     <div className="relative inline-block">
                       <img
+                        data-ph-no-capture
                         src={photoPreview}
                         alt={t("photo.previewAlt")}
                         className="max-h-56 rounded-2xl mx-auto"
@@ -1801,7 +1807,7 @@ export default function OrderFormSection() {
                   where the decision is made (on phones the summary card with
                   the trust tiles renders further down). */}
               {currentStep === 3 && (
-                <div className="text-center space-y-2">
+                <div className="text-center space-y-2" data-cta-avoid>
                   {/* Social proof where 30 % of visitors stopped (PostHog,
                       Oct 2026): they saw the price but did not press pay. */}
                   <div className="text-sm text-white/80">
@@ -1923,6 +1929,8 @@ export default function OrderFormSection() {
           valueUsd={finalTotalUsd}
           currency={localCurrency}
           onSuccess={handlePaymentSuccess}
+          alipayAvailable={alipayAvailable}
+          successPath={successPath}
         />
       )}
     </section>

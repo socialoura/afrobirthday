@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { defaultLocale, locales } from "@/i18n/config";
 
 /**
  * Finishes a payment that completed away from the site.
@@ -27,6 +28,14 @@ export default function ConfirmRedirectPayment() {
     if (!paymentIntentId) return;
 
     const redirectStatus = searchParams.get("redirect_status");
+    if (redirectStatus === "failed" || redirectStatus === "canceled") {
+      // An Alipay payment refused or abandoned also lands here: back to the
+      // form (the order draft is restored) rather than a "thank you" page.
+      const first = window.location.pathname.split("/")[1] ?? "";
+      const locale = (locales as readonly string[]).includes(first) ? first : defaultLocale;
+      window.location.replace(`/${locale}#order`);
+      return;
+    }
     if (redirectStatus && redirectStatus !== "succeeded") return;
 
     const key = `payment_confirmed_${paymentIntentId}`;

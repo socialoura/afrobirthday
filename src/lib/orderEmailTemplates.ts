@@ -193,150 +193,125 @@ function formatOrderTotal(order: Order) {
   return `${local} (≈ ${usd})`;
 }
 
+type CopySource = { locale?: string | null };
+
 /** Shared wrapper (font/width/footer) for the automated post-order emails below. */
-function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string) {
+function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string, source: CopySource) {
+  const c = emailCopy(source);
+  const dir = emailLocale(source) === "ar" ? ` dir="rtl"` : "";
   return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 560px; margin: 0 auto; padding: 16px;">
+    <div${dir} style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 560px; margin: 0 auto; padding: 16px;">
       ${bodyHtml}
 
       <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
 
       <p style="margin:0; font-size: 12px; color: #888;">
-        AfroBirthday — Personalized birthday videos<br/>
+        ${c.footerTagline}<br/>
         Support: <a href="mailto:support@afrobirthday.com" style="color: #888;">support@afrobirthday.com</a><br/>
-        You're receiving this email because you placed an order on afrobirthday.com.<br/>
-        <a href="${unsubscribeUrl}" style="color: #888; text-decoration: underline;">Unsubscribe from these emails</a>
+        ${c.footerReason}<br/>
+        <a href="${unsubscribeUrl}" style="color: #888; text-decoration: underline;">${c.unsubscribe}</a>
       </p>
     </div>
   `;
 }
 
-function wrapEmailText(bodyLines: string[], unsubscribeUrl: string) {
+function wrapEmailText(bodyLines: string[], unsubscribeUrl: string, source: CopySource) {
+  const c = emailCopy(source);
   return [
     ...bodyLines,
     "",
     "—",
-    "AfroBirthday — Personalized birthday videos",
+    c.footerTagline,
     "Support: support@afrobirthday.com",
-    "You're receiving this email because you placed an order on afrobirthday.com.",
-    `Unsubscribe from these emails: ${unsubscribeUrl}`,
+    c.footerReason,
+    `${c.unsubscribe}: ${unsubscribeUrl}`,
   ].join("\n");
 }
 
-function formatDiscountLabel(discountType: "percentage" | "fixed", discountValue: number) {
-  return discountType === "percentage" ? `${discountValue}% off` : `$${discountValue} off`;
+function formatDiscountLabel(source: CopySource, discountType: "percentage" | "fixed", discountValue: number) {
+  const c = emailCopy(source);
+  return fill(discountType === "percentage" ? c.discountPercent : c.discountFixed, {
+    value: String(discountValue),
+  });
+}
+
+const P = `style="margin:0 0 16px;"`;
+const LINK = `style="color: #c2410c; text-decoration: underline; font-weight: 600;"`;
+const CODE = `<p style="margin:0 0 16px; font-size: 18px;"><strong style="letter-spacing: 1px;">`;
+
+function signOffHtml(source: CopySource) {
+  const c = emailCopy(source);
+  return `<p ${P}>${c.thanks}<br/>${c.team}</p>`;
+}
+
+/** Body of the marketing e-mails that hand out a promo code and an order link. */
+function promoEmailHtml(order: Order, body: string, cta: string, link: string, promoCode: string) {
+  const c = emailCopy(order);
+  return wrapEmailHtml(`
+    <p ${P}>${c.hi}</p>
+    <p ${P}>${body}</p>
+    ${CODE}${escapeHtml(promoCode)}</strong></p>
+    <p ${P}><a href="${link}" ${LINK}>${cta}</a></p>
+    ${signOffHtml(order)}
+  `, buildUnsubscribeUrl(order.email), order);
+}
+
+function promoEmailText(order: Order, body: string, cta: string, url: string, promoCode: string) {
+  const c = emailCopy(order);
+  return wrapEmailText([
+    c.hi, "", body, "", `${c.promoCodeLabel}: ${promoCode}`, "", `${cta}: ${url}`, "", c.thanks, c.team,
+  ], buildUnsubscribeUrl(order.email), order);
+}
+
+const TRUSTPILOT_URL = "https://www.trustpilot.com/review/afrobirthday.com";
+
+export function reviewRequestSubject(order: Order): string {
+  return emailCopy(order).reviewSubject;
 }
 
 export function renderReviewRequestEmailHtml(order: Order) {
-  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
+  const c = emailCopy(order);
   return wrapEmailHtml(`
-    <p style="margin:0 0 16px;">Hi,</p>
-    <p style="margin:0 0 16px;">
-      We hope you loved your personalized birthday video! If you have a minute,
-      we'd really appreciate a quick review — it helps other people discover us.
-    </p>
-    <p style="margin:0 0 16px;">
-      <a href="https://www.trustpilot.com/review/afrobirthday.com" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
-        Leave a review on Trustpilot
-      </a>
-    </p>
-    <p style="margin:0 0 16px;">
-      Thank you for your support,<br/>
-      The AfroBirthday team
-    </p>
-  `, unsubscribeUrl);
+    <p ${P}>${c.hi}</p>
+    <p ${P}>${c.reviewBody}</p>
+    <p ${P}><a href="${TRUSTPILOT_URL}" ${LINK}>${c.reviewCta}</a></p>
+    ${signOffHtml(order)}
+  `, buildUnsubscribeUrl(order.email), order);
 }
 
 export function renderReviewRequestEmailText(order: Order) {
-  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
+  const c = emailCopy(order);
   return wrapEmailText([
-    "Hi,",
-    "",
-    "We hope you loved your personalized birthday video! If you have a minute, we'd really appreciate a quick review — it helps other people discover us.",
-    "",
-    "Leave a review on Trustpilot: https://www.trustpilot.com/review/afrobirthday.com",
-    "",
-    "Thank you for your support,",
-    "The AfroBirthday team",
-  ], unsubscribeUrl);
+    c.hi, "", c.reviewBody, "", `${c.reviewCta}: ${TRUSTPILOT_URL}`, "", c.thanks, c.team,
+  ], buildUnsubscribeUrl(order.email), order);
+}
+
+export function crossSellSubject(order: Order): string {
+  return emailCopy(order).crossSellSubject;
 }
 
 export function renderCrossSellEmailHtml(order: Order, promoCode: string) {
-  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
-  return wrapEmailHtml(`
-    <p style="margin:0 0 16px;">Hi,</p>
-    <p style="margin:0 0 16px;">
-      Got another birthday coming up? Surprise someone else with a personalized
-      AfroBirthday video — use the code below for a discount on your next order.
-    </p>
-    <p style="margin:0 0 16px; font-size: 18px;">
-      <strong style="letter-spacing: 1px;">${escapeHtml(promoCode)}</strong>
-    </p>
-    <p style="margin: 0 0 16px;">
-      <a href="${orderLink(EMAIL_CAMPAIGNS.CROSS_SELL, order, promoCode)}" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
-        Order another video
-      </a>
-    </p>
-    <p style="margin:0 0 16px;">
-      Thanks for being an AfroBirthday customer,<br/>
-      The AfroBirthday team
-    </p>
-  `, unsubscribeUrl);
+  const c = emailCopy(order);
+  return promoEmailHtml(order, c.crossSellBody, c.crossSellCta, orderLink(EMAIL_CAMPAIGNS.CROSS_SELL, order, promoCode), promoCode);
 }
 
 export function renderCrossSellEmailText(order: Order, promoCode: string) {
-  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
-  return wrapEmailText([
-    "Hi,",
-    "",
-    "Got another birthday coming up? Surprise someone else with a personalized AfroBirthday video — use the code below for a discount on your next order.",
-    "",
-    `Promo code: ${promoCode}`,
-    "",
-    `Order another video: ${orderUrl(EMAIL_CAMPAIGNS.CROSS_SELL, order, promoCode)}`,
-    "",
-    "Thanks for being an AfroBirthday customer,",
-    "The AfroBirthday team",
-  ], unsubscribeUrl);
+  const c = emailCopy(order);
+  return promoEmailText(order, c.crossSellBody, c.crossSellCta, orderUrl(EMAIL_CAMPAIGNS.CROSS_SELL, order, promoCode), promoCode);
+}
+
+export function annualReminderSubject(order: Order): string {
+  return emailCopy(order).annualSubject;
 }
 
 export function renderAnnualReminderEmailHtml(order: Order, promoCode: string) {
-  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
-  return wrapEmailHtml(`
-    <p style="margin:0 0 16px;">Hi,</p>
-    <p style="margin:0 0 16px;">
-      It's been a year since your last AfroBirthday video — same celebration
-      again this year? Here's a code to make it easy.
-    </p>
-    <p style="margin:0 0 16px; font-size: 18px;">
-      <strong style="letter-spacing: 1px;">${escapeHtml(promoCode)}</strong>
-    </p>
-    <p style="margin: 0 0 16px;">
-      <a href="${orderLink(EMAIL_CAMPAIGNS.ANNUAL_REMINDER, order, promoCode)}" style="color: #c2410c; text-decoration: underline; font-weight: 600;">
-        Start your next video
-      </a>
-    </p>
-    <p style="margin:0 0 16px;">
-      Looking forward to making another one for you,<br/>
-      The AfroBirthday team
-    </p>
-  `, unsubscribeUrl);
+  const c = emailCopy(order);
+  return promoEmailHtml(order, c.annualBody, c.annualCta, orderLink(EMAIL_CAMPAIGNS.ANNUAL_REMINDER, order, promoCode), promoCode);
 }
 
 export function renderAnnualReminderEmailText(order: Order, promoCode: string) {
-  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
-  return wrapEmailText([
-    "Hi,",
-    "",
-    "It's been a year since your last AfroBirthday video — same celebration again this year? Here's a code to make it easy.",
-    "",
-    `Promo code: ${promoCode}`,
-    "",
-    `Start your next video: ${orderUrl(EMAIL_CAMPAIGNS.ANNUAL_REMINDER, order, promoCode)}`,
-    "",
-    "Looking forward to making another one for you,",
-    "The AfroBirthday team",
-  ], unsubscribeUrl);
+  const c = emailCopy(order);
+  return promoEmailText(order, c.annualBody, c.annualCta, orderUrl(EMAIL_CAMPAIGNS.ANNUAL_REMINDER, order, promoCode), promoCode);
 }
 
 export function abandonedCartSubject(order: Order): string {
@@ -345,26 +320,26 @@ export function abandonedCartSubject(order: Order): string {
 
 export function renderAbandonedCartEmailHtml(order: Order, resumeUrl: string) {
   const c = emailCopy(order);
-  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
   const safeUrl = escapeHtml(resumeUrl);
   return wrapEmailHtml(`
-    <div${dirAttr(order)}>
-    <p style="margin:0 0 16px;">${c.hi}</p>
-    <p style="margin:0 0 16px;">${c.cartBody}</p>
+    <p ${P}>${c.hi}</p>
+    <p ${P}>${c.cartBody}</p>
     <p style="margin: 0 0 16px;">
       <a href="${safeUrl}" style="display:inline-block; background:#c2410c; color:#fff; text-decoration:none; font-weight:600; padding:12px 20px; border-radius:10px;">
         ${c.cartCta}
       </a>
     </p>
-    <p style="margin:0 0 16px;">${c.team}</p>
-    </div>
-  `, unsubscribeUrl);
+    <p ${P}>${c.team}</p>
+  `, buildUnsubscribeUrl(order.email), order);
 }
 
 export function renderAbandonedCartEmailText(order: Order, resumeUrl: string) {
   const c = emailCopy(order);
-  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
-  return wrapEmailText([c.hi, "", c.cartBody, resumeUrl, "", c.team], unsubscribeUrl);
+  return wrapEmailText([c.hi, "", c.cartBody, resumeUrl, "", c.team], buildUnsubscribeUrl(order.email), order);
+}
+
+export function referralCodeSubject(order: Order): string {
+  return emailCopy(order).referralSubject;
 }
 
 export function renderReferralCodeEmailHtml(
@@ -373,27 +348,19 @@ export function renderReferralCodeEmailHtml(
   discountType: "percentage" | "fixed",
   discountValue: number
 ) {
-  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
-  const discountLabel = formatDiscountLabel(discountType, discountValue);
+  const c = emailCopy(order);
+  const body = fill(c.referralBody, { discount: escapeHtml(formatDiscountLabel(order, discountType, discountValue)) });
+  const link = orderLink(EMAIL_CAMPAIGNS.REFERRAL_CODE, order, code);
   return wrapEmailHtml(`
-    <p style="margin:0 0 16px;">Hi,</p>
-    <p style="margin:0 0 16px;">
-      Loved your AfroBirthday video? Share it with friends — here's your
-      personal code for them to get ${escapeHtml(discountLabel)} on their first order.
-      When they use it, we'll send you a reward too.
+    <p ${P}>${c.hi}</p>
+    <p ${P}>${body}</p>
+    ${CODE}${escapeHtml(code)}</strong></p>
+    <p ${P}>
+      ${c.referralLinkIntro}<br/>
+      <a href="${link}" style="color: #c2410c; text-decoration: underline; font-weight: 600; word-break: break-all;">${link}</a>
     </p>
-    <p style="margin:0 0 16px; font-size: 18px;">
-      <strong style="letter-spacing: 1px;">${escapeHtml(code)}</strong>
-    </p>
-    <p style="margin:0 0 16px;">
-      Or just send them this link — the code applies itself:<br/>
-      <a href="${orderLink(EMAIL_CAMPAIGNS.REFERRAL_CODE, order, code)}" style="color: #c2410c; text-decoration: underline; font-weight: 600; word-break: break-all;">${orderLink(EMAIL_CAMPAIGNS.REFERRAL_CODE, order, code)}</a>
-    </p>
-    <p style="margin:0 0 16px;">
-      Thanks for spreading the word,<br/>
-      The AfroBirthday team
-    </p>
-  `, unsubscribeUrl);
+    ${signOffHtml(order)}
+  `, buildUnsubscribeUrl(order.email), order);
 }
 
 export function renderReferralCodeEmailText(
@@ -402,63 +369,58 @@ export function renderReferralCodeEmailText(
   discountType: "percentage" | "fixed",
   discountValue: number
 ) {
-  const unsubscribeUrl = buildUnsubscribeUrl(order.email);
-  const discountLabel = formatDiscountLabel(discountType, discountValue);
+  const c = emailCopy(order);
+  const body = fill(c.referralBody, { discount: formatDiscountLabel(order, discountType, discountValue) });
   return wrapEmailText([
-    "Hi,",
+    c.hi,
     "",
-    `Loved your AfroBirthday video? Share it with friends — here's your personal code for them to get ${discountLabel} on their first order. When they use it, we'll send you a reward too.`,
+    body,
     "",
-    `Your referral code: ${code}`,
-    `Link for your friends (the code applies itself): ${orderUrl(EMAIL_CAMPAIGNS.REFERRAL_CODE, order, code)}`,
+    `${c.referralCodeLabel}: ${code}`,
+    `${c.referralLinkIntro} ${orderUrl(EMAIL_CAMPAIGNS.REFERRAL_CODE, order, code)}`,
     "",
-    "Thanks for spreading the word,",
-    "The AfroBirthday team",
-  ], unsubscribeUrl);
+    c.thanks,
+    c.team,
+  ], buildUnsubscribeUrl(order.email), order);
+}
+
+/**
+ * The referrer is not tied to an order here, only to an e-mail address:
+ * `source` carries the locale of their latest order (defaults to English).
+ */
+export function referralRewardSubject(source: CopySource): string {
+  return emailCopy(source).referralRewardSubject;
 }
 
 export function renderReferralRewardEmailHtml(
   recipientEmail: string,
   rewardCode: string,
   discountType: "percentage" | "fixed",
-  discountValue: number
+  discountValue: number,
+  source: CopySource = {}
 ) {
-  const unsubscribeUrl = buildUnsubscribeUrl(recipientEmail);
-  const discountLabel = formatDiscountLabel(discountType, discountValue);
+  const c = emailCopy(source);
+  const body = fill(c.referralRewardBody, { discount: escapeHtml(formatDiscountLabel(source, discountType, discountValue)) });
   return wrapEmailHtml(`
-    <p style="margin:0 0 16px;">Hi,</p>
-    <p style="margin:0 0 16px;">
-      Good news — a friend just used your referral code! As a thank you,
-      here's a code for ${escapeHtml(discountLabel)} on your next AfroBirthday video.
-    </p>
-    <p style="margin:0 0 16px; font-size: 18px;">
-      <strong style="letter-spacing: 1px;">${escapeHtml(rewardCode)}</strong>
-    </p>
-    <p style="margin:0 0 16px;">
-      Thanks for spreading the word,<br/>
-      The AfroBirthday team
-    </p>
-  `, unsubscribeUrl);
+    <p ${P}>${c.hi}</p>
+    <p ${P}>${body}</p>
+    ${CODE}${escapeHtml(rewardCode)}</strong></p>
+    ${signOffHtml(source)}
+  `, buildUnsubscribeUrl(recipientEmail), source);
 }
 
 export function renderReferralRewardEmailText(
   recipientEmail: string,
   rewardCode: string,
   discountType: "percentage" | "fixed",
-  discountValue: number
+  discountValue: number,
+  source: CopySource = {}
 ) {
-  const unsubscribeUrl = buildUnsubscribeUrl(recipientEmail);
-  const discountLabel = formatDiscountLabel(discountType, discountValue);
+  const c = emailCopy(source);
+  const body = fill(c.referralRewardBody, { discount: formatDiscountLabel(source, discountType, discountValue) });
   return wrapEmailText([
-    "Hi,",
-    "",
-    `Good news — a friend just used your referral code! As a thank you, here's a code for ${discountLabel} on your next AfroBirthday video.`,
-    "",
-    `Your reward code: ${rewardCode}`,
-    "",
-    "Thanks for spreading the word,",
-    "The AfroBirthday team",
-  ], unsubscribeUrl);
+    c.hi, "", body, "", `${c.promoCodeLabel}: ${rewardCode}`, "", c.thanks, c.team,
+  ], buildUnsubscribeUrl(recipientEmail), source);
 }
 
 function escapeHtml(input: string) {

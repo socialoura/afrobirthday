@@ -37,6 +37,10 @@ export default function PostHogPurchaseCompleted() {
   useEffect(() => {
     const orderId = searchParams.get("orderId") ?? "";
     if (!orderId) return;
+    // A refused or abandoned redirect payment (Alipay) is sent back to the
+    // form by ConfirmRedirectPayment: keep its draft, report no purchase.
+    const redirectStatus = searchParams.get("redirect_status");
+    if (redirectStatus === "failed" || redirectStatus === "canceled") return;
 
     try {
       window.localStorage.removeItem(ORDER_DRAFT_STORAGE_KEY);

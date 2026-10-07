@@ -174,6 +174,9 @@ export async function POST(request: NextRequest) {
       clientSecret: paymentIntent.client_secret, 
       orderId,
       paymentIntentId: paymentIntent.id,
+      // Which methods Stripe will accept for this intent (card, and alipay
+      // once the account is approved for it): the modal shows what is listed.
+      paymentMethodTypes: paymentIntent.payment_method_types,
     });
   } catch (error) {
     console.error("Payment intent error:", error);

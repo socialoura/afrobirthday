@@ -2,6 +2,7 @@ import { type Order, markAnnualReminderEmailSent } from "@/lib/db";
 import { sendEmailWithResend } from "@/lib/resend";
 import { buildMarketingEmailHeaders } from "@/lib/emailOptOut";
 import {
+  annualReminderSubject,
   renderAnnualReminderEmailHtml,
   renderAnnualReminderEmailText,
 } from "@/lib/orderEmailTemplates";
@@ -11,7 +12,7 @@ import { EMAIL_CAMPAIGNS } from "@/lib/campaign";
 export async function sendAnnualReminderEmail(order: Order, promoCode: string): Promise<void> {
   await sendEmailWithResend({
     to: order.email,
-    subject: "Same celebration this year?",
+    subject: annualReminderSubject(order),
     html: renderAnnualReminderEmailHtml(order, promoCode),
     text: renderAnnualReminderEmailText(order, promoCode),
     replyTo: "support@afrobirthday.com",

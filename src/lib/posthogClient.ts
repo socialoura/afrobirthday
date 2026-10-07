@@ -53,7 +53,11 @@ export function loadPostHog(): Promise<void> {
 
       capture_pageview: "history_change",
       autocapture: false,
-      disable_session_recording: true,
+      // Session replay answers why ~83 % of visitors never start the form
+      // (Oct 2026). Only for visitors who may be tracked; inputs are masked
+      // and [data-ph-no-capture] blocks (the customer photo) are left out
+      // by the project settings.
+      disable_session_recording: !hasAdsConsent(),
       person_profiles: "identified_only",
 
       // Answers "are customers hitting JavaScript errors we never see?" — the
@@ -88,7 +92,10 @@ export function loadPostHog(): Promise<void> {
     });
 
     window.addEventListener(CONSENT_EVENT, () => {
-      posthog.set_config({ persistence: hasAdsConsent() ? "localStorage+cookie" : "memory" });
+      const allowed = hasAdsConsent();
+      posthog.set_config({ persistence: allowed ? "localStorage+cookie" : "memory" });
+      if (allowed) posthog.startSessionRecording();
+      else posthog.stopSessionRecording();
     });
 
     instance = posthog;

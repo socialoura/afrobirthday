@@ -39,6 +39,10 @@ interface CustomPaymentModalProps {
   valueUsd: number;
   currency: string;
   onSuccess: () => void;
+  /** Stripe listed alipay on this intent (the account must be approved for it). */
+  alipayAvailable?: boolean;
+  /** Where a redirect method (Alipay) brings the customer back. */
+  successPath?: string;
 }
 
 function VisaLogo() {
@@ -103,8 +107,12 @@ function PaymentForm({
   onSuccess,
   onClose,
   onProcessingChange,
+  alipayAvailable = false,
+  successPath,
 }: {
   onProcessingChange: (processing: boolean) => void;
+  alipayAvailable?: boolean;
+  successPath?: string;
   clientSecret: string;
   amount: string;
   productName: string;
@@ -148,6 +156,29 @@ function PaymentForm({
   useEffect(() => {
     track(ANALYTICS_EVENTS.PAYMENT_FORM_MOUNTED);
   }, [track]);
+
+  // Alipay leaves the site and comes back to successPath, where
+  // ConfirmRedirectPayment confirms the intent (and the webhook does too).
+  const handleAlipay = async () => {
+    if (!stripe || !successPath) return;
+    setIsProcessing(true);
+    setError(null);
+    track(ANALYTICS_EVENTS.PAYMENT_REDIRECT_STARTED, { payment_method_type: "alipay" });
+    const { error: stripeError } = await stripe.confirmAlipayPayment(clientSecret, {
+      return_url: new URL(successPath, window.location.origin).toString(),
+    });
+    // Only reached when the redirect could not start.
+    if (stripeError) {
+      track(ANALYTICS_EVENTS.PAYMENT_FAILED, {
+        stage: "confirm",
+        payment_method_type: "alipay",
+        error_code: stripeError.code ?? null,
+        error_type: stripeError.type ?? null,
+      });
+      setError(stripeError.message || t("errors.generic"));
+    }
+    setIsProcessing(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -312,6 +343,17 @@ function PaymentForm({
         )}
       </button>
 
+      {alipayAvailable && successPath && (
+        <button
+          type="button"
+          onClick={handleAlipay}
+          disabled={isProcessing || !stripe}
+          className="w-full mt-3 bg-[#1677FF] hover:bg-[#1677FF]/90 text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {t("payWithAlipay")}
+        </button>
+      )}
+
       {/* Trust Badges */}
       <div className="flex items-center justify-center gap-6 mt-5 text-xs text-white/50">
         <div className="flex items-center gap-1.5">
@@ -342,6 +384,8 @@ export default function CustomPaymentModal({
   valueUsd,
   currency,
   onSuccess,
+  alipayAvailable,
+  successPath,
 }: CustomPaymentModalProps) {
   const t = useTranslations("PaymentModal");
   const modalRef = useRef<HTMLDivElement>(null);
@@ -459,6 +503,8 @@ export default function CustomPaymentModal({
             onSuccess={onSuccess}
             onClose={onClose}
             onProcessingChange={handleProcessingChange}
+            alipayAvailable={alipayAvailable}
+            successPath={successPath}
           />
         </Elements>
       </div>

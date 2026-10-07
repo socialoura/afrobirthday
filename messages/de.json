@@ -546,6 +546,7 @@
     "termsPrefix": "Ich habe die",
     "termsLink": "AGB gelesen und akzeptiere sie",
     "payButton": "{amount} bezahlen",
+    "payWithAlipay": "Mit Alipay bezahlen",
     "processing": "Wird verarbeitet...",
     "errors": {
       "termsRequired": "Sie müssen die AGB akzeptieren",

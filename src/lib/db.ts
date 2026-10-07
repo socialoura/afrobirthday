@@ -1071,6 +1071,18 @@ export async function markReferralEmailSent(orderId: string) {
   `;
 }
 
+/** Storefront language of a customer's latest order, for e-mails not tied to one. */
+export async function getLatestOrderLocaleByEmail(email: string): Promise<string | null> {
+  const sql = getSql();
+  const rows = await sql<{ locale: string | null }[]>`
+    SELECT locale FROM orders
+    WHERE lower(trim(email)) = ${normalizeEmail(email)} AND locale IS NOT NULL
+    ORDER BY created_at DESC
+    LIMIT 1
+  `;
+  return rows[0]?.locale ?? null;
+}
+
 export async function deleteOrder(orderId: string) {
   const sql = getSql();
   await sql`

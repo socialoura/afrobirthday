@@ -2,6 +2,7 @@ import { type Order, markCrossSellEmailSent } from "@/lib/db";
 import { sendEmailWithResend } from "@/lib/resend";
 import { buildMarketingEmailHeaders } from "@/lib/emailOptOut";
 import {
+  crossSellSubject,
   renderCrossSellEmailHtml,
   renderCrossSellEmailText,
 } from "@/lib/orderEmailTemplates";
@@ -11,7 +12,7 @@ import { EMAIL_CAMPAIGNS } from "@/lib/campaign";
 export async function sendCrossSellEmail(order: Order, promoCode: string): Promise<void> {
   await sendEmailWithResend({
     to: order.email,
-    subject: "Another birthday coming up?",
+    subject: crossSellSubject(order),
     html: renderCrossSellEmailHtml(order, promoCode),
     text: renderCrossSellEmailText(order, promoCode),
     replyTo: "support@afrobirthday.com",

@@ -3,6 +3,7 @@ import {
   type Order,
   createPromoCode,
   getPromoCodeByCode,
+  getLatestOrderLocaleByEmail,
   getSetting,
   isEmailOptedOut,
   markReferralEmailSent,
@@ -14,6 +15,8 @@ import { buildMarketingEmailHeaders } from "@/lib/emailOptOut";
 import { trackEmailSent } from "@/lib/analyticsServer";
 import { EMAIL_CAMPAIGNS } from "@/lib/campaign";
 import {
+  referralCodeSubject,
+  referralRewardSubject,
   renderReferralCodeEmailHtml,
   renderReferralCodeEmailText,
   renderReferralRewardEmailHtml,
@@ -50,7 +53,7 @@ export async function generateAndSendReferralCode(
 
   await sendEmailWithResend({
     to: order.email,
-    subject: "Share the surprise, get rewarded",
+    subject: referralCodeSubject(order),
     html: renderReferralCodeEmailHtml(order, code, discountType, discountValue),
     text: renderReferralCodeEmailText(order, code, discountType, discountValue),
     replyTo: "support@afrobirthday.com",
@@ -92,6 +95,8 @@ export async function handlePossibleReferralRedemption(redeemedOrder: Order): Pr
   const rewardValue = Number.parseFloat((await getSetting("referral_reward_value")) ?? "15");
   const rewardCode = `THANKS-${randomCodeSuffix()}`;
 
+  const copySource = { locale: await getLatestOrderLocaleByEmail(promoCode.owner_email).catch(() => null) };
+
   await createPromoCode({
     code: rewardCode,
     discountType: rewardType,
@@ -101,9 +106,9 @@ export async function handlePossibleReferralRedemption(redeemedOrder: Order): Pr
 
   await sendEmailWithResend({
     to: promoCode.owner_email,
-    subject: "A friend used your referral code!",
-    html: renderReferralRewardEmailHtml(promoCode.owner_email, rewardCode, rewardType, rewardValue),
-    text: renderReferralRewardEmailText(promoCode.owner_email, rewardCode, rewardType, rewardValue),
+    subject: referralRewardSubject(copySource),
+    html: renderReferralRewardEmailHtml(promoCode.owner_email, rewardCode, rewardType, rewardValue, copySource),
+    text: renderReferralRewardEmailText(promoCode.owner_email, rewardCode, rewardType, rewardValue, copySource),
     replyTo: "support@afrobirthday.com",
     headers: buildMarketingEmailHeaders(promoCode.owner_email),
   });

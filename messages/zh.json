@@ -546,6 +546,7 @@
     "termsPrefix": "我已阅读并同意",
     "termsLink": "条款和条件",
     "payButton": "支付 {amount}",
+    "payWithAlipay": "使用支付宝付款",
     "processing": "处理中...",
     "errors": {
       "termsRequired": "您必须同意条款和条件",
