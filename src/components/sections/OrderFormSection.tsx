@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard, Wallet, ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
@@ -294,6 +294,23 @@ function StepIndicator({
   );
 }
 
+/**
+ * The message length counter, on its own: watching the message in the form
+ * re-rendered all of it on every keystroke, ~240 ms per key on a phone
+ * (PostHog INP attribution, #order-message, Oct 2026).
+ */
+function MessageCounter({ control }: { control: Control<OrderFormData> }) {
+  const length = (useWatch({ control, name: "message" }) ?? "").length;
+  return (
+    <div className={cn("text-sm", length > 90 ? "text-red-400" : "text-white/70")}>
+      {length}/100
+    </div>
+  );
+}
+
+/** Above this, an upload skips the Vercel function (4.5 MB body limit). */
+const DIRECT_UPLOAD_THRESHOLD = 4 * 1024 * 1024;
+
 /** Analytics amounts: floating-point totals arrived as 29.979999999999997. */
 function toCents(value: number): number {
   return Math.round(value * 100) / 100;
@@ -411,6 +428,7 @@ export default function OrderFormSection() {
 
   const {
     register,
+    control,
     handleSubmit,
     watch,
     setValue,
@@ -439,8 +457,6 @@ export default function OrderFormSection() {
   const musicEmbed = useMemo(() => getMusicEmbed(musicLinkValue ?? ""), [musicLinkValue]);
   const deliveryMethod = watch("deliveryMethod");
   const danceExtended = watch("danceExtended");
-  const message = watch("message") || "";
-  const email = watch("email") || "";
 
   // Restore an in-progress draft (email/message/options — never the photo
   // file itself, which can't be persisted) so an accidental refresh doesn't
@@ -689,6 +705,31 @@ export default function OrderFormSection() {
   }, []);
 
   const uploadToStorage = useCallback(async (file: File, folder: string) => {
+    // Vercel caps a function request body at 4.5 MB: songs (and the rare big
+    // photo) go straight to the media host with a signed URL instead.
+    if (folder === "orders/music" || file.size > DIRECT_UPLOAD_THRESHOLD) {
+      const signRes = await fetch("/api/upload/signed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folder, size: file.size, type: file.type, name: file.name }),
+      });
+      const signed = (await signRes.json().catch(() => null)) as
+        | { uploadUrl?: string; url?: string; error?: string }
+        | null;
+      if (!signRes.ok || !signed?.uploadUrl || !signed.url) {
+        throw new Error(
+          `Upload failed (${folder}) [${signRes.status}${signed?.error ? ` ${signed.error}` : ""}]`
+        );
+      }
+      const put = await fetch(signed.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!put.ok) throw new Error(`Upload failed (${folder}) [direct ${put.status}]`);
+      return signed.url;
+    }
+
     const form = new FormData();
     form.append("file", file);
     form.append("folder", folder);
@@ -1019,6 +1060,10 @@ export default function OrderFormSection() {
 
     try {
       const { photoUrl, musicFileUrl } = await resolveUploadedFiles();
+      // Read at call time, not watched: a watch here re-rendered the whole
+      // form on every keystroke of the message.
+      const email = getValues("email") ?? "";
+      const message = getValues("message") ?? "";
 
       const orderId = sessionOrderId();
       const response = await fetch("/api/create-payment-intent", {
@@ -1084,8 +1129,7 @@ export default function OrderFormSection() {
   }, [
     resolveUploadedFiles,
     photo,
-    email,
-    message,
+    getValues,
     musicOption,
     musicLinkValue,
     deliveryMethod,
@@ -1288,9 +1332,7 @@ export default function OrderFormSection() {
                       {t("message.help")}
                     </p>
                   </div>
-                  <div className={cn("text-sm", message.length > 90 ? "text-red-400" : "text-white/70")}>
-                    {message.length}/100
-                  </div>
+                  <MessageCounter control={control} />
                 </div>
 
                 <textarea

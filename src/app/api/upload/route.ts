@@ -1,64 +1,12 @@
 import { NextResponse } from "next/server";
 import { uploadObject } from "@/lib/storage";
 import { verifyAdminRequest } from "@/lib/auth";
+import { clientIp, rateLimit, UPLOAD_RULES, uploadKey, type UploadFolder } from "@/lib/uploadRules";
 
 export const runtime = "nodejs";
 
-const ALLOWED = {
-  "orders/photos": {
-    // HEIC/HEIF are what an iPhone hands over when the browser doesn't
-    // transcode on pick. The client converts them to JPEG first, but that
-    // conversion can fail (older iOS, no canvas codec), and rejecting them
-    // here cost real orders: the customer only saw "upload failed" and left.
-    mimes: [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/heic",
-      "image/heif",
-      "image/heic-sequence",
-      "image/heif-sequence",
-    ],
-    exts: ["jpg", "jpeg", "png", "webp", "heic", "heif"],
-    maxBytes: 5 * 1024 * 1024,
-  },
-  "orders/music": {
-    mimes: ["audio/mpeg", "audio/wav", "audio/x-wav", "audio/mp4", "audio/aac"],
-    exts: ["mp3", "wav", "m4a", "aac"],
-    maxBytes: 10 * 1024 * 1024,
-  },
-  "admin/videos": {
-    mimes: ["video/mp4", "video/webm", "video/quicktime"],
-    exts: ["mp4", "webm", "mov"],
-    maxBytes: 200 * 1024 * 1024,
-    adminOnly: true,
-  },
-} as const;
-
-type Folder = keyof typeof ALLOWED;
-
-const ipRequests = new Map<string, { count: number; resetAt: number }>();
-const WINDOW_MS = 60 * 1000;
-const MAX_PER_WINDOW = 10;
-
-function rateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = ipRequests.get(ip);
-  if (!entry || entry.resetAt < now) {
-    ipRequests.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
-  }
-  entry.count += 1;
-  return entry.count <= MAX_PER_WINDOW;
-}
-
 export async function POST(request: Request) {
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
-    request.headers.get("x-real-ip") ??
-    "unknown";
-
-  if (!rateLimit(ip)) {
+  if (!rateLimit(clientIp(request))) {
     return NextResponse.json({ error: "Too many uploads" }, { status: 429 });
   }
 
@@ -67,11 +15,11 @@ export async function POST(request: Request) {
     const file = formData.get("file");
     const folderRaw = (formData.get("folder") as string | null) ?? "";
 
-    if (!(folderRaw in ALLOWED)) {
+    if (!(folderRaw in UPLOAD_RULES)) {
       return NextResponse.json({ error: "Invalid folder" }, { status: 400 });
     }
-    const folder = folderRaw as Folder;
-    const rules = ALLOWED[folder];
+    const folder = folderRaw as UploadFolder;
+    const rules = UPLOAD_RULES[folder];
 
     if ("adminOnly" in rules && rules.adminOnly) {
       const admin = verifyAdminRequest(request);
@@ -99,15 +47,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const extFromName = file.name.includes(".")
-      ? file.name.split(".").pop()?.toLowerCase()
-      : undefined;
-    const ext =
-      extFromName && rules.exts.includes(extFromName as never)
-        ? extFromName
-        : rules.exts[0];
-
-    const key = `${folder}/${crypto.randomUUID()}.${ext}`;
+    const key = uploadKey(folder, file.name);
 
     const url = await uploadObject(key, file, { contentType: mime });
 
