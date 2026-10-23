@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useForm, useWatch, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, Sparkles, CreditCard, Wallet, ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
+import { Upload, X, Check, Loader2, Lock, ShieldCheck, Clock, RotateCcw, Sparkles, CreditCard, Wallet, ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
 import { withPostHog } from "@/lib/posthogClient";
 import { cn, visitorCurrency, type CurrencyCode, PRICES, ORDER_DRAFT_STORAGE_KEY } from "@/lib/utils";
 import { useExchangeRates } from "@/lib/useExchangeRates";
@@ -1319,6 +1319,24 @@ export default function OrderFormSection() {
                 {photoError && (
                   <p className="text-red-400 text-sm mt-2" role="alert">{photoError}</p>
                 )}
+                {/* Answers, right where the photo is asked for, to the FAQ
+                    questions visitors left the form to read (session replays,
+                    Oct 2026): photo safety, "what if I don't like it",
+                    delivery time. Shown on phones too, unlike the badge above. */}
+                <ul className="mt-4 space-y-1.5 text-sm text-white/75">
+                  <li className="flex items-start gap-2">
+                    <ShieldCheck size={16} className="text-accent shrink-0 mt-0.5" aria-hidden="true" />
+                    {t("photo.trustPrivacy")}
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <RotateCcw size={16} className="text-accent shrink-0 mt-0.5" aria-hidden="true" />
+                    {t("photo.trustRefund")}
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Clock size={16} className="text-accent shrink-0 mt-0.5" aria-hidden="true" />
+                    {tHero("trust.delivery")}
+                  </li>
+                </ul>
               </div>
 
               {/* Custom Message */}

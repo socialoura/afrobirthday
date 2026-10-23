@@ -263,7 +263,9 @@
       "browse": "选择文件",
       "formats": "JPG, PNG, WebP • 最大 5MB",
       "processing": "正在处理您的照片…",
-      "remove": "移除照片"
+      "remove": "移除照片",
+      "trustPrivacy": "仅用于制作您的视频，交付后 30 天内删除",
+      "trustRefund": "不满意？7 天内免费重拍或全额退款"
     },
     "message": {
       "label": "生日祝福语",

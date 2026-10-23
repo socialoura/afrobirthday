@@ -263,7 +263,9 @@
       "browse": "parcourir les fichiers",
       "formats": "JPG, PNG, WebP • Max 5 Mo",
       "processing": "Préparation de votre photo…",
-      "remove": "Retirer la photo"
+      "remove": "Retirer la photo",
+      "trustPrivacy": "Utilisée uniquement pour votre vidéo, supprimée sous 30 jours après la livraison",
+      "trustRefund": "Pas satisfait ? Vidéo refaite gratuitement ou remboursement intégral sous 7 jours"
     },
     "message": {
       "label": "Message d'anniversaire",

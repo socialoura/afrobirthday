@@ -263,7 +263,9 @@
       "browse": "bestanden kiezen",
       "formats": "JPG, PNG, WebP • Max 5 MB",
       "processing": "Je foto wordt voorbereid…",
-      "remove": "Foto verwijderen"
+      "remove": "Foto verwijderen",
+      "trustPrivacy": "Alleen gebruikt voor je video, binnen 30 dagen na levering verwijderd",
+      "trustRefund": "Niet tevreden? Gratis opnieuw gemaakt of alles terugbetaald binnen 7 dagen"
     },
     "message": {
       "label": "Verjaardagsbericht",

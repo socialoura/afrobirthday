@@ -263,7 +263,9 @@
       "browse": "browse files",
       "formats": "JPG, PNG, WebP • Max 5MB",
       "processing": "Preparing your photo…",
-      "remove": "Remove photo"
+      "remove": "Remove photo",
+      "trustPrivacy": "Used only for your video, deleted within 30 days of delivery",
+      "trustRefund": "Not happy? Free remake or full refund within 7 days"
     },
     "message": {
       "label": "Birthday Message",

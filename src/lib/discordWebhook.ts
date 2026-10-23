@@ -348,10 +348,12 @@ export async function notifyOrderPaid(params: {
     setTimeout(() => resolve("timeout"), MEDIA_DEADLINE_MS)
   );
   const voiceRace = await Promise.race([persistedVoice, deadline]);
-  const voiceover: VoiceoverResult =
-    voiceRace === "timeout"
-      ? { ok: false, reason: "exception", detail: "timeout: vocal pas prêt à temps" }
-      : voiceRace;
+  // Past the deadline the vocal is still being generated (with retries): the
+  // notification says so, and the vocal follows in its own message below.
+  const voicePending = voiceRace === "timeout";
+  const voiceover: VoiceoverResult = voicePending
+    ? { ok: false, reason: "timeout", detail: "vocal encore en cours" }
+    : voiceRace;
   const musicRace = await Promise.race([persistedMusic, deadline]);
   const downloadedMusicUrl = musicRace === "timeout" ? null : musicRace;
 
@@ -366,9 +368,22 @@ export async function notifyOrderPaid(params: {
       provider: params.provider,
       amountLabel: params.amountLabel,
       voiceover,
+      voicePending,
       downloadedMusicUrl,
     });
   } catch (err) {
     console.error("Telegram notification error:", err);
+  }
+
+  // Keep the function alive until the late vocal is persisted and delivered;
+  // generateVoiceover bounds its own retries, so this cannot hang.
+  if (voicePending) {
+    const late = await persistedVoice;
+    try {
+      const { sendLateVoiceoverNotification } = await import("@/lib/telegramBot");
+      await sendLateVoiceoverNotification(order, late);
+    } catch (err) {
+      console.error("Late voiceover notification error:", err);
+    }
   }
 }

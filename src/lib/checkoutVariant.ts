@@ -9,15 +9,20 @@
  *
  * The arm is derived from the session order id, so it is stable for the whole
  * form session and stored on the order (orders.checkout_variant) for analysis.
+ *
+ * Result (2026-10-23, 30 days): wallets 13 paid of 17 orders created vs
+ * control 7 of 18, so the test is stopped and everyone gets the wallets.
  */
 
 export type CheckoutVariant = "wallets" | "control";
 
-/** Set to false to stop the test: everyone gets "control". */
-export const WALLET_TEST_ENABLED = true;
+/** Set to true to split traffic again; while false everyone gets WINNER. */
+export const WALLET_TEST_ENABLED = false;
+const WINNER: CheckoutVariant = "wallets";
 
 export function checkoutVariantFor(orderId: string | null | undefined): CheckoutVariant {
-  if (!WALLET_TEST_ENABLED || !orderId) return "control";
+  if (!WALLET_TEST_ENABLED) return WINNER;
+  if (!orderId) return "control";
   // Last hex digit of a random UUID: uniform, so parity splits 50/50.
   const last = Number.parseInt(orderId.replace(/-/g, "").slice(-1), 16);
   return Number.isNaN(last) || last % 2 === 0 ? "control" : "wallets";

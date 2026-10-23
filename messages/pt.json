@@ -263,7 +263,9 @@
       "browse": "procurar arquivos",
       "formats": "JPG, PNG, WebP • Máx. 5 MB",
       "processing": "A preparar a sua foto…",
-      "remove": "Remover a foto"
+      "remove": "Remover a foto",
+      "trustPrivacy": "Usada apenas no seu vídeo e apagada até 30 dias após a entrega",
+      "trustRefund": "Não gostou? Refazemos grátis ou devolvemos todo o valor em 7 dias"
     },
     "message": {
       "label": "Mensagem de aniversário",

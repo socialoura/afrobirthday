@@ -109,9 +109,12 @@ export async function sendNewOrderNotification(params: {
   provider: "Stripe" | "PayPal";
   amountLabel: string;
   voiceover: VoiceoverResult;
+  /** Vocal still generating when the notification went out (sent separately). */
+  voicePending?: boolean;
   downloadedMusicUrl?: string | null;
 }) {
-  const { order, provider, amountLabel, voiceover, downloadedMusicUrl } = params;
+  const { order, provider, amountLabel, voiceover, voicePending, downloadedMusicUrl } =
+    params;
   const voiceoverUrl = voiceover.ok ? voiceover.url : null;
 
   const siteUrl = resolveNotificationUrl();
@@ -212,6 +215,31 @@ export async function sendNewOrderNotification(params: {
   }
 }
 
+/** Follow-up for a vocal that was not ready when the order notification left. */
+export async function sendLateVoiceoverNotification(
+  order: Order,
+  voiceover: VoiceoverResult
+) {
+  const short = order.id.slice(0, 8);
+  if (voiceover.ok) {
+    await sendTelegramAudio(
+      voiceover.url,
+      `🗣️ Voiceover (arrivé en retard) — <code>${short}</code>`
+    );
+    return;
+  }
+  let message = `⚠️ <b>Voiceover ÉCHOUÉ</b> — <code>${short}</code> — ${escapeHtml(
+    describeVoiceoverFailure(voiceover.reason)
+  )}
+`;
+  if (voiceover.detail) {
+    message += `<code>${escapeHtml(voiceover.detail.slice(0, 200))}</code>
+`;
+  }
+  message += `Relancer : <code>/vocal ${short}</code>`;
+  await sendTelegramMessage(message);
+}
+
 export async function sendOverdueAlerts(overdueOrders: Order[]) {
   if (overdueOrders.length === 0) return;
 
@@ -277,9 +305,10 @@ export function buildOrdersListMessage(orders: Order[]): string {
 // Delivery promise (hours) and the point at which the team is warned that an
 // order is about to miss it. 3 of 3 PayPal "not received" disputes in Q3 2026
 // followed late deliveries, and the old once-a-day check only fired after
-// the deadline.
+// the deadline. The express warning moved from 16 h to 12 h in Oct 2026: with
+// the 16 h warning, 3 of 7 express orders were still delivered late.
 const DEADLINE_HOURS = { express: 24, standard: 48 } as const;
-const WARN_HOURS = { express: 16, standard: 36 } as const;
+const WARN_HOURS = { express: 12, standard: 36 } as const;
 
 function orderAgeHours(order: Order): number {
   return (Date.now() - new Date(order.created_at).getTime()) / 3_600_000;

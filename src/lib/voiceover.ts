@@ -12,6 +12,28 @@ import { uploadObject } from "@/lib/storage";
 
 const OPENAI_TTS_ENDPOINT = "https://api.openai.com/v1/audio/speech";
 
+// One TTS call normally answers in a few seconds; a hung call is aborted and
+// retried instead of eating the whole function budget.
+const TTS_ATTEMPT_TIMEOUT_MS = 20_000;
+const TTS_MAX_ATTEMPTS = 3;
+// Overall budget for generate + upload, retries included. Every caller runs
+// with maxDuration = 60, so this leaves room for the work around it.
+const VOICEOVER_DEADLINE_MS = 45_000;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** HTTP statuses worth retrying: rate limit and server-side failures. */
+function isRetryableStatus(status: number): boolean {
+  return status === 408 || status === 409 || status === 429 || status >= 500;
+}
+
+function isTimeoutError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error.name === "TimeoutError" || error.name === "AbortError")
+  );
+}
+
 /** Why no voiceover URL came back — surfaced in the Telegram notification. */
 export type VoiceoverFailureReason =
   | "skipped-english"
@@ -19,6 +41,7 @@ export type VoiceoverFailureReason =
   | "no-api-key"
   | "tts-error"
   | "upload-error"
+  | "timeout"
   | "exception";
 
 export type VoiceoverResult =
@@ -186,63 +209,89 @@ export async function generateVoiceover(
       ? parsedSpeed
       : 0.75;
 
-  try {
-    const response = await fetch(OPENAI_TTS_ENDPOINT, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        voice,
-        input,
-        response_format: "mp3",
-        speed,
-      }),
-    });
+  const startedAt = Date.now();
+  const remaining = () => VOICEOVER_DEADLINE_MS - (Date.now() - startedAt);
+  const body = JSON.stringify({ model, voice, input, response_format: "mp3", speed });
 
-    if (!response.ok) {
+  let buffer: Buffer | null = null;
+  let lastFailure: Extract<VoiceoverResult, { ok: false }> = {
+    ok: false,
+    reason: "timeout",
+  };
+  let attempts = 0;
+  for (let attempt = 1; attempt <= TTS_MAX_ATTEMPTS; attempt++) {
+    const budget = Math.min(TTS_ATTEMPT_TIMEOUT_MS, remaining());
+    if (budget < 3_000) break;
+    attempts = attempt;
+    try {
+      const response = await fetch(OPENAI_TTS_ENDPOINT, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body,
+        signal: AbortSignal.timeout(budget),
+      });
+
+      if (response.ok) {
+        buffer = Buffer.from(await response.arrayBuffer());
+        break;
+      }
+
       const errText = await response.text().catch(() => "");
-      console.error("OpenAI TTS error:", response.status, errText);
-      return {
+      console.error(`OpenAI TTS error (essai ${attempt}):`, response.status, errText);
+      lastFailure = {
         ok: false,
         reason: "tts-error",
         detail: `HTTP ${response.status} ${errText.slice(0, 200)}`.trim(),
       };
+      if (!isRetryableStatus(response.status)) return lastFailure;
+    } catch (error) {
+      // Covers the per-attempt timeout, network errors and a body cut mid-read.
+      console.error(`Voiceover generation error (essai ${attempt}):`, error);
+      lastFailure = isTimeoutError(error)
+        ? { ok: false, reason: "timeout", detail: `OpenAI TTS > ${Math.round(budget / 1000)}s` }
+        : {
+            ok: false,
+            reason: "exception",
+            detail: error instanceof Error ? error.message : String(error),
+          };
     }
+    if (attempt < TTS_MAX_ATTEMPTS) await sleep(1_000 * attempt);
+  }
 
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+  if (!buffer) {
+    return {
+      ...lastFailure,
+      detail: `${lastFailure.detail ?? ""} (${attempts} essai${attempts > 1 ? "s" : ""})`.trim(),
+    };
+  }
 
-    // Stable path so the recap page's URL survives a regeneration, with a short
-    // cache so the regenerated take is the one that actually plays.
-    const filename = `orders/voiceover/${orderId}-voiceover.mp3`;
-    let url: string;
+  // Stable path so the recap page's URL survives a regeneration, with a short
+  // cache so the regenerated take is the one that actually plays.
+  const filename = `orders/voiceover/${orderId}-voiceover.mp3`;
+  let uploadError: unknown;
+  for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      url = await uploadObject(filename, buffer, {
+      const url = await uploadObject(filename, buffer, {
         contentType: "audio/mpeg",
         overwrite: true,
         cacheSeconds: 60,
       });
+      return { ok: true, url };
     } catch (error) {
-      console.error("Voiceover upload error:", error);
-      return {
-        ok: false,
-        reason: "upload-error",
-        detail: error instanceof Error ? error.message : String(error),
-      };
+      console.error(`Voiceover upload error (essai ${attempt}):`, error);
+      uploadError = error;
+      if (attempt < 2 && remaining() > 5_000) await sleep(1_000);
+      else break;
     }
-
-    return { ok: true, url };
-  } catch (error) {
-    console.error("Voiceover generation error:", error);
-    return {
-      ok: false,
-      reason: "exception",
-      detail: error instanceof Error ? error.message : String(error),
-    };
   }
+  return {
+    ok: false,
+    reason: "upload-error",
+    detail: uploadError instanceof Error ? uploadError.message : String(uploadError),
+  };
 }
 
 /**
@@ -273,6 +322,8 @@ export function describeVoiceoverFailure(
       return "erreur API OpenAI";
     case "upload-error":
       return "upload Supabase échoué";
+    case "timeout":
+      return "délai dépassé";
     case "exception":
       return "erreur inattendue";
   }

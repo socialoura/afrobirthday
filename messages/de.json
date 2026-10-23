@@ -263,7 +263,9 @@
       "browse": "Dateien auswählen",
       "formats": "JPG, PNG, WebP • Max. 5 MB",
       "processing": "Dein Foto wird vorbereitet…",
-      "remove": "Foto entfernen"
+      "remove": "Foto entfernen",
+      "trustPrivacy": "Nur für dein Video verwendet, 30 Tage nach Lieferung gelöscht",
+      "trustRefund": "Nicht zufrieden? Kostenlos neu gedreht oder volle Erstattung innerhalb von 7 Tagen"
     },
     "message": {
       "label": "Geburtstagsnachricht",

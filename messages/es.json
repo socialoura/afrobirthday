@@ -263,7 +263,9 @@
       "browse": "buscar archivos",
       "formats": "JPG, PNG, WebP • Máx. 5 MB",
       "processing": "Preparando tu foto…",
-      "remove": "Quitar la foto"
+      "remove": "Quitar la foto",
+      "trustPrivacy": "Solo se usa para tu video y se borra a los 30 días de la entrega",
+      "trustRefund": "¿No te convence? Lo repetimos gratis o te devolvemos todo en 7 días"
     },
     "message": {
       "label": "Mensaje de cumpleaños",
