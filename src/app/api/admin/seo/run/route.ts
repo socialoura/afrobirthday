@@ -3,7 +3,9 @@ import { verifyAdminRequest } from "@/lib/auth";
 import { isSeoStep, runSeoStep, SEO_STEPS } from "@/lib/seoEngine";
 
 export const runtime = "nodejs";
-export const maxDuration = 800;
+// 300 s is the ceiling on the Hobby plan (the project moved off Pro in
+// Oct 2026); a higher value makes Vercel reject the whole deployment.
+export const maxDuration = 300;
 
 /**
  * Runs one engine step on demand. This is how you backfill, re-run after a

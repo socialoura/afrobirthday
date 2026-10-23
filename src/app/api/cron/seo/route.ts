@@ -3,7 +3,9 @@ import { runSeoStep, type SeoStep } from "@/lib/seoEngine";
 import { rejectUnauthorizedCron } from "@/lib/cronAuth";
 
 export const runtime = "nodejs";
-export const maxDuration = 800;
+// 300 s is the ceiling on the Hobby plan (the project moved off Pro in
+// Oct 2026); a higher value makes Vercel reject the whole deployment.
+export const maxDuration = 300;
 
 // Steps that run on every daily pass, in order.
 // Every step is attempted daily; each one enforces its own cadence, so the
@@ -20,7 +22,7 @@ export async function GET(request: Request) {
   for (const step of DAILY_STEPS) {
     // Leave headroom before the platform kills the function mid-write. Every
     // step commits its own writes, so stopping early is safe and resumable.
-    if (Date.now() - startedAt > 700_000) {
+    if (Date.now() - startedAt > 240_000) {
       return NextResponse.json({ ok: true, incomplete: true, nextStep: step, results });
     }
     try {
