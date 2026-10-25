@@ -109,6 +109,25 @@ export async function uploadToMedia(
   return publicUrl;
 }
 
+/**
+ * Checks that the upload service behind nginx is alive, without writing
+ * anything: a deliberately unsigned PUT must be refused by the service itself
+ * (a 4xx). A 5xx, typically 502, means nginx cannot reach it — on 2026-10-24 it stayed down for
+ * 22 h after a reboot and every photo upload failed unnoticed.
+ */
+export async function probeUploadService(): Promise<{ ok: boolean; status: number | null; detail?: string }> {
+  try {
+    const res = await fetch(`${MEDIA_BASE.replace(/\/$/, "")}/_upload/_healthcheck?exp=1&max=1&sig=probe`, {
+      method: "PUT",
+      body: "x",
+      signal: AbortSignal.timeout(10_000),
+    });
+    return { ok: res.status >= 400 && res.status < 500, status: res.status };
+  } catch (err) {
+    return { ok: false, status: null, detail: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 /** Server-side delete. Missing files count as deleted. */
 export async function deleteFromMedia(key: string): Promise<void> {
   const exp = Math.floor(Date.now() / 1000) + 300;

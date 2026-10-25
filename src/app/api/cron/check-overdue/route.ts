@@ -1,15 +1,23 @@
 import { NextResponse } from "next/server";
 import { rejectUnauthorizedCron } from "@/lib/cronAuth";
 import { claimOverdueAlertLevel, getUndeliveredPaidOrders } from "@/lib/db";
-import { deadlineLevel, getOverdueOrders, sendDeadlineAlert, sendOverdueAlerts } from "@/lib/telegramBot";
+import {
+  deadlineLevel,
+  getOverdueOrders,
+  sendDeadlineAlert,
+  sendOverdueAlerts,
+  sendTelegramMessage,
+} from "@/lib/telegramBot";
 import { withCronRun } from "@/lib/cronRun";
+import { probeUploadService } from "@/lib/mediaHost";
 
 export const runtime = "nodejs";
 
 /**
  * Hourly (VPS crontab). Each undelivered paid order triggers one Telegram
  * alert when it becomes "due soon" and one when it turns late; the full list
- * of late orders is still summarised once a day at 09:00 UTC.
+ * of late orders is still summarised once a day at 09:00 UTC. It also checks
+ * the media upload service, without which no customer can send a photo.
  */
 export async function GET(request: Request) {
   const unauthorized = rejectUnauthorizedCron(request, "check-overdue");
@@ -30,6 +38,16 @@ export async function GET(request: Request) {
         }
       }
 
+      // Alerts every hour while it is down: no photo, no order.
+      const upload = await probeUploadService();
+      if (!upload.ok) {
+        await sendTelegramMessage(
+          `🚨 <b>Upload média HS</b> — media.afrobirthday.com/_upload/ répond ${upload.status ?? "rien"}` +
+            (upload.detail ? ` (${upload.detail.slice(0, 120)})` : "") +
+            `\nAucun client ne peut envoyer sa photo. Sur le VPS : <code>systemctl status media-upload</code>`
+        ).catch(() => {});
+      }
+
       const overdue = getOverdueOrders(queue);
       if (overdue.length > 0 && new Date().getUTCHours() === 9) {
         await sendOverdueAlerts(overdue);
@@ -40,6 +58,7 @@ export async function GET(request: Request) {
         queue: queue.length,
         overdue: overdue.length,
         alerted,
+        uploadService: upload.status,
       });
     });
   } catch (err) {

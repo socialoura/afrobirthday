@@ -4,7 +4,7 @@
  * When a customer's birthday message is NOT in English, we generate a
  * human-sounding MP3 of someone reading the message (via OpenAI text-to-speech)
  * so the team can hear the pronunciation/intonation in the target language
- * instead of guessing. The resulting MP3 is uploaded to Supabase Storage and
+ * instead of guessing. The resulting MP3 is uploaded to the media host and
  * sent to the team over Telegram (see discordWebhook.ts / telegramBot.ts).
  */
 
@@ -182,7 +182,7 @@ export function isLikelyEnglish(text: string): boolean {
 }
 
 /**
- * Generates a spoken MP3 of `text` using OpenAI TTS and uploads it to Supabase
+ * Generates a spoken MP3 of `text` using OpenAI TTS and uploads it to the media
  * Storage. Never throws — failures come back as a typed reason so the caller can
  * report them instead of silently dropping the voiceover.
  */
@@ -321,7 +321,7 @@ export function describeVoiceoverFailure(
     case "tts-error":
       return "erreur API OpenAI";
     case "upload-error":
-      return "upload Supabase échoué";
+      return "upload média échoué";
     case "timeout":
       return "délai dépassé";
     case "exception":
