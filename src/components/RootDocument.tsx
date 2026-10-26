@@ -53,10 +53,6 @@ export const rootMetadata: Metadata = {
     ],
   },
   manifest: "/site.webmanifest",
-  // Google Search Console ownership: keep it, removing it unverifies the site.
-  verification: {
-    google: "mdcZeLx8vb1vwHKk3NcZQenGEu9XC962hkqGc419DuQ",
-  },
   keywords: [
     "birthday video",
     "personalized video",
