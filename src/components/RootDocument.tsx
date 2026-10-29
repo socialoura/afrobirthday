@@ -3,7 +3,7 @@ import "@/app/globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
-import { DM_Sans, Space_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 import { getTextDirection } from "@/i18n/config";
 import { SITE_URL } from "@/lib/siteUrl";
 import { CONSENT_COUNTRIES } from "@/lib/consent";
@@ -13,16 +13,19 @@ import DeferredGtag from "@/components/DeferredGtag";
 
 const siteUrl = SITE_URL;
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+// Keep builds independent of Google Fonts responses (including extensionless URLs).
+const dmSans = localFont({
+  src: "./fonts/dm-sans-variable.ttf",
+  weight: "400 700",
+  style: "normal",
   display: "swap",
   variable: "--font-body",
 });
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const spaceGrotesk = localFont({
+  src: "./fonts/space-grotesk-variable.ttf",
+  weight: "400 700",
+  style: "normal",
   display: "swap",
   variable: "--font-display",
 });
