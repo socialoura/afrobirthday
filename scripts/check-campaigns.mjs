@@ -18,6 +18,10 @@ import {
   renderAnnualReminderEmailHtml,
 } from "../src/lib/orderEmailTemplates.ts";
 
+// The unsubscribe link is only compared with itself, so any signing key will
+// do — a local throwaway key keeps the production secret out of .env.local.
+process.env.ADMIN_TOKEN_SECRET ||= "check-campaigns-local-only-0123456789abcdef";
+
 let ok = 0;
 let ko = 0;
 const check = (label, cond, detail = "") => {

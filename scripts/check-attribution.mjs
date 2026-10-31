@@ -34,12 +34,29 @@ const extra = sanitizeAttribution({
 });
 check("champ inconnu ignore", extra !== undefined && !("is_admin" in extra) && !("notes" in extra));
 check(
-  "sortie limitee aux six cles connues",
+  "sortie limitee aux cles connues",
   extra !== undefined &&
     JSON.stringify(Object.keys(extra).sort()) ===
-      JSON.stringify(["campaign", "firstSeenAt", "landing", "medium", "referrer", "source"]),
+      JSON.stringify([
+        "campaign", "clickId", "content", "firstSeenAt", "landing",
+        "last", "medium", "referrer", "source", "term",
+      ]),
   extra ? Object.keys(extra).join(",") : ""
 );
+
+// Le dernier contact ("last") est filtre de la meme facon.
+const withLast = sanitizeAttribution({
+  source: "email",
+  last: { source: "chatgpt.com", clickId: "abc", is_admin: true },
+});
+check(
+  "last limite a ses cles connues",
+  withLast?.last !== null &&
+    JSON.stringify(Object.keys(withLast?.last ?? {}).sort()) ===
+      JSON.stringify(["at", "campaign", "clickId", "medium", "source"]),
+  JSON.stringify(withLast?.last)
+);
+check("last vide -> null", sanitizeAttribution({ source: "x", last: { is_admin: true } })?.last === null);
 
 // Longueurs : le visiteur peut envoyer n'importe quoi.
 const long = sanitizeAttribution({ source: "a".repeat(5000), referrer: "b".repeat(5000) });
