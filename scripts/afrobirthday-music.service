@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 ExecStart=%h/.local/lib/afrobirthday-music/venv/bin/python %h/projects/afrobirthday/scripts/music-worker.py
 Environment=PYTHONDONTWRITEBYTECODE=1
-Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PATH=%h/.hermes/tools/bws-2.0.0-linux-x64:%h/.local/bin:/usr/local/bin:/usr/bin:/bin
 Environment=MUSIC_SECRET_ID=255dfcf9-b716-4bf4-b442-b4fa00dbd854
 Environment=BWS_SERVER_URL=https://vault.bitwarden.eu
 Environment=MUSIC_VAULT_ENV=%h/.hermes/profiles/afrobirthday/.env
