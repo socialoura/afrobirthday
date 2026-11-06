@@ -6,7 +6,7 @@ export type MusicJob = { jobId: string; orderId: string; musicLink: string; crea
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function secret(): string {
-  const value = process.env.ADMIN_TOKEN_SECRET;
+  const value = process.env.MUSIC_WORKER_SECRET || process.env.ADMIN_TOKEN_SECRET;
   if (!value || value.length < 32) throw new Error("Music worker secret not configured");
   return value;
 }

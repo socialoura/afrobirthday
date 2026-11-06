@@ -86,4 +86,13 @@ for(const scenario of ['upload','saved','link','both','choice']) await test('pai
  assert.deepEqual(audios,scenario==='upload'||scenario==='both'?[media+'/customer.mp3']:scenario==='saved'?[media+'/saved.mp3']:[]);
  if(scenario==='link') assert.ok(requests.some(r=>r.url.endsWith('/sendMessage')&&JSON.parse(r.body).text.includes('MP3 en cours')));
 });
+await test('dedicated worker key overrides admin key for both encryption and signatures', async()=>{
+ const dedicated='test-only-worker-key-12345678901234567890'; process.env.MUSIC_WORKER_SECRET=dedicated;
+ try {
+  const encoded=JSON.parse(encryptMusicJob(job));
+  const decipher=createDecipheriv('aes-256-gcm',createHash('sha256').update('afrobirthday-music-jobs\n'+dedicated).digest(),Buffer.from(encoded.nonce,'base64')); decipher.setAuthTag(Buffer.from(encoded.tag,'base64'));
+  assert.equal(JSON.parse(Buffer.concat([decipher.update(Buffer.from(encoded.ciphertext,'base64')),decipher.final()])).jobId,jobId);
+  assert.equal((await POST(callback())).status,200);
+ } finally { delete process.env.MUSIC_WORKER_SECRET; }
+});
 console.log(`${count} isolated music checks passed`);
