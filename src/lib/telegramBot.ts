@@ -116,6 +116,9 @@ export async function sendNewOrderNotification(params: {
   const { order, provider, amountLabel, voiceover, voicePending, downloadedMusicUrl } =
     params;
   const voiceoverUrl = voiceover.ok ? voiceover.url : null;
+  // Match the recap: a ready download wins, otherwise use the customer's MP3.
+  const readyDownloadUrl = downloadedMusicUrl || order.downloaded_music_url;
+  const musicUrl = readyDownloadUrl || order.music_file_url;
 
   const siteUrl = resolveNotificationUrl();
   let uploadLink = "";
@@ -147,8 +150,12 @@ export async function sendNewOrderNotification(params: {
     message += `\n🎵 <b>Lien musique :</b>\n${escapeHtml(order.music_link)}\n`;
   }
 
-  if (downloadedMusicUrl) {
-    message += `✅ MP3 téléchargé\n`;
+  if (musicUrl) {
+    message += readyDownloadUrl
+      ? `✅ MP3 téléchargé\n`
+      : `✅ MP3 fourni par le client\n`;
+    // Keep a direct link even if Telegram cannot attach the audio.
+    message += `${escapeHtml(musicUrl)}\n`;
   }
 
   // Always report the voiceover outcome. A silently missing line used to be the
@@ -206,10 +213,10 @@ export async function sendNewOrderNotification(params: {
     );
   }
 
-  // Send downloaded music if available
-  if (downloadedMusicUrl) {
+  // Send the music whether it came from a link or a customer upload.
+  if (musicUrl) {
     await sendTelegramAudio(
-      downloadedMusicUrl,
+      musicUrl,
       `🎵 Musique — <code>${order.id.slice(0, 8)}</code>`
     );
   }
