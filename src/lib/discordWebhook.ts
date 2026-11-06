@@ -262,11 +262,8 @@ export async function sendOrderPaidDiscord(params: {
 }
 
 /**
- * Single entry point for the "paid order" Discord notification: downloads the
- * custom song MP3 from its link (best-effort) and then sends the rich embed,
- * attaching the MP3 when available. Shared by every payment-confirmation path
- * (Stripe client confirm, Stripe webhook, PayPal capture) so the MP3 is always
- * attached regardless of which path wins the paid-dedup race.
+ * Shared by all paid-confirmation paths. Existing music is attached immediately;
+ * link downloads run durably on the VPS and are sent separately by the same bot.
  */
 const MEDIA_DEADLINE_MS = 30_000;
 
@@ -290,24 +287,12 @@ export async function notifyOrderPaid(params: {
     }
   };
 
-  // Both jobs are best-effort and must not block the notification, so they run
-  // concurrently. They are awaited (and persisted) separately: the music
-  // download can take ~30s on the Spotify path, and it must never be able to
-  // swallow an already-generated voiceover if the function is cut short.
-  const musicPromise = (async (): Promise<string | null> => {
-    if (!(order.music_link && order.music_option === "custom")) return null;
-    try {
-      const { downloadMusicFromLink } = await import("@/lib/musicDownloader");
-      const result = await downloadMusicFromLink(order.music_link, order.id);
-      if (result.success && result.mp3Url) {
-        console.log(`Music downloaded for order ${order.id}:`, result.mp3Url);
-        return result.mp3Url;
-      }
-    } catch (err) {
-      console.error("Failed to download music:", err);
-      // Continue anyway — the notification still includes the link.
-    }
-    return null;
+  // The VPS downloads independently of the payment function's 60s lifetime.
+  // A customer's MP3 or a previously saved download never needs re-fetching.
+  const musicPromise = (async () => {
+    if (order.music_option !== "custom" || !order.music_link || order.music_file_url || order.downloaded_music_url) return { queued: false, error: undefined };
+    const { queueMusicDownload } = await import("@/lib/musicDownloader");
+    return queueMusicDownload(order.music_link, order.id);
   })();
 
   const voicePromise = (async (): Promise<VoiceoverResult> => {
@@ -336,26 +321,23 @@ export async function notifyOrderPaid(params: {
     if (result.ok) await persistMedia({ voiceoverUrl: result.url });
     return result;
   });
-  const persistedMusic = musicPromise.then(async (url) => {
-    if (url) await persistMedia({ downloadedMusicUrl: url });
-    return url;
-  });
 
-  // The team notification must go out inside the function's 60s budget even
-  // when a music backend is slow: past the deadline, notify with whatever is
-  // ready (the recap page shows media that lands later).
-  const deadline = new Promise<"timeout">((resolve) =>
-    setTimeout(() => resolve("timeout"), MEDIA_DEADLINE_MS)
-  );
+
+  // Bound the voiceover wait. Music queueing has its own eight-second timeout.
+  let deadlineTimer: ReturnType<typeof setTimeout>;
+  const deadline = new Promise<"timeout">((resolve) => {
+    deadlineTimer = setTimeout(() => resolve("timeout"), MEDIA_DEADLINE_MS);
+  });
   const voiceRace = await Promise.race([persistedVoice, deadline]);
+  clearTimeout(deadlineTimer!);
   // Past the deadline the vocal is still being generated (with retries): the
   // notification says so, and the vocal follows in its own message below.
   const voicePending = voiceRace === "timeout";
   const voiceover: VoiceoverResult = voicePending
     ? { ok: false, reason: "timeout", detail: "vocal encore en cours" }
     : voiceRace;
-  const musicRace = await Promise.race([persistedMusic, deadline]);
-  const downloadedMusicUrl = musicRace === "timeout" ? null : musicRace;
+  const musicResult = await musicPromise;
+  const downloadedMusicUrl = order.downloaded_music_url || null;
 
   const voiceoverUrl = voiceover.ok ? voiceover.url : null;
   await sendOrderPaidDiscord({ ...params, downloadedMusicUrl, voiceoverUrl });
@@ -370,6 +352,8 @@ export async function notifyOrderPaid(params: {
       voiceover,
       voicePending,
       downloadedMusicUrl,
+      musicPending: musicResult.queued,
+      musicFailure: musicResult.error,
     });
   } catch (err) {
     console.error("Telegram notification error:", err);

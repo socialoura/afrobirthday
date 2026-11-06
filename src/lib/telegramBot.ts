@@ -24,16 +24,27 @@ async function telegramRequest(method: string, body: Record<string, unknown>) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(20_000),
     });
     if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      console.error(`Telegram ${method} failed:`, res.status, text);
+      console.error(`Telegram ${method} failed:`, res.status);
     }
     return res;
-  } catch (err) {
-    console.error(`Telegram ${method} error:`, err);
+  } catch {
+    console.error(`Telegram ${method} request failed`);
     return null;
   }
+}
+
+export type TelegramReceipt = { ok: boolean; messageId?: number; botUsername?: string; chatId?: string | number };
+
+async function telegramReceipt(response: Response | null): Promise<TelegramReceipt> {
+  if (!response?.ok) return { ok: false };
+  try {
+    const data = await response.json();
+    if (data.ok !== true || !data.result?.message_id) return { ok: false };
+    return { ok: true, messageId: data.result.message_id, botUsername: data.result.from?.username, chatId: data.result.chat?.id };
+  } catch { return { ok: false }; }
 }
 
 export async function sendTelegramMessage(
@@ -42,14 +53,14 @@ export async function sendTelegramMessage(
   parseMode: "HTML" | "MarkdownV2" = "HTML"
 ) {
   const targetChat = chatId || getChatId();
-  if (!targetChat) return;
+  if (!targetChat) return { ok: false };
 
-  await telegramRequest("sendMessage", {
+  return telegramReceipt(await telegramRequest("sendMessage", {
     chat_id: targetChat,
     text,
     parse_mode: parseMode,
     disable_web_page_preview: true,
-  });
+  }));
 }
 
 export async function sendTelegramPhoto(
@@ -74,14 +85,14 @@ export async function sendTelegramAudio(
   chatId?: string
 ) {
   const targetChat = chatId || getChatId();
-  if (!targetChat) return;
+  if (!targetChat) return { ok: false };
 
-  await telegramRequest("sendAudio", {
+  return telegramReceipt(await telegramRequest("sendAudio", {
     chat_id: targetChat,
     audio: audioUrl,
     caption,
     parse_mode: "HTML",
-  });
+  }));
 }
 
 function escapeHtml(text: string): string {
@@ -112,8 +123,10 @@ export async function sendNewOrderNotification(params: {
   /** Vocal still generating when the notification went out (sent separately). */
   voicePending?: boolean;
   downloadedMusicUrl?: string | null;
+  musicPending?: boolean;
+  musicFailure?: string;
 }) {
-  const { order, provider, amountLabel, voiceover, voicePending, downloadedMusicUrl } =
+  const { order, provider, amountLabel, voiceover, voicePending, downloadedMusicUrl, musicPending, musicFailure } =
     params;
   const voiceoverUrl = voiceover.ok ? voiceover.url : null;
   // Match the recap: a ready download wins, otherwise use the customer's MP3.
@@ -156,6 +169,10 @@ export async function sendNewOrderNotification(params: {
       : `✅ MP3 fourni par le client\n`;
     // Keep a direct link even if Telegram cannot attach the audio.
     message += `${escapeHtml(musicUrl)}\n`;
+  } else if (musicPending) {
+    message += `⏳ MP3 en cours — le fichier sera envoyé séparément par ce bot.\n`;
+  } else if (order.music_option === "custom") {
+    message += `⚠️ <b>MP3 MANQUANT</b> — ${escapeHtml(musicFailure || "Aucun fichier ni lien exploitable ; récupération manuelle nécessaire")}\n`;
   }
 
   // Always report the voiceover outcome. A silently missing line used to be the
