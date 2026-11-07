@@ -20,6 +20,7 @@ import { deviceTypeFromUserAgent } from "@/lib/device";
 import { validateOrderInput } from "@/lib/orderInput";
 import { getActivePriceTest, isControlCurrency } from "@/lib/priceTest";
 import { orderRequestContext } from "@/lib/requestContext";
+import { isSyntheticRequest, syntheticStripe } from "@/lib/syntheticOrder";
 
 export const runtime = "nodejs";
 
@@ -30,6 +31,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    // Daily end-to-end check: same route, Stripe test mode, own order status.
+    const synthetic = isSyntheticRequest(request);
+    const stripeClient = synthetic ? syntheticStripe() : stripe;
     const {
       totalPrice,
       hasCustomSong,
@@ -138,9 +142,10 @@ export async function POST(request: NextRequest) {
       danceExtended: resolvedDanceExtended,
       attribution: sanitizeAttribution(rawAttribution),
       ...orderRequestContext(request, body),
+      synthetic,
     });
 
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await stripeClient.paymentIntents.create({
       amount: finalCharge.stripeAmount,
       currency: finalCharge.currency.toLowerCase(),
       receipt_email: email,
@@ -155,6 +160,7 @@ export async function POST(request: NextRequest) {
         totalUsd: referenceUsd.toFixed(2),
         exchangeRate: String(finalCharge.rate),
         ...(appliedPromoCode ? { promoCode: appliedPromoCode, discountUsd: discountUsd.toFixed(2) } : {}),
+        ...(synthetic ? { synthetic: "1" } : {}),
       },
       automatic_payment_methods: {
         enabled: true,
@@ -167,7 +173,7 @@ export async function POST(request: NextRequest) {
       // Best effort: a superseded intent left open could still be paid at its
       // old amount. The order already points at the new intent, so the
       // resulting payment_intent.canceled webhook leaves the order alone.
-      stripe.paymentIntents.cancel(previousIntentId).catch(() => {});
+      stripeClient.paymentIntents.cancel(previousIntentId).catch(() => {});
     }
 
     return NextResponse.json({ 

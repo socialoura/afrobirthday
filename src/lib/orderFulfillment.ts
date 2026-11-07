@@ -5,8 +5,10 @@ import {
   markConfirmationEmailSent,
   markOrderPaid,
   markOrderPaidPayPal,
+  markSyntheticOrderPaid,
   type Order,
 } from "@/lib/db";
+import { isSyntheticStatus, SYNTHETIC_PAID } from "@/lib/syntheticOrder";
 import { capturePayPalOrder, getPayPalOrder, type PayPalOrderSummary } from "@/lib/paypal";
 import { notifyOrderPaid } from "@/lib/discordWebhook";
 import { handlePossibleReferralRedemption } from "@/lib/referralEmail";
@@ -116,11 +118,17 @@ export async function fulfillStripePaymentIntent(
     ).catch(() => {});
     return "order-not-found";
   }
-  if (existing.status === "paid") return "already-processed";
+  if (existing.status === "paid" || existing.status === SYNTHETIC_PAID) return "already-processed";
+
+  // A test-mode payment may only ever settle a synthetic order, and a
+  // synthetic order only a test-mode payment.
+  const synthetic = isSyntheticStatus(existing.status);
+  if (synthetic === paymentIntent.livemode) return "order-not-found";
 
   const expected = expectedStripeCharge(existing);
   const paidCurrency = (paymentIntent.currency ?? "").toUpperCase();
   if (!expected || expected.amount !== paymentIntent.amount || expected.currency !== paidCurrency) {
+    if (synthetic) return "amount-mismatch";
     await sendTelegramMessage(
       `🚨 <b>Montant Stripe incohérent — commande NON validée</b>\nCommande <code>${orderId}</code>\nPayé: ${formatStripeAmount(
         paymentIntent.amount,
@@ -130,6 +138,13 @@ export async function fulfillStripePaymentIntent(
       }\nPaymentIntent <code>${paymentIntent.id}</code>. Vérifier les options avant production ou rembourser.`
     ).catch(() => {});
     return "amount-mismatch";
+  }
+
+  if (synthetic) {
+    // Same checks as a real order, then stop: no email, no notification,
+    // no promo claim, no ad conversion.
+    const claimedSynthetic = await markSyntheticOrderPaid(orderId, paymentIntent.id);
+    return claimedSynthetic ? "processed" : "already-processed";
   }
 
   const claimed = await markOrderPaid(orderId, paymentIntent.id);

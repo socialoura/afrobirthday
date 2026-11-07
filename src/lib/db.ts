@@ -431,6 +431,8 @@ export type OrderCreateInput = {
   clientUserAgent?: string;
   /** Arm of the checkout A/B test ("wallets" | "control"). */
   checkoutVariant?: string;
+  /** Daily end-to-end check (see lib/syntheticOrder.ts): own status, no side effects. */
+  synthetic?: boolean;
 };
 
 /**
@@ -562,7 +564,8 @@ export async function createOrder(input: OrderCreateInput) {
       oai_ref,
       client_ip,
       client_user_agent,
-      checkout_variant
+      checkout_variant,
+      status
     ) VALUES (
       ${input.id}::uuid,
       ${input.email},
@@ -601,7 +604,8 @@ export async function createOrder(input: OrderCreateInput) {
       ${input.adsConsent ? input.oaiRef ?? null : null},
       ${input.adsConsent ? input.clientIp ?? null : null},
       ${input.adsConsent ? input.clientUserAgent ?? null : null},
-      ${input.checkoutVariant ?? null}
+      ${input.checkoutVariant ?? null},
+      ${input.synthetic ? "synthetic_pending" : "pending"}
     )
     -- One customer, one order row. The client keeps a stable id for the whole
     -- form session, so switching from card to PayPal — or stepping back to
@@ -632,7 +636,10 @@ export async function createOrder(input: OrderCreateInput) {
       client_ip = EXCLUDED.client_ip,
       client_user_agent = EXCLUDED.client_user_agent,
       checkout_variant = EXCLUDED.checkout_variant
-    WHERE orders.status = 'pending'
+    -- A synthetic attempt can only rewrite a synthetic row, and a real one a
+    -- real row: the id space is shared, the statuses never are.
+    WHERE orders.status = EXCLUDED.status
+      AND orders.status IN ('pending', 'synthetic_pending')
   `;
 }
 
@@ -679,6 +686,32 @@ export async function markOrderPaid(
   `;
 
   return claimed.length === 1;
+}
+
+/** Synthetic counterpart of markOrderPaid: same atomic claim, its own status. */
+export async function markSyntheticOrderPaid(
+  orderId: string,
+  paymentIntentId: string
+): Promise<boolean> {
+  const sql = getSql();
+  const claimed = await sql`
+    UPDATE orders
+    SET status = 'synthetic_paid', payment_provider = 'stripe', stripe_payment_intent_id = ${paymentIntentId}
+    WHERE id = ${orderId}::uuid AND status = 'synthetic_pending'
+    RETURNING id
+  `;
+  return claimed.length === 1;
+}
+
+/** Deletes an order only if it is synthetic; returns the status it had. */
+export async function deleteSyntheticOrder(orderId: string): Promise<string | null> {
+  const sql = getSql();
+  const rows = await sql`
+    DELETE FROM orders
+    WHERE id = ${orderId}::uuid AND status IN ('synthetic_pending', 'synthetic_paid')
+    RETURNING status
+  `;
+  return rows.length === 1 ? String(rows[0].status) : null;
 }
 
 export async function attachPayPalOrderToOrder(orderId: string, paypalOrderId: string) {

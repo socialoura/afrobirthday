@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { ensureOrdersTable } from "@/lib/db";
 import { fulfillStripePaymentIntent } from "@/lib/orderFulfillment";
 import { sendTelegramMessage } from "@/lib/telegramBot";
+import { isSyntheticRequest, syntheticStripe } from "@/lib/syntheticOrder";
 
 export const runtime = "nodejs";
 // notifyOrderPaid generates the TTS voiceover and downloads the custom song
@@ -15,7 +16,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export async function POST(request: NextRequest) {
+  // Daily end-to-end check: its payment lives in Stripe test mode. Errors are
+  // returned to the checker instead of alerting the team on Telegram.
+  const synthetic = isSyntheticRequest(request);
   try {
+    const stripeClient = synthetic ? syntheticStripe() : stripe;
     const body = await request.json();
     const { paymentIntentId, orderId } = body as {
       paymentIntentId?: string;
@@ -32,7 +37,7 @@ export async function POST(request: NextRequest) {
     // succeeded" alert, which anyone could otherwise trigger at will.
     let paymentIntent: Stripe.PaymentIntent;
     try {
-      paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      paymentIntent = await stripeClient.paymentIntents.retrieve(paymentIntentId);
     } catch (err) {
       if (err instanceof Stripe.errors.StripeInvalidRequestError) {
         return NextResponse.json({ error: "Unknown payment" }, { status: 400 });
@@ -75,6 +80,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Confirm payment error:", error);
+    if (synthetic) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : String(error) },
+        { status: 500 }
+      );
+    }
     await sendTelegramMessage(
       `⚠️ <b>confirm-payment failed</b>\nA Stripe payment may have succeeded but order confirmation (email/notification) failed to process.\nError: ${
         error instanceof Error ? error.message : String(error)
