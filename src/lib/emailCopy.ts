@@ -32,6 +32,7 @@ export type EmailCopy = {
   videoCta: string;
   videoFallback: string;
   videoReference: string;
+  videoSocialPermission: string;
   thanks: string;
   team: string;
   footerTagline: string;
@@ -87,6 +88,7 @@ const COPY: Record<string, EmailCopy> = {
     videoCta: "Watch my video",
     videoFallback: "If the button doesn't open, copy this link into your browser:",
     videoReference: "Order reference: {ref}. We'd love your feedback — just reply to this email.",
+    videoSocialPermission: "May we share your video publicly on AfroBirthday’s Instagram and TikTok accounts to showcase our work? If you agree, reply to this email with “Yes, I authorize AfroBirthday to publish this video on Instagram and TikTok.” This is entirely optional: without your explicit permission, we will not publish it, and your choice does not affect your order.",
     thanks: "Thanks for choosing AfroBirthday,",
     team: "The AfroBirthday team",
     footerTagline: "AfroBirthday — Personalized birthday videos",
@@ -140,6 +142,7 @@ const COPY: Record<string, EmailCopy> = {
     videoCta: "Voir ma vidéo",
     videoFallback: "Si le bouton ne s'ouvre pas, copiez ce lien dans votre navigateur :",
     videoReference: "Référence de commande : {ref}. Votre avis nous intéresse — répondez simplement à cet e-mail.",
+    videoSocialPermission: "Nous autorisez-vous à partager publiquement votre vidéo sur les comptes Instagram et TikTok d’AfroBirthday pour présenter notre travail ? Si vous êtes d’accord, répondez à cet e-mail : « Oui, j’autorise AfroBirthday à publier cette vidéo sur Instagram et TikTok. » C’est entièrement facultatif : sans votre accord explicite, nous ne la publierons pas, et votre choix ne change rien à votre commande.",
     thanks: "Merci d'avoir choisi AfroBirthday,",
     team: "L'équipe AfroBirthday",
     footerTagline: "AfroBirthday — Vidéos d'anniversaire personnalisées",
@@ -193,6 +196,7 @@ const COPY: Record<string, EmailCopy> = {
     videoCta: "Ver mi vídeo",
     videoFallback: "Si el botón no se abre, copia este enlace en tu navegador:",
     videoReference: "Referencia del pedido: {ref}. Nos encantaría saber tu opinión — responde a este email.",
+    videoSocialPermission: "¿Nos autorizas a compartir tu vídeo públicamente en las cuentas de Instagram y TikTok de AfroBirthday para mostrar nuestro trabajo? Si estás de acuerdo, responde a este correo: «Sí, autorizo a AfroBirthday a publicar este vídeo en Instagram y TikTok». Es totalmente opcional: sin tu permiso explícito no lo publicaremos, y tu decisión no afecta a tu pedido.",
     thanks: "Gracias por elegir AfroBirthday,",
     team: "El equipo de AfroBirthday",
     footerTagline: "AfroBirthday — Vídeos de cumpleaños personalizados",
@@ -246,6 +250,7 @@ const COPY: Record<string, EmailCopy> = {
     videoCta: "Mein Video ansehen",
     videoFallback: "Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:",
     videoReference: "Bestellnummer: {ref}. Wir freuen uns über dein Feedback — antworte einfach auf diese E-Mail.",
+    videoSocialPermission: "Dürfen wir dein Video öffentlich auf den Instagram- und TikTok-Konten von AfroBirthday teilen, um unsere Arbeit vorzustellen? Wenn du einverstanden bist, antworte auf diese E-Mail: „Ja, ich erlaube AfroBirthday, dieses Video auf Instagram und TikTok zu veröffentlichen.“ Das ist völlig freiwillig: Ohne deine ausdrückliche Zustimmung veröffentlichen wir es nicht, und deine Entscheidung hat keinen Einfluss auf deine Bestellung.",
     thanks: "Danke, dass du AfroBirthday gewählt hast,",
     team: "Dein AfroBirthday-Team",
     footerTagline: "AfroBirthday — Personalisierte Geburtstagsvideos",
@@ -299,6 +304,7 @@ const COPY: Record<string, EmailCopy> = {
     videoCta: "Guarda il mio video",
     videoFallback: "Se il pulsante non si apre, copia questo link nel browser:",
     videoReference: "Riferimento ordine: {ref}. Ci farebbe piacere un tuo parere — rispondi a questa email.",
+    videoSocialPermission: "Ci autorizzi a condividere pubblicamente il tuo video sugli account Instagram e TikTok di AfroBirthday per mostrare il nostro lavoro? Se sei d’accordo, rispondi a questa email: «Sì, autorizzo AfroBirthday a pubblicare questo video su Instagram e TikTok». È del tutto facoltativo: senza il tuo consenso esplicito non lo pubblicheremo e la tua scelta non influisce sul tuo ordine.",
     thanks: "Grazie per aver scelto AfroBirthday,",
     team: "Il team AfroBirthday",
     footerTagline: "AfroBirthday — Video di compleanno personalizzati",
@@ -352,6 +358,7 @@ const COPY: Record<string, EmailCopy> = {
     videoCta: "Ver o meu vídeo",
     videoFallback: "Se o botão não abrir, copie este link para o navegador:",
     videoReference: "Referência da encomenda: {ref}. Adorávamos saber a sua opinião — responda a este email.",
+    videoSocialPermission: "Autoriza-nos a partilhar publicamente o seu vídeo nas contas de Instagram e TikTok da AfroBirthday para mostrar o nosso trabalho? Se concordar, responda a este e-mail: «Sim, autorizo a AfroBirthday a publicar este vídeo no Instagram e no TikTok». É totalmente opcional: sem a sua autorização explícita não o publicaremos, e a sua escolha não afeta a sua encomenda.",
     thanks: "Obrigado por escolher a AfroBirthday,",
     team: "A equipa AfroBirthday",
     footerTagline: "AfroBirthday — Vídeos de aniversário personalizados",
@@ -405,6 +412,7 @@ const COPY: Record<string, EmailCopy> = {
     videoCta: "Bekijk mijn video",
     videoFallback: "Werkt de knop niet? Kopieer deze link in je browser:",
     videoReference: "Bestelnummer: {ref}. We horen graag wat je ervan vindt — beantwoord gewoon deze e-mail.",
+    videoSocialPermission: "Mogen we je video openbaar delen op de Instagram- en TikTok-accounts van AfroBirthday om ons werk te laten zien? Als je akkoord gaat, antwoord dan op deze e-mail: “Ja, ik geef AfroBirthday toestemming om deze video op Instagram en TikTok te publiceren.” Dit is volledig vrijwillig: zonder je uitdrukkelijke toestemming publiceren we de video niet, en je keuze heeft geen invloed op je bestelling.",
     thanks: "Bedankt voor je keuze voor AfroBirthday,",
     team: "Het AfroBirthday-team",
     footerTagline: "AfroBirthday — Persoonlijke verjaardagsvideo's",
@@ -458,6 +466,7 @@ const COPY: Record<string, EmailCopy> = {
     videoCta: "شاهد الفيديو",
     videoFallback: "إذا لم يعمل الزر، انسخ هذا الرابط في متصفحك:",
     videoReference: "رقم الطلب: {ref}. يسعدنا سماع رأيك — رد على هذه الرسالة.",
+    videoSocialPermission: "هل تسمح لنا بمشاركة فيديوك علنًا على حسابَي AfroBirthday على Instagram وTikTok لعرض أعمالنا؟ إذا وافقت، يُرجى الرد على هذا البريد: «نعم، أسمح لـ AfroBirthday بنشر هذا الفيديو على Instagram وTikTok». هذا اختياري تمامًا: لن ننشره دون موافقتك الصريحة، ولن يؤثر قرارك على طلبك.",
     thanks: "شكرًا لاختيارك AfroBirthday،",
     team: "فريق AfroBirthday",
     footerTagline: "AfroBirthday — فيديوهات أعياد ميلاد مخصصة",
@@ -511,6 +520,7 @@ const COPY: Record<string, EmailCopy> = {
     videoCta: "मेरा वीडियो देखें",
     videoFallback: "अगर बटन न खुले, तो यह लिंक अपने ब्राउज़र में कॉपी करें:",
     videoReference: "ऑर्डर संदर्भ: {ref}. हमें आपकी राय जानकर खुशी होगी — बस इस ईमेल का जवाब दें।",
+    videoSocialPermission: "क्या आप हमें अपना काम दिखाने के लिए AfroBirthday के Instagram और TikTok खातों पर आपका वीडियो सार्वजनिक रूप से साझा करने की अनुमति देते हैं? यदि आप सहमत हैं, तो इस ईमेल का जवाब दें: “हाँ, मैं AfroBirthday को इस वीडियो को Instagram और TikTok पर प्रकाशित करने की अनुमति देता/देती हूँ।” यह पूरी तरह वैकल्पिक है: आपकी स्पष्ट अनुमति के बिना हम इसे प्रकाशित नहीं करेंगे, और आपके निर्णय से आपके ऑर्डर पर कोई असर नहीं पड़ेगा।",
     thanks: "AfroBirthday चुनने के लिए धन्यवाद,",
     team: "AfroBirthday टीम",
     footerTagline: "AfroBirthday — पर्सनलाइज़्ड जन्मदिन वीडियो",
@@ -564,6 +574,7 @@ const COPY: Record<string, EmailCopy> = {
     videoCta: "观看我的视频",
     videoFallback: "如果按钮无法打开，请将此链接复制到浏览器：",
     videoReference: "订单编号：{ref}。欢迎反馈意见——直接回复此邮件即可。",
+    videoSocialPermission: "您是否同意我们在 AfroBirthday 的 Instagram 和 TikTok 账号上公开分享您的视频，以展示我们的作品？如果同意，请回复此邮件：“是的，我授权 AfroBirthday 在 Instagram 和 TikTok 上发布此视频。”这完全自愿：未经您的明确同意，我们不会发布，您的选择也不会影响您的订单。",
     thanks: "感谢您选择 AfroBirthday，",
     team: "AfroBirthday 团队",
     footerTagline: "AfroBirthday — 专属生日视频",
@@ -619,6 +630,7 @@ COPY.ru = {
   videoCta: "Смотреть видео",
   videoFallback: "Если кнопка не открывается, скопируйте эту ссылку в браузер:",
   videoReference: "Номер заказа: {ref}. Будем рады вашему отзыву — просто ответьте на это письмо.",
+  videoSocialPermission: "Разрешаете ли вы нам публично поделиться вашим видео в аккаунтах AfroBirthday в Instagram и TikTok, чтобы показать нашу работу? Если вы согласны, ответьте на это письмо: «Да, я разрешаю AfroBirthday опубликовать это видео в Instagram и TikTok». Это полностью добровольно: без вашего явного согласия мы не будем его публиковать, и ваш выбор не повлияет на заказ.",
   thanks: "Спасибо, что выбрали AfroBirthday,",
   team: "Команда AfroBirthday",
   footerTagline: "AfroBirthday — персональные видео на день рождения",

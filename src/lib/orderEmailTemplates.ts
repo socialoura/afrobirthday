@@ -102,6 +102,8 @@ export function renderFinalVideoEmailHtml(order: Order, videoUrl: string) {
 
       <p style="margin:0 0 16px;">${fill(c.videoReference, { ref: `<strong>${orderRef(order)}</strong>` })}</p>
 
+      <p style="margin:0 0 16px;">${escapeHtml(c.videoSocialPermission)}</p>
+
       <p style="margin:0 0 16px;">
         ${c.thanks}<br/>
         ${c.team}
@@ -127,6 +129,8 @@ export function renderFinalVideoEmailText(order: Order, videoUrl: string) {
     videoUrl,
     "",
     fill(c.videoReference, { ref: orderRef(order) }),
+    "",
+    c.videoSocialPermission,
     "",
     c.thanks,
     c.team,
